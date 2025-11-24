@@ -1,0 +1,182 @@
+// --------------------------------------------
+// GENERATOR & DATASOURCE
+// --------------------------------------------
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// --------------------------------------------
+// ENUMS
+// --------------------------------------------
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum TransactionStatus {
+  PENDING
+  PAID
+  CANCELED
+}
+
+enum AccountType {
+  BANK
+  WALLET
+  OTHER
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+// --------------------------------------------
+// USER
+// --------------------------------------------
+model User {
+  id                String          @id @default(uuid())
+  name              String?
+  email             String          @unique
+  password          String
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  accounts        Account[]
+  categories      Category[]
+  transactions    Transaction[]
+  creditCards     CreditCard[]
+  recurringRules  RecurringRule[]
+}
+
+// --------------------------------------------
+// ACCOUNT
+// --------------------------------------------
+model Account {
+  id          Int            @id @default(autoincrement())
+  userId      String
+  name        String
+  type        AccountType
+  balance     Decimal         @default(0.00) @db.Decimal(10, 2)
+  active      Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  user          User           @relation(fields: [userId], references: [id])
+  transactions  Transaction[]
+  recurringRules RecurringRule[] // 👈 RELAÇÃO ADICIONADA
+}
+
+// --------------------------------------------
+// CATEGORY
+// --------------------------------------------
+model Category {
+  id         Int           @id @default(autoincrement())
+  userId     String
+  name       String
+  type       CategoryType
+  parentId   Int?
+
+  user       User          @relation(fields: [userId], references: [id])
+  parent     Category?     @relation("CategoryChildren", fields: [parentId], references: [id])
+  children   Category[]    @relation("CategoryChildren")
+
+  transactions   Transaction[]
+  recurringRules RecurringRule[]  // 👈 RELAÇÃO ADICIONADA
+}
+
+// --------------------------------------------
+// CREDIT CARD
+// --------------------------------------------
+model CreditCard {
+  id          Int            @id @default(autoincrement())
+  userId      String
+  name        String
+  limit       Decimal        @db.Decimal(10, 2)
+  closeDay    Int
+  dueDay      Int
+  active      Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+
+  user           User           @relation(fields: [userId], references: [id])
+  invoices       Invoice[]
+  transactions   Transaction[]
+  recurringRules RecurringRule[]  // 👈 RELAÇÃO ADICIONADA
+}
+
+// --------------------------------------------
+// INVOICE
+// --------------------------------------------
+model Invoice {
+  id            Int         @id @default(autoincrement())
+  creditCardId  Int
+  month         Int
+  year          Int
+  status        String
+  total         Decimal      @default(0.00) @db.Decimal(10, 2)
+  dueDate       DateTime?
+
+  creditCard   CreditCard   @relation(fields: [creditCardId], references: [id])
+  transactions Transaction[]
+}
+
+// --------------------------------------------
+// TRANSACTION
+// --------------------------------------------
+model Transaction {
+  id             Int               @id @default(autoincrement())
+  userId         String
+  type           TransactionType
+  accountId      Int?
+  creditCardId   Int?
+  invoiceId      Int?
+  categoryId     Int
+  description    String
+  value          Decimal           @db.Decimal(10, 2)
+  date           DateTime
+  status         TransactionStatus @default(PENDING)
+  fixed          Boolean           @default(false)
+  recurringRuleId Int?
+  installment     Int?
+  installments    Int?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user           User             @relation(fields: [userId], references: [id])
+  account        Account?         @relation(fields: [accountId], references: [id])
+  creditCard     CreditCard?      @relation(fields: [creditCardId], references: [id])
+  invoice        Invoice?         @relation(fields: [invoiceId], references: [id])
+  category       Category         @relation(fields: [categoryId], references: [id])
+  recurringRule  RecurringRule?   @relation(fields: [recurringRuleId], references: [id])
+}
+
+// --------------------------------------------
+// RECURRING RULE
+// --------------------------------------------
+model RecurringRule {
+  id            Int           @id @default(autoincrement())
+  userId        String
+  type          TransactionType
+  description   String
+  value         Decimal        @db.Decimal(10, 2)
+  categoryId    Int
+  accountId     Int?
+  creditCardId  Int?
+  frequency     String
+  dayOfMonth    Int?
+  startDate     DateTime
+  endDate       DateTime?
+  active        Boolean        @default(true)
+
+  user        User            @relation(fields: [userId], references: [id])
+  category    Category        @relation(fields: [categoryId], references: [id])
+  account     Account?        @relation(fields: [accountId], references: [id])
+  creditCard  CreditCard?     @relation(fields: [creditCardId], references: [id])
+  transactions Transaction[]
+}
