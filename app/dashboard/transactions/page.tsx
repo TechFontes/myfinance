@@ -4,24 +4,36 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
-import { cookies } from "next/headers"
-import { DBTransaction } from "@/types/db"
+import { getUserFromRequest } from "@/lib/auth"
+import { listTransactionsByUser } from "@/services/transactionServer"
+import { Decimal } from "@prisma/client/runtime/library"
 
 
-async function getTransactions():Promise<DBTransaction[]> {
-  const token = (await cookies()).get("auth_token")?.value
-
-  const res = await fetch(`/api/transactions`, {
-    method: "GET",
-    headers: {
-      Cookie: `auth_token=${token}`,
-    },
-    cache: "no-store",
-  })
-
-  if (!res.ok) return []
-
-  return res.json()
+async function getTransactions() {
+  const user = await getUserFromRequest()
+  if (!user) {
+    return [{
+      id: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userId: '',
+      type: 'EXPENSE',
+      accountId: 0,
+      creditCardId: 0,
+      invoiceId: 0,
+      categoryId: 0,
+      value: new Decimal(2),
+      date: new Date(),
+      status: 'PENDING',
+      fixed: true,
+      recurringRuleId: 0,
+      installment: 0,
+      installments: 0,
+      description: "",
+      category:{id:0,name:""}
+    }]
+  }
+  return await listTransactionsByUser(user.id)
 }
 
 export default async function TransactionsPage() {
@@ -78,7 +90,7 @@ export default async function TransactionsPage() {
           </thead>
 
           <tbody>
-            {transactions.map((t: any) => (
+            {transactions.map((t) => (
               <tr key={t.id} className="border-b hover:bg-muted/30">
                 <td className="p-3">{t.description}</td>
                 <td className="p-3">{t.category?.name ?? "—"}</td>

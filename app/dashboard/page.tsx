@@ -1,43 +1,24 @@
 import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { ArrowDownIcon, ArrowUpIcon, WalletIcon, ChevronLeft, ChevronRight } from "lucide-react"
-import { cookies } from "next/headers"
+import { ArrowDownIcon, ArrowUpIcon, WalletIcon } from "lucide-react"
+import { getUserFromRequest } from "@/lib/auth"
+import { getFinanceSummary, getCategoryTotals, getAvailableMonths } from "@/services/dashboardService"
 
 async function getDashboardData(month: string) {
-  const token = (await cookies()).get("auth_token")?.value
+  const user = await getUserFromRequest()
+  if (!user) {
+    return {summary: {income: 0, expense: 0, balance: 0}, categories: [], months: []
+    }
+  }
+    const summary = await getFinanceSummary(user.id, month)
+    const categories = await getCategoryTotals(user.id, month)
+    const months = await getAvailableMonths(user.id)
 
-  const res = await fetch(`/api/dashboard?month=${month}`, {
-    headers: { Cookie: `auth_token=${token}` },
-    cache: "no-store"
-  })
-
-  if (!res.ok) throw new Error("Failed to load dashboard data")
-
-  return res.json()
+  return { summary, categories, months }
 }
 
-export default async function DashboardPage({
-  searchParams,
-}: {
-  searchParams: { month?: string }
-}) {
-  const currentMonth = searchParams.month ?? new Date().toISOString().slice(0, 7)
+export default async function DashboardPage() {
+  const currentMonth = new Date().toISOString().slice(0, 7)
   const data = await getDashboardData(currentMonth)
-
-  const nextMonth = (() => {
-    const [y, m] = currentMonth.split("-").map(Number)
-    const dt = new Date(y, m)
-    return dt.toISOString().slice(0, 7)
-  })()
-
-  const prevMonth = (() => {
-    const [y, m] = currentMonth.split("-").map(Number)
-    const dt = new Date(y, m - 2)
-    return dt.toISOString().slice(0, 7)
-  })()
-
-  const monthLabel = new Date(currentMonth + "-01")
-    .toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
 
   return (
     <div className="space-y-8">
@@ -49,23 +30,6 @@ export default async function DashboardPage({
           <p className="text-muted-foreground">
             Sua situação financeira neste período.
           </p>
-        </div>
-
-        {/* Navegação entre meses */}
-        <div className="flex items-center gap-2">
-          <a href={`/dashboard?month=${prevMonth}`}>
-            <ChevronLeft className="cursor-pointer hover:text-primary" />
-          </a>
-
-          <span className="font-medium capitalize">
-            {monthLabel}
-          </span>
-
-          {data.months.includes(nextMonth) && (
-            <a href={`/dashboard?month=${nextMonth}`}>
-              <ChevronRight className="cursor-pointer hover:text-primary" />
-            </a>
-          )}
         </div>
       </div>
 
@@ -128,7 +92,7 @@ export default async function DashboardPage({
             </thead>
 
             <tbody>
-              {data.categories.map((c: any) => (
+              {data.categories.map((c) => (
                 <tr key={c.categoryId} className="border-b hover:bg-muted/30">
                   <td className="p-3">{c.categoryId}</td>
                   <td className="p-3 font-semibold">

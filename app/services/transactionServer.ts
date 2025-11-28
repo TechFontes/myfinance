@@ -6,6 +6,7 @@ export async function listTransactionsByUser(userId: string) {
   return prisma.transaction.findMany({
     where: { userId },
     orderBy: { date: 'desc' },
+    include: {category:true}
   })
 }
 

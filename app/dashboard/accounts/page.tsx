@@ -2,7 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PlusIcon, WalletIcon, CreditCardIcon, LandmarkIcon } from "lucide-react";
-import { cookies } from "next/headers";
+import { getUserFromRequest } from "@/lib/auth";
+import { listAccountsByUser } from "@/services/accountService";
 
 // Funções auxiliares
 function getTypeIcon(type: string) {
@@ -29,19 +30,14 @@ function getTypeLabel(type: string) {
 
 async function getAccounts() {
 
-  const token = (await cookies()).get("auth_token")?.value;
+  const user = await getUserFromRequest();
+  if (!user) {
+    return [];
+  }
 
-  const res = await fetch(`/api/accounts`, {
-    method: "GET",
-    headers: {
-      Cookie: `auth_token=${token}`,
-    },
-    cache: "no-store",
-  });
+  const accounts = await listAccountsByUser(user.id);
 
-  if (!res.ok) return [];
-
-  return res.json();
+  return accounts
 }
 
 export default async function AccountsPage() {
@@ -66,7 +62,7 @@ export default async function AccountsPage() {
 
       {/* LISTA DE CONTAS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {accounts.map((acc: any) => (
+        {accounts.map((acc) => (
           <Card
             key={acc.id}
             className="p-4 flex flex-col gap-3 hover:shadow-md transition-shadow"
