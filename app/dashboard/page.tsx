@@ -4,10 +4,9 @@ import { ArrowDownIcon, ArrowUpIcon, WalletIcon, ChevronLeft, ChevronRight } fro
 import { cookies } from "next/headers"
 
 async function getDashboardData(month: string) {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
   const token = (await cookies()).get("auth_token")?.value
 
-  const res = await fetch(`${baseUrl}/api/dashboard?month=${month}`, {
+  const res = await fetch(`/api/dashboard?month=${month}`, {
     headers: { Cookie: `auth_token=${token}` },
     cache: "no-store"
   })

@@ -9,11 +9,9 @@ import { DBTransaction } from "@/types/db"
 
 
 async function getTransactions():Promise<DBTransaction[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-
   const token = (await cookies()).get("auth_token")?.value
 
-  const res = await fetch(`${baseUrl}/api/transactions`, {
+  const res = await fetch(`/api/transactions`, {
     method: "GET",
     headers: {
       Cookie: `auth_token=${token}`,

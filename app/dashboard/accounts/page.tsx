@@ -28,11 +28,10 @@ function getTypeLabel(type: string) {
 }
 
 async function getAccounts() {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   const token = (await cookies()).get("auth_token")?.value;
 
-  const res = await fetch(`${baseUrl}/api/accounts`, {
+  const res = await fetch(`/api/accounts`, {
     method: "GET",
     headers: {
       Cookie: `auth_token=${token}`,
