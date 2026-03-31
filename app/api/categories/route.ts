@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import {
-  createAccountForUser,
-  listAccountsByUser,
-} from '@/modules/accounts/service'
-import { accountCreateSchema } from '@/modules/accounts'
+  createCategory,
+  listCategoriesByUser,
+} from '@/modules/categories/service'
+import { categoryCreateSchema } from '@/modules/categories'
 
 export async function GET() {
   const user = await getUserFromRequest()
@@ -13,9 +13,9 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const accounts = await listAccountsByUser(user.id)
+  const categories = await listCategoriesByUser(user.id)
 
-  return NextResponse.json(accounts)
+  return NextResponse.json(categories)
 }
 
 export async function POST(request: NextRequest) {
@@ -25,8 +25,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = accountCreateSchema.parse(await request.json())
-  const account = await createAccountForUser(user.id, payload)
+  const payload = categoryCreateSchema.parse(await request.json())
+  const category = await createCategory(user.id, payload)
 
-  return NextResponse.json(account, { status: 201 })
+  return NextResponse.json(category, { status: 201 })
 }
