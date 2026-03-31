@@ -13,6 +13,12 @@ export async function findUserById(id: string): Promise<User | null> {
   })
 }
 
+export async function findUserByResetToken(token: string): Promise<User | null> {
+  return prisma.user.findFirst({
+    where: { resetToken: token },
+  })
+}
+
 export async function createUser(data: Prisma.UserCreateInput): Promise<User> {
   return prisma.user.create({
     data,
