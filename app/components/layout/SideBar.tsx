@@ -9,6 +9,7 @@ const navItems = [
   { href: '/dashboard', label: 'Visão geral' },
   { href: '/dashboard/transactions', label: 'Transações' },
   { href: '/dashboard/accounts', label: 'Contas' },
+  { href: '/dashboard/categories', label: 'Categorias' },
 ]
 
 export function Sidebar() {
