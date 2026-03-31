@@ -18,3 +18,13 @@ export async function createUser(data: Prisma.UserCreateInput): Promise<User> {
     data,
   })
 }
+
+export async function updateUserById(
+  id: string,
+  data: Prisma.UserUpdateInput,
+): Promise<User> {
+  return prisma.user.update({
+    where: { id },
+    data,
+  })
+}
