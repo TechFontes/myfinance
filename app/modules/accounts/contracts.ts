@@ -14,3 +14,16 @@ export type AccountRecord = {
   icon: string | null
   active: boolean
 }
+
+export type AccountCreateInput = {
+  name: string
+  type: AccountType
+  initialBalance?: string
+  institution?: string
+  color?: string
+  icon?: string
+}
+
+export type AccountUpdateInput = Partial<AccountCreateInput> & {
+  active?: boolean
+}
