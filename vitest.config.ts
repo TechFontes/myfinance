@@ -3,9 +3,10 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./app"),
-    },
+    alias: [
+      { find: "@/types", replacement: path.resolve(__dirname, "./app/types") },
+      { find: "@", replacement: path.resolve(__dirname, "./app") },
+    ],
   },
   test: {
     setupFiles: ["./tests/setup/vitest.setup.ts"],
