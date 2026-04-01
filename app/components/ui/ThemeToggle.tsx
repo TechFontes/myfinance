@@ -9,10 +9,12 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
+      aria-label="Alternar tema"
+      aria-pressed={theme === 'dark'}
       onClick={toggleTheme}
-      className="rounded-full border border-slate-300 px-3 py-1 text-xs font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+      className="inline-flex h-9 items-center rounded-full border border-border bg-card px-3 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
     >
-      {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
+      {theme === 'light' ? 'Tema claro' : 'Tema escuro'}
     </button>
   )
 }

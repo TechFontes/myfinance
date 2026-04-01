@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
+import { Manrope, Newsreader } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
@@ -9,10 +9,16 @@ export const metadata: Metadata = {
   description: "Controle financeiro pessoal multiusuário",
 };
 
-// Fonte padrão (recomendação do shadcn/ui)
-const fontSans = FontSans({
+const fontSans = Manrope({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const fontSerif = Newsreader({
+  subsets: ["latin"],
+  variable: "--font-serif",
+  display: "swap",
 });
 
 export default function RootLayout({
@@ -25,7 +31,8 @@ export default function RootLayout({
       <body
         className={cn(
           "min-h-screen bg-background font-sans antialiased text-foreground",
-          fontSans.variable
+          fontSans.variable,
+          fontSerif.variable
         )}
       >
         <Providers>
