@@ -11,6 +11,7 @@ const navItems = [
   { href: '/dashboard/transfers', label: 'Transfers' },
   { href: '/dashboard/cards', label: 'Cartões' },
   { href: '/dashboard/recurrence', label: 'Recorrência' },
+  { href: '/dashboard/goals', label: 'Metas' },
   { href: '/dashboard/accounts', label: 'Contas' },
   { href: '/dashboard/categories', label: 'Categorias' },
 ]
