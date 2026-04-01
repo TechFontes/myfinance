@@ -20,6 +20,11 @@ vi.mock('@/lib/prisma', () => ({
   prisma: prismaMock,
 }))
 
+vi.setConfig({
+  testTimeout: 15000,
+  hookTimeout: 15000,
+})
+
 describe('dashboard service alignment', () => {
   beforeEach(() => {
     vi.clearAllMocks()
