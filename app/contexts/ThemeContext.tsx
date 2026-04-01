@@ -66,8 +66,20 @@ function subscribeToTheme(listener: () => void) {
   }
 }
 
+function getThemeSnapshot(): Theme {
+  return currentTheme
+}
+
+function getServerThemeSnapshot(): Theme {
+  return 'light'
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribeToTheme, () => currentTheme, () => 'light')
+  const theme = useSyncExternalStore<Theme>(
+    subscribeToTheme,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  )
 
   useEffect(() => {
     const storedTheme = readStoredTheme()

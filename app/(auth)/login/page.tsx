@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -34,7 +34,6 @@ type LoginSchemaType = z.infer<typeof LoginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
@@ -51,7 +50,10 @@ export default function LoginPage() {
       setLoading(true);
       await login(data.email, data.password);
 
-      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      const callbackUrl =
+        typeof window === "undefined"
+          ? "/dashboard"
+          : new URLSearchParams(window.location.search).get("callbackUrl") || "/dashboard";
       router.replace(callbackUrl);
       router.refresh();
     } catch (err) {

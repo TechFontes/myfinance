@@ -6,14 +6,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 const loginMock = vi.fn()
 const routerReplaceMock = vi.fn()
 const routerRefreshMock = vi.fn()
-const searchParamsState = new URLSearchParams()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     replace: routerReplaceMock,
     refresh: routerRefreshMock,
   }),
-  useSearchParams: () => searchParamsState,
 }))
 
 vi.mock('@/contexts/AuthContext', () => ({
@@ -27,14 +25,12 @@ describe('login page', () => {
     loginMock.mockReset()
     routerReplaceMock.mockReset()
     routerRefreshMock.mockReset()
-    for (const key of Array.from(searchParamsState.keys())) {
-      searchParamsState.delete(key)
-    }
+    window.history.replaceState({}, '', '/login')
   })
 
   it('submits through the auth context and redirects to the callback url', async () => {
     loginMock.mockResolvedValue(undefined)
-    searchParamsState.set('callbackUrl', '/dashboard/transfers')
+    window.history.replaceState({}, '', '/login?callbackUrl=%2Fdashboard%2Ftransfers')
 
     const user = userEvent.setup()
     const { default: LoginPage } = await import('@/(auth)/login/page')
