@@ -30,6 +30,13 @@ enum TransactionStatus {
   CANCELED
 }
 
+enum TransferStatus {
+  PLANNED
+  PENDING
+  PAID
+  CANCELED
+}
+
 enum AccountType {
   BANK
   WALLET
@@ -60,6 +67,7 @@ model User {
   accounts        Account[]
   categories      Category[]
   transactions    Transaction[]
+  transfers       Transfer[]
   creditCards     CreditCard[]
   recurringRules  RecurringRule[]
 }
@@ -82,6 +90,8 @@ model Account {
 
   user           User            @relation(fields: [userId], references: [id])
   transactions   Transaction[]
+  sentTransfers  Transfer[]      @relation("TransferSender")
+  receivedTransfers Transfer[]    @relation("TransferReceiver")
   recurringRules RecurringRule[]
 }
 
@@ -171,6 +181,28 @@ model Transaction {
   invoice         Invoice?          @relation(fields: [invoiceId], references: [id])
   category        Category          @relation(fields: [categoryId], references: [id])
   recurringRule   RecurringRule?    @relation(fields: [recurringRuleId], references: [id])
+}
+
+// --------------------------------------------
+// TRANSFER
+// --------------------------------------------
+model Transfer {
+  id                  Int            @id @default(autoincrement())
+  userId              String
+  sourceAccountId     Int
+  destinationAccountId Int
+  amount              Decimal        @db.Decimal(10, 2)
+  description         String
+  competenceDate      DateTime
+  dueDate             DateTime
+  paidAt              DateTime?
+  status              TransferStatus @default(PLANNED)
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  user                User           @relation(fields: [userId], references: [id])
+  sourceAccount       Account        @relation("TransferSender", fields: [sourceAccountId], references: [id])
+  destinationAccount   Account        @relation("TransferReceiver", fields: [destinationAccountId], references: [id])
 }
 
 // --------------------------------------------
