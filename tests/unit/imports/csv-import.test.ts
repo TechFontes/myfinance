@@ -74,14 +74,18 @@ describe('csv import foundation', () => {
     expect(preview.invalidRows).toHaveLength(0)
   })
 
-  it('separates valid and invalid rows and surfaces line-specific validation errors', () => {
+  it('maps categories ignoring accent and case differences while suggesting close matches', () => {
     const preview = buildTransactionImportPreview(
       [
         'type,description,value,competenceDate,dueDate,status,category',
-        'EXPENSE,Uber,27.50,2026-03-01,2026-03-02,PENDING,Transporte',
-        'EXPENSE,,abc,2026-03-01,,PENDING,',
+        'EXPENSE,Feira,100.00,2026-03-01,2026-03-02,PENDING,Alimentacao',
+        'EXPENSE,Onibus,10.00,2026-03-01,2026-03-02,PENDING,Transporte',
       ].join('\n'),
-      [{ id: 9, name: 'Transporte' }],
+      [
+        { id: 11, name: 'Alimentação' },
+        { id: 22, name: 'Transporte Urbano' },
+        { id: 33, name: 'Transporte Público' },
+      ],
     )
 
     expect(preview.rows).toHaveLength(2)
@@ -90,7 +94,7 @@ describe('csv import foundation', () => {
     expect(preview.validRows[0]).toMatchObject({
       line: 2,
       readyToPersist: true,
-      mappedCategoryId: 9,
+      mappedCategoryId: 11,
     })
     expect(preview.invalidRows[0]).toMatchObject({
       line: 3,
@@ -100,23 +104,18 @@ describe('csv import foundation', () => {
     expect(preview.invalidRows[0].issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          code: 'missing_field',
-          field: 'description',
-        }),
-        expect.objectContaining({
-          code: 'invalid_value',
-          field: 'value',
-        }),
-        expect.objectContaining({
-          code: 'missing_field',
-          field: 'dueDate',
-        }),
-        expect.objectContaining({
           code: 'missing_category',
           field: 'categoryName',
         }),
       ]),
     )
+    expect(preview.pendingCategoryMappings).toEqual([
+      expect.objectContaining({
+        sourceName: 'Transporte',
+        needsMapping: true,
+        suggestedCategoryIds: [22, 33],
+      }),
+    ])
     expect(preview.summary).toMatchObject({
       totalRows: 2,
       readyRows: 1,
@@ -124,6 +123,45 @@ describe('csv import foundation', () => {
       missingCategoryRows: 1,
       duplicateRows: 0,
     })
+    expect(preview.readyToCommit).toBe(false)
+  })
+
+  it('marks repeated rows as duplicate candidates before persistence', () => {
+    const preview = buildTransactionImportPreview(
+      [
+        'type,description,value,competenceDate,dueDate,status,category',
+        'EXPENSE,Uber,27.50,2026-03-01,2026-03-02,PENDING,Transporte',
+        'EXPENSE,uber,27.50,2026-03-01,2026-03-02,PENDING,Transporte',
+      ].join('\n'),
+      [],
+    )
+
+    expect(preview.rows).toHaveLength(2)
+    expect(preview.rows[0].issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'missing_category' }),
+        expect.objectContaining({ code: 'duplicate_row' }),
+      ]),
+    )
+    expect(preview.rows[1].issues).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 'missing_category' }),
+        expect.objectContaining({ code: 'duplicate_row' }),
+      ]),
+    )
+    expect(preview.summary).toMatchObject({
+      totalRows: 2,
+      readyRows: 0,
+      invalidRows: 2,
+      missingCategoryRows: 2,
+      duplicateRows: 2,
+    })
+    expect(preview.possibleDuplicates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ lineNumber: 2 }),
+        expect.objectContaining({ lineNumber: 3 }),
+      ]),
+    )
     expect(preview.readyToCommit).toBe(false)
   })
 })

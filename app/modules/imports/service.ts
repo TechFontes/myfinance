@@ -137,6 +137,14 @@ function normalizeRequiredText(value: string | undefined) {
   return (value ?? '').trim()
 }
 
+function normalizeComparableText(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+}
+
 function isValidDate(value: string) {
   if (!value) {
     return false
@@ -174,19 +182,40 @@ function findCategoryId(
   categoryName: string,
   categories: Array<{ id: number; name: string }>,
 ) {
-  const normalized = categoryName.trim().toLowerCase()
+  const normalized = normalizeComparableText(categoryName)
 
   return (
-    categories.find((category) => category.name.trim().toLowerCase() === normalized)?.id ??
+    categories.find((category) => normalizeComparableText(category.name) === normalized)?.id ??
     null
   )
+}
+
+function buildCategorySuggestions(
+  categoryName: string,
+  categories: Array<{ id: number; name: string }>,
+) {
+  const normalizedCategoryName = normalizeComparableText(categoryName)
+
+  if (!normalizedCategoryName) {
+    return []
+  }
+
+  return categories
+    .filter((category) => {
+      const normalizedCandidate = normalizeComparableText(category.name)
+      return (
+        normalizedCandidate.includes(normalizedCategoryName) ||
+        normalizedCategoryName.includes(normalizedCandidate)
+      )
+    })
+    .map((category) => category.id)
 }
 
 function buildSignature(transaction: CsvImportTransactionPreview['rows'][number]['transaction']) {
   return [
     transaction.type,
-    transaction.description,
-    transaction.value,
+    normalizeComparableText(transaction.description),
+    transaction.value.trim(),
     transaction.competenceDate,
     transaction.dueDate,
   ].join('|')
@@ -224,12 +253,10 @@ export function buildTransactionImportPreview(
 ): CsvImportTransactionPreview {
   const parsed = parseCsvImportText(text)
   const duplicateSignatureSet = new Set(duplicateSignatures)
-  const seenSignatures = new Set<string>()
-  const reportedDuplicateSignatures = new Set<string>()
   const pendingCategoryMap = new Map<string, CsvImportCategoryMapping>()
   const possibleDuplicates: CsvImportPossibleDuplicate[] = []
 
-  const rows = parsed.rows.map((rawRow, rowIndex) => {
+  const preparedRows = parsed.rows.map((rawRow, rowIndex) => {
     const line = rowIndex + 2
     const normalizedType = normalizeRequiredText(rawRow.type).toUpperCase()
     const type = (['INCOME', 'EXPENSE'].includes(normalizedType)
@@ -289,7 +316,7 @@ export function buildTransactionImportPreview(
         pendingCategoryMap.set(categoryName, {
           sourceName: categoryName,
           needsMapping: true,
-          suggestedCategoryIds: [],
+          suggestedCategoryIds: buildCategorySuggestions(categoryName, categories),
         })
       }
     }
@@ -330,10 +357,26 @@ export function buildTransactionImportPreview(
       issues.push(buildInvalidValueIssue('installments', 'installments must be numeric'))
     }
 
-    const signature = buildSignature(transaction)
-    const isDuplicate =
-      (duplicateSignatureSet.has(signature) && !reportedDuplicateSignatures.has(signature)) ||
-      (!duplicateSignatureSet.has(signature) && seenSignatures.has(signature))
+    return {
+      line,
+      transaction,
+      mappedCategoryId,
+      issues,
+    }
+  })
+
+  const signatureCounts = new Map<string, number>()
+  preparedRows.forEach((row) => {
+    const signature = buildSignature(row.transaction)
+    signatureCounts.set(signature, (signatureCounts.get(signature) ?? 0) + 1)
+  })
+
+  const rows = preparedRows.map((row) => {
+    const signature = buildSignature(row.transaction)
+    const duplicateCount = signatureCounts.get(signature) ?? 0
+    const matchesExistingSignature = duplicateSignatureSet.has(signature)
+    const isDuplicate = duplicateCount > 1 || matchesExistingSignature
+    const issues = [...row.issues]
 
     if (isDuplicate) {
       issues.push({
@@ -342,19 +385,15 @@ export function buildTransactionImportPreview(
       })
 
       possibleDuplicates.push({
-        lineNumber: line,
-        reason: 'Transaction matches an existing signature',
+        lineNumber: row.line,
+        reason: matchesExistingSignature
+          ? 'Transaction matches an existing signature'
+          : 'Transaction appears more than once in the import',
       })
-
-      reportedDuplicateSignatures.add(signature)
     }
 
-    seenSignatures.add(signature)
-
     return {
-      line,
-      transaction,
-      mappedCategoryId,
+      ...row,
       readyToPersist: issues.length === 0,
       issues,
     }
