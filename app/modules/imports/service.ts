@@ -16,6 +16,7 @@ export type CsvImportIssueCode =
 
 export type CsvImportRowIssue = {
   code: CsvImportIssueCode
+  field?: string
   message: string
 }
 
@@ -51,6 +52,8 @@ export type CsvImportPreviewSummary = {
 
 export type CsvImportTransactionPreview = {
   rows: CsvImportPreviewRow[]
+  validRows: CsvImportPreviewRow[]
+  invalidRows: CsvImportPreviewRow[]
   summary: CsvImportPreviewSummary
   possibleDuplicates: CsvImportPossibleDuplicate[]
   pendingCategoryMappings: CsvImportCategoryMapping[]
@@ -134,6 +137,39 @@ function normalizeRequiredText(value: string | undefined) {
   return (value ?? '').trim()
 }
 
+function isValidDate(value: string) {
+  if (!value) {
+    return false
+  }
+
+  const parsed = new Date(value)
+  return !Number.isNaN(parsed.getTime())
+}
+
+function buildMissingFieldIssue(field: string, message: string): CsvImportRowIssue {
+  return {
+    code: 'missing_field',
+    field,
+    message,
+  }
+}
+
+function buildInvalidValueIssue(field: string, message: string): CsvImportRowIssue {
+  return {
+    code: 'invalid_value',
+    field,
+    message,
+  }
+}
+
+function buildInvalidDateIssue(field: string, message: string): CsvImportRowIssue {
+  return {
+    code: 'invalid_date',
+    field,
+    message,
+  }
+}
+
 function findCategoryId(
   categoryName: string,
   categories: Array<{ id: number; name: string }>,
@@ -195,9 +231,10 @@ export function buildTransactionImportPreview(
 
   const rows = parsed.rows.map((rawRow, rowIndex) => {
     const line = rowIndex + 2
-    const type = normalizeRequiredText(rawRow.type).toUpperCase() as
-      | 'INCOME'
-      | 'EXPENSE'
+    const normalizedType = normalizeRequiredText(rawRow.type).toUpperCase()
+    const type = (['INCOME', 'EXPENSE'].includes(normalizedType)
+      ? normalizedType
+      : 'EXPENSE') as 'INCOME' | 'EXPENSE'
     const description = normalizeRequiredText(rawRow.description)
     const value = normalizeRequiredText(rawRow.value)
     const categoryName = normalizeRequiredText(rawRow.categoryName ?? rawRow.category)
@@ -232,16 +269,18 @@ export function buildTransactionImportPreview(
     }
 
     const issues: CsvImportRowIssue[] = []
-    const mappedCategoryId = findCategoryId(categoryName, categories)
+    const mappedCategoryId = categoryName ? findCategoryId(categoryName, categories) : null
 
     if (!categoryName) {
       issues.push({
         code: 'missing_category',
+        field: 'categoryName',
         message: 'Category is required before persisting the import',
       })
     } else if (mappedCategoryId === null) {
       issues.push({
         code: 'missing_category',
+        field: 'categoryName',
         message: 'Category needs mapping before persisting the import',
       })
 
@@ -255,11 +294,40 @@ export function buildTransactionImportPreview(
       }
     }
 
-    if (!type || !description || !value || !competenceDate || !dueDate) {
-      issues.push({
-        code: 'invalid_row',
-        message: 'Required transaction fields are missing or invalid',
-      })
+    if (!normalizeRequiredText(rawRow.type)) {
+      issues.push(buildMissingFieldIssue('type', 'type is required'))
+    } else if (!['INCOME', 'EXPENSE'].includes(normalizedType)) {
+      issues.push(buildInvalidValueIssue('type', 'type must be INCOME or EXPENSE'))
+    }
+
+    if (!description) {
+      issues.push(buildMissingFieldIssue('description', 'description is required'))
+    }
+
+    if (!value) {
+      issues.push(buildMissingFieldIssue('value', 'value is required'))
+    } else if (Number.isNaN(Number(value))) {
+      issues.push(buildInvalidValueIssue('value', 'value must be numeric'))
+    }
+
+    if (!competenceDate) {
+      issues.push(buildMissingFieldIssue('competenceDate', 'competenceDate is required'))
+    } else if (!isValidDate(competenceDate)) {
+      issues.push(buildInvalidDateIssue('competenceDate', 'competenceDate must be a valid date'))
+    }
+
+    if (!dueDate) {
+      issues.push(buildMissingFieldIssue('dueDate', 'dueDate is required'))
+    } else if (!isValidDate(dueDate)) {
+      issues.push(buildInvalidDateIssue('dueDate', 'dueDate must be a valid date'))
+    }
+
+    if (rawRow.installment !== undefined && installment === null) {
+      issues.push(buildInvalidValueIssue('installment', 'installment must be numeric'))
+    }
+
+    if (rawRow.installments !== undefined && installments === null) {
+      issues.push(buildInvalidValueIssue('installments', 'installments must be numeric'))
     }
 
     const signature = buildSignature(transaction)
@@ -293,6 +361,8 @@ export function buildTransactionImportPreview(
   })
 
   const pendingCategoryMappings = Array.from(pendingCategoryMap.values())
+  const validRows = rows.filter((row) => row.readyToPersist)
+  const invalidRows = rows.filter((row) => !row.readyToPersist)
 
   const summary = rows.reduce(
     (accumulator, row) => {
@@ -325,6 +395,8 @@ export function buildTransactionImportPreview(
 
   return {
     rows,
+    validRows,
+    invalidRows,
     summary,
     possibleDuplicates,
     pendingCategoryMappings,

@@ -70,31 +70,60 @@ describe('csv import foundation', () => {
       missingCategoryRows: 0,
       duplicateRows: 0,
     })
+    expect(preview.validRows).toHaveLength(2)
+    expect(preview.invalidRows).toHaveLength(0)
   })
 
-  it('marks rows with missing categories and duplicates as issues before persistence', () => {
+  it('separates valid and invalid rows and surfaces line-specific validation errors', () => {
     const preview = buildTransactionImportPreview(
       [
         'type,description,value,competenceDate,dueDate,status,category',
         'EXPENSE,Uber,27.50,2026-03-01,2026-03-02,PENDING,Transporte',
-        'EXPENSE,Uber,27.50,2026-03-01,2026-03-02,PENDING,Transporte',
+        'EXPENSE,,abc,2026-03-01,,PENDING,',
       ].join('\n'),
-      [],
-      ['EXPENSE|Uber|27.50|2026-03-01|2026-03-02'],
+      [{ id: 9, name: 'Transporte' }],
     )
 
-    expect(preview.rows[0].issues).toEqual(
+    expect(preview.rows).toHaveLength(2)
+    expect(preview.validRows).toHaveLength(1)
+    expect(preview.invalidRows).toHaveLength(1)
+    expect(preview.validRows[0]).toMatchObject({
+      line: 2,
+      readyToPersist: true,
+      mappedCategoryId: 9,
+    })
+    expect(preview.invalidRows[0]).toMatchObject({
+      line: 3,
+      readyToPersist: false,
+      mappedCategoryId: null,
+    })
+    expect(preview.invalidRows[0].issues).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ code: 'missing_category' }),
-        expect.objectContaining({ code: 'duplicate_row' }),
+        expect.objectContaining({
+          code: 'missing_field',
+          field: 'description',
+        }),
+        expect.objectContaining({
+          code: 'invalid_value',
+          field: 'value',
+        }),
+        expect.objectContaining({
+          code: 'missing_field',
+          field: 'dueDate',
+        }),
+        expect.objectContaining({
+          code: 'missing_category',
+          field: 'categoryName',
+        }),
       ]),
     )
-    expect(preview.rows[0].readyToPersist).toBe(false)
-    expect(preview.rows[1].issues).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'missing_category' })]),
-    )
-    expect(preview.summary.invalidRows).toBe(2)
-    expect(preview.summary.missingCategoryRows).toBe(2)
-    expect(preview.summary.duplicateRows).toBe(1)
+    expect(preview.summary).toMatchObject({
+      totalRows: 2,
+      readyRows: 1,
+      invalidRows: 1,
+      missingCategoryRows: 1,
+      duplicateRows: 0,
+    })
+    expect(preview.readyToCommit).toBe(false)
   })
 })
