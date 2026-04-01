@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,6 +16,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import type { TransactionFormOptions } from '@/services/transactionFormOptions'
+
+type TransactionInvoiceOption = {
+  id: number
+  month: number
+  year: number
+}
 
 const transactionFormSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE']),
@@ -36,9 +43,21 @@ const transactionFormSchema = z.object({
 
 type TransactionFormValues = z.input<typeof transactionFormSchema>
 
-export function TransactionForm() {
+type TransactionFormProps = {
+  options: TransactionFormOptions
+}
+
+const NONE_OPTION = '__none__'
+
+function formatInvoiceLabel(invoice: TransactionInvoiceOption) {
+  return `${String(invoice.month).padStart(2, '0')}/${invoice.year}`
+}
+
+export function TransactionForm({ options }: TransactionFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [invoiceLoading, setInvoiceLoading] = useState(false)
+  const [invoices, setInvoices] = useState<TransactionInvoiceOption[]>([])
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
@@ -59,6 +78,63 @@ export function TransactionForm() {
       installments: '',
     },
   })
+
+  const selectedType = useWatch({
+    control: form.control,
+    name: 'type',
+  })
+
+  const selectedCardId = useWatch({
+    control: form.control,
+    name: 'creditCardId',
+  })
+
+  const categoryOptions = useMemo(
+    () => options.categories.filter((category) => category.type === selectedType),
+    [options.categories, selectedType],
+  )
+
+  useEffect(() => {
+    const currentCategoryId = form.getValues('categoryId')
+    const isCurrentCategoryVisible = categoryOptions.some(
+      (category) => String(category.id) === currentCategoryId,
+    )
+
+    if (currentCategoryId && !isCurrentCategoryVisible) {
+      form.setValue('categoryId', '')
+    }
+  }, [categoryOptions, form])
+
+  useEffect(() => {
+    async function loadInvoices(creditCardId: string) {
+      setInvoiceLoading(true)
+
+      try {
+        const response = await fetch(`/api/invoices?creditCardId=${creditCardId}`)
+
+        if (!response.ok) {
+          throw new Error('Falha ao carregar faturas')
+        }
+
+        const payload = (await response.json()) as TransactionInvoiceOption[]
+        setInvoices(payload)
+      } catch {
+        setInvoices([])
+      } finally {
+        setInvoiceLoading(false)
+      }
+    }
+
+    form.setValue('invoiceId', '')
+
+    if (!selectedCardId) {
+      setInvoices([])
+      setInvoiceLoading(false)
+      return
+    }
+
+    void loadInvoices(selectedCardId)
+  }, [form, selectedCardId])
 
   async function onSubmit(values: TransactionFormValues) {
     setLoading(true)
@@ -193,10 +269,21 @@ export function TransactionForm() {
                 name="categoryId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Categoria ID</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" {...field} />
-                    </FormControl>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger aria-label="Categoria">
+                          <SelectValue placeholder="Selecione uma categoria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categoryOptions.map((category) => (
+                          <SelectItem key={category.id} value={String(category.id)}>
+                            {category.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -207,10 +294,25 @@ export function TransactionForm() {
                 name="accountId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Conta ID opcional</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" placeholder="Opcional" {...field} />
-                    </FormControl>
+                    <FormLabel>Conta</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === NONE_OPTION ? '' : value)}
+                      value={field.value || NONE_OPTION}
+                    >
+                      <FormControl>
+                        <SelectTrigger aria-label="Conta">
+                          <SelectValue placeholder="Selecione uma conta" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE_OPTION}>Sem conta</SelectItem>
+                        {options.accounts.map((account) => (
+                          <SelectItem key={account.id} value={String(account.id)}>
+                            {account.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -221,10 +323,25 @@ export function TransactionForm() {
                 name="creditCardId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cartão ID opcional</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" placeholder="Opcional" {...field} />
-                    </FormControl>
+                    <FormLabel>Cartão</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === NONE_OPTION ? '' : value)}
+                      value={field.value || NONE_OPTION}
+                    >
+                      <FormControl>
+                        <SelectTrigger aria-label="Cartão">
+                          <SelectValue placeholder="Selecione um cartão" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE_OPTION}>Sem cartão</SelectItem>
+                        {options.cards.map((card) => (
+                          <SelectItem key={card.id} value={String(card.id)}>
+                            {card.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -235,10 +352,34 @@ export function TransactionForm() {
                 name="invoiceId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fatura ID opcional</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" placeholder="Opcional" {...field} />
-                    </FormControl>
+                    <FormLabel>Fatura</FormLabel>
+                    <Select
+                      disabled={!selectedCardId || invoiceLoading}
+                      onValueChange={(value) => field.onChange(value === NONE_OPTION ? '' : value)}
+                      value={field.value || NONE_OPTION}
+                    >
+                      <FormControl>
+                        <SelectTrigger aria-label="Fatura">
+                          <SelectValue
+                            placeholder={
+                              !selectedCardId
+                                ? 'Selecione um cartão antes'
+                                : invoiceLoading
+                                  ? 'Carregando faturas...'
+                                  : 'Selecione uma fatura'
+                            }
+                          />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE_OPTION}>Sem fatura</SelectItem>
+                        {invoices.map((invoice) => (
+                          <SelectItem key={invoice.id} value={String(invoice.id)}>
+                            {formatInvoiceLabel(invoice)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
