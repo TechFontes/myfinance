@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
 
 const routerMock = vi.hoisted(() => ({
@@ -18,6 +18,29 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
+const elementPrototype = HTMLElement.prototype as HTMLElement & {
+  hasPointerCapture?: (pointerId: number) => boolean
+  releasePointerCapture?: (pointerId: number) => void
+  setPointerCapture?: (pointerId: number) => void
+  scrollIntoView?: (options?: ScrollIntoViewOptions) => void
+}
+
+if (!elementPrototype.hasPointerCapture) {
+  elementPrototype.hasPointerCapture = () => false
+}
+
+if (!elementPrototype.releasePointerCapture) {
+  elementPrototype.releasePointerCapture = () => undefined
+}
+
+if (!elementPrototype.setPointerCapture) {
+  elementPrototype.setPointerCapture = () => undefined
+}
+
+if (!elementPrototype.scrollIntoView) {
+  elementPrototype.scrollIntoView = () => undefined
+}
+
 const options = {
   categories: [
     { id: 11, name: 'Mercado', type: 'EXPENSE' as const },
@@ -27,8 +50,25 @@ const options = {
   cards: [{ id: 31, name: 'Cartão Azul' }],
 }
 
+function getSelectTrigger(labelText: string) {
+  const label = screen.getByText(labelText, { selector: 'label' })
+  const triggerId = label.getAttribute('for')
+
+  if (!triggerId) {
+    throw new Error(`Missing trigger id for select "${labelText}"`)
+  }
+
+  const trigger = document.getElementById(triggerId)
+
+  if (!trigger) {
+    throw new Error(`Missing select trigger element for "${labelText}"`)
+  }
+
+  return trigger
+}
+
 async function selectOption(user: ReturnType<typeof userEvent.setup>, name: string, optionText: string) {
-  await user.click(screen.getByRole('combobox', { name }))
+  await user.click(getSelectTrigger(name))
   await user.click(await screen.findByRole('option', { name: optionText }))
 }
 
@@ -38,14 +78,18 @@ describe('transaction form', () => {
     vi.stubGlobal('fetch', fetchMock)
   })
 
+  afterEach(() => {
+    cleanup()
+  })
+
   it('renders selection controls instead of raw ID inputs', () => {
     render(<TransactionForm options={options} />)
 
     expect(screen.getByRole('heading', { name: 'Nova transação' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Categoria' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Conta' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Cartão' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Fatura' })).toBeInTheDocument()
+    expect(getSelectTrigger('Categoria')).toBeInTheDocument()
+    expect(getSelectTrigger('Conta')).toBeInTheDocument()
+    expect(getSelectTrigger('Cartão')).toBeInTheDocument()
+    expect(getSelectTrigger('Fatura')).toBeInTheDocument()
     expect(screen.queryByLabelText('Categoria ID')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Conta ID opcional')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Cartão ID opcional')).not.toBeInTheDocument()
@@ -75,7 +119,7 @@ describe('transaction form', () => {
       expect(fetchMock).toHaveBeenCalledWith('/api/invoices?creditCardId=31')
     })
 
-    await user.click(screen.getByRole('combobox', { name: 'Fatura' }))
+    await user.click(getSelectTrigger('Fatura'))
     await user.click(await screen.findByRole('option', { name: '04/2026' }))
 
     await user.type(screen.getByLabelText('Descrição'), 'Supermercado do mês')
