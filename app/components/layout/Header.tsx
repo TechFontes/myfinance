@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -12,6 +13,18 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { LogOut, User } from 'lucide-react'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+
+const mobileNavItems = [
+  { href: '/dashboard', label: 'Visão geral' },
+  { href: '/dashboard/transactions', label: 'Transações' },
+  { href: '/dashboard/transfers', label: 'Transfers' },
+  { href: '/dashboard/cards', label: 'Cartões' },
+  { href: '/dashboard/recurrence', label: 'Recorrência' },
+  { href: '/dashboard/goals', label: 'Metas' },
+  { href: '/dashboard/imports', label: 'Importações' },
+  { href: '/dashboard/accounts', label: 'Contas' },
+  { href: '/dashboard/categories', label: 'Categorias' },
+]
 
 export function Header() {
   const { user, logout } = useAuth()
@@ -46,7 +59,10 @@ export function Header() {
 
           {user && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none transition-opacity hover:opacity-80">
+              <DropdownMenuTrigger
+                aria-label="Abrir menu da conta"
+                className="flex items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-opacity hover:opacity-80"
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-muted font-semibold">
                     {initials}
@@ -80,6 +96,21 @@ export function Header() {
           )}
         </div>
       </div>
+
+      <nav
+        aria-label="Navegação principal"
+        className="mt-3 flex gap-2 overflow-x-auto border-t border-border/70 pt-3 md:hidden"
+      >
+        {mobileNavItems.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
     </header>
   )
 }

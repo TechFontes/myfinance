@@ -120,4 +120,33 @@ describe('dashboard report view', () => {
     expect(screen.getByText('Movimentações internas')).toBeInTheDocument()
     expect(screen.getAllByText('março de 2026').length).toBeGreaterThan(0)
   })
+
+  it('renders explicit empty states for blank dashboard sections', () => {
+    render(
+      <DashboardReportView
+        availableMonths={['2026-03']}
+        report={{
+          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          summary: {
+            forecastIncome: '0.00',
+            forecastExpense: '0.00',
+            realizedIncome: '0.00',
+            realizedExpense: '0.00',
+            forecastBalance: '0.00',
+            realizedBalance: '0.00',
+          },
+          pending: [],
+          accounts: [],
+          categories: [],
+          cardInvoices: [],
+          transfers: [],
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Nenhuma conta cadastrada neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma categoria movimentada neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma fatura de cartão neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma transferência interna neste período.')).toBeInTheDocument()
+  })
 })

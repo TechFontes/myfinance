@@ -2,10 +2,22 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { Header } from '@/components/layout/Header'
 import { Sidebar } from '@/components/layout/SideBar'
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/dashboard/cards',
+}))
+
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: null,
+    logout: vi.fn(),
+  }),
+}))
+
+vi.mock('@/components/ui/ThemeToggle', () => ({
+  ThemeToggle: () => <button type="button">Tema</button>,
 }))
 
 afterEach(() => {
@@ -29,6 +41,28 @@ describe('sidebar', () => {
     )
     expect(screen.getAllByRole('link', { name: 'Visão geral' })[0]).not.toHaveAttribute(
       'aria-current',
+    )
+  })
+})
+
+describe('header mobile navigation', () => {
+  it('exposes the dashboard routes when the sidebar is hidden', () => {
+    render(<Header />)
+
+    const navigation = screen.getByRole('navigation', { name: 'Navegação principal' })
+
+    expect(navigation).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute(
+      'href',
+      '/dashboard',
+    )
+    expect(screen.getByRole('link', { name: 'Transações' })).toHaveAttribute(
+      'href',
+      '/dashboard/transactions',
+    )
+    expect(screen.getByRole('link', { name: 'Cartões' })).toHaveAttribute(
+      'href',
+      '/dashboard/cards',
     )
   })
 })

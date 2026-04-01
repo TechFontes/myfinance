@@ -80,6 +80,10 @@ function SectionTitle({
   )
 }
 
+function EmptySectionState({ children }: { children: React.ReactNode }) {
+  return <p className="text-sm text-muted-foreground">{children}</p>
+}
+
 export function DashboardReportView({ report, availableMonths }: DashboardReportViewProps) {
   const months = availableMonths.includes(report.period.month)
     ? availableMonths
@@ -184,7 +188,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-muted-foreground">Nenhuma pendência neste período.</p>
+                <EmptySectionState>Nenhuma pendência neste período.</EmptySectionState>
               )}
             </div>
           </div>
@@ -212,6 +216,9 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                   <p className="font-semibold">{formatCurrency(account.balance)}</p>
                 </div>
               ))}
+              {report.accounts.length === 0 ? (
+                <EmptySectionState>Nenhuma conta cadastrada neste período.</EmptySectionState>
+              ) : null}
             </div>
           </div>
         </Card>
@@ -238,6 +245,9 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                   <p className="font-semibold">{formatCurrency(category.total)}</p>
                 </div>
               ))}
+              {report.categories.length === 0 ? (
+                <EmptySectionState>Nenhuma categoria movimentada neste período.</EmptySectionState>
+              ) : null}
             </div>
           </div>
         </Card>
@@ -269,6 +279,9 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                   </div>
                 </div>
               ))}
+              {report.cardInvoices.length === 0 ? (
+                <EmptySectionState>Nenhuma fatura de cartão neste período.</EmptySectionState>
+              ) : null}
             </div>
           </div>
         </Card>
@@ -301,6 +314,9 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                   </div>
                 </div>
               ))}
+              {report.transfers.length === 0 ? (
+                <EmptySectionState>Nenhuma transferência interna neste período.</EmptySectionState>
+              ) : null}
             </div>
           </div>
         </Card>
