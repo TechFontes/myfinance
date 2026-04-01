@@ -48,6 +48,12 @@ enum CategoryType {
   EXPENSE
 }
 
+enum InvoiceStatus {
+  OPEN
+  PAID
+  CANCELED
+}
+
 // --------------------------------------------
 // USER
 // --------------------------------------------
@@ -139,16 +145,18 @@ model CreditCard {
 // INVOICE
 // --------------------------------------------
 model Invoice {
-  id            Int           @id @default(autoincrement())
-  creditCardId  Int
-  month         Int
-  year          Int
-  status        String
-  total         Decimal       @default(0.00) @db.Decimal(10, 2)
-  dueDate       DateTime?
+  id             Int           @id @default(autoincrement())
+  creditCardId   Int
+  month          Int
+  year           Int
+  status         InvoiceStatus @default(OPEN)
+  total          Decimal       @default(0.00) @db.Decimal(10, 2)
+  dueDate        DateTime
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  creditCard    CreditCard    @relation(fields: [creditCardId], references: [id])
-  transactions  Transaction[]
+  creditCard     CreditCard    @relation(fields: [creditCardId], references: [id])
+  transactions   Transaction[]
 }
 
 // --------------------------------------------
@@ -169,6 +177,7 @@ model Transaction {
   paidAt          DateTime?
   status          TransactionStatus @default(PLANNED)
   fixed           Boolean           @default(false)
+  installmentGroupId String?
   recurringRuleId Int?
   installment     Int?
   installments    Int?
