@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getUserFromRequest } from "@/lib/auth"
-import { getFinanceSummary, getCategoryTotals, getAvailableMonths } from "@/services/dashboardService"
+import { getDashboardReport } from "@/services/dashboardService"
 
 export async function GET(req: NextRequest) {
   const user = await getUserFromRequest()
@@ -9,9 +9,7 @@ export async function GET(req: NextRequest) {
   const month = req.nextUrl.searchParams.get("month") 
     ?? new Date().toISOString().slice(0, 7)
 
-  const summary = await getFinanceSummary(user.id, month)
-  const categories = await getCategoryTotals(user.id, month)
-  const months = await getAvailableMonths(user.id)
+  const report = await getDashboardReport(user.id, month)
 
-  return NextResponse.json({ summary, categories, months })
+  return NextResponse.json(report)
 }
