@@ -71,6 +71,32 @@ describe('dashboard report view', () => {
     expect(screen.getAllByText('Receitas')).toHaveLength(2)
     expect(screen.getAllByText('Despesas')).toHaveLength(2)
     expect(screen.getAllByText('Posição patrimonial do período')).toHaveLength(2)
+
+    const incomePanels = screen.getAllByText('Receitas').map((label) => label.closest('.rounded-2xl'))
+    const expensePanels = screen.getAllByText('Despesas').map((label) => label.closest('.rounded-2xl'))
+
+    for (const panel of incomePanels) {
+      expect(panel).toHaveClass('bg-emerald-500/12')
+      expect(panel).toHaveClass('border-emerald-500/35')
+    }
+
+    for (const panel of expensePanels) {
+      expect(panel).toHaveClass('bg-rose-500/12')
+      expect(panel).toHaveClass('border-rose-500/35')
+    }
+
+    const incomeLabels = screen.getAllByText('Receitas')
+    const expenseLabels = screen.getAllByText('Despesas')
+
+    for (const label of incomeLabels) {
+      expect(label).toHaveClass('text-emerald-900')
+      expect(label.nextElementSibling).toHaveClass('text-emerald-950')
+    }
+
+    for (const label of expenseLabels) {
+      expect(label).toHaveClass('text-rose-900')
+      expect(label.nextElementSibling).toHaveClass('text-rose-950')
+    }
   })
 
   it('renders the consolidated monthly sections and data', () => {
@@ -213,5 +239,52 @@ describe('dashboard report view', () => {
         'Quando houver transferências internas, este painel destacará origem, destino e data de competência.',
       ),
     ).toBeInTheDocument()
+  })
+
+  it('uses stronger light mode surfaces and contrast for the dashboard chrome', () => {
+    render(
+      <DashboardReportView
+        availableMonths={['2026-03']}
+        report={{
+          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          summary: {
+            forecastIncome: '1000.00',
+            forecastExpense: '250.00',
+            realizedIncome: '850.00',
+            realizedExpense: '200.00',
+            forecastBalance: '750.00',
+            realizedBalance: '650.00',
+          },
+          pending: [
+            {
+              id: 1,
+              description: 'Aluguel',
+              amount: '1200.00',
+              dueDate: new Date('2026-03-10T00:00:00.000Z'),
+              status: 'PENDING',
+            },
+          ],
+          accounts: [],
+          categories: [],
+          cardInvoices: [],
+          transfers: [],
+        }}
+      />,
+    )
+
+    const header = screen.getByRole('heading', { name: 'Visão geral', level: 1 }).closest('header')
+    const summaryCard = screen.getByText('Saldo previsto').closest('.rounded-xl')
+    const pendingRow = screen.getByText('Aluguel').closest('.rounded-xl')
+    const sectionPanel = screen.getByRole('heading', { name: 'Itens a vencer' }).closest('.rounded-xl')
+
+    expect(header).toHaveClass('bg-background/95')
+    expect(header).toHaveClass('border-border/80')
+    expect(header).toHaveClass('ring-1')
+    expect(summaryCard).toHaveClass('bg-background/95')
+    expect(summaryCard).toHaveClass('border-border/80')
+    expect(sectionPanel).toHaveClass('bg-background/95')
+    expect(sectionPanel).toHaveClass('border-border/80')
+    expect(pendingRow).toHaveClass('bg-muted/30')
+    expect(pendingRow).toHaveClass('border-border/70')
   })
 })

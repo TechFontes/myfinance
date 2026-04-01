@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/prepare-standalone.mjs",
     "start": "next start",
+    "start:standalone": "node .next/standalone/server.js",
+    "perf:baseline": "node scripts/performance-baseline.mjs baseline",
+    "perf:reanalysis": "node scripts/performance-baseline.mjs reanalysis",
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",

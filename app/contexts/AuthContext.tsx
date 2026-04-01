@@ -26,11 +26,17 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+export function AuthProvider({
+  children,
+  initialUser = null,
+}: {
+  children: ReactNode
+  initialUser?: User | null
+}) {
+  const [user, setUser] = useState<User | null>(initialUser)
+  const [loading, setLoading] = useState(initialUser ? false : true)
   const authVersionRef = useRef(0)
-  const userRef = useRef<User | null>(null)
+  const userRef = useRef<User | null>(initialUser)
 
   function setAuthUser(nextUser: User | null) {
     userRef.current = nextUser
@@ -39,6 +45,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Fetch user on mount
   useEffect(() => {
+    if (initialUser) {
+      setLoading(false)
+      return
+    }
+
     const snapshotVersion = authVersionRef.current
 
     async function fetchUser() {
@@ -72,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    fetchUser()
-  }, [])
+    void fetchUser()
+  }, [initialUser])
 
   async function login(email: string, password: string) {
     authVersionRef.current += 1

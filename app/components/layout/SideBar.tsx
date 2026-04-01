@@ -16,15 +16,23 @@ const navItems = [
   { href: '/dashboard/categories', label: 'Categorias' },
 ]
 
-export function Sidebar() {
+type SidebarUser = {
+  id?: string | number
+  name: string | null
+  email: string
+}
+
+export function Sidebar({ user }: { user?: SidebarUser }) {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-border/60 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-background)_97%,transparent),color-mix(in_oklab,var(--color-card)_88%,transparent))] px-4 py-5 backdrop-blur md:flex">
-      <div className="rounded-[1.5rem] border border-border/60 bg-card/70 p-4 shadow-[0_18px_50px_-48px_rgba(15,23,42,0.24)]">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-border/70 bg-card/90 px-4 py-5 backdrop-blur md:flex">
+      <div className="rounded-[1.5rem] border border-border/70 bg-background/80 p-4 shadow-[0_20px_60px_-50px_rgba(15,23,42,0.28)]">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-border/70 bg-background text-sm font-semibold text-foreground">
-            MF
+          <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-border/70 bg-card text-sm font-semibold text-foreground">
+            {(user?.name ?? user?.email ?? 'MyFinance')
+              .slice(0, 2)
+              .toUpperCase()}
           </div>
           <div className="min-w-0">
             <h2 className="font-serif text-lg tracking-tight text-foreground">
@@ -47,9 +55,9 @@ export function Sidebar() {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={twMerge(
-                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-card/80 hover:text-foreground',
+                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-card hover:text-foreground',
                 isActive &&
-                  'border-border/70 bg-card/80 text-foreground shadow-[0_12px_30px_-32px_rgba(15,23,42,0.28)] hover:bg-card/80 hover:text-foreground'
+                  'border-border/70 bg-background/95 text-foreground shadow-[0_12px_30px_-32px_rgba(15,23,42,0.3)] ring-1 ring-border/40 hover:bg-background/95 hover:text-foreground'
               )}
             >
               {item.label}

@@ -45,7 +45,7 @@ function SummaryCard({
   balance: string
 }) {
   return (
-    <Card className="overflow-hidden border-border/80 bg-card p-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)]">
+    <Card className="overflow-hidden border-border/80 bg-background/95 p-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)]">
       <div className={accentClassName} aria-hidden="true" />
       <div className="space-y-6 p-6">
         <div className="space-y-2">
@@ -55,19 +55,19 @@ function SummaryCard({
           <p className="text-sm text-muted-foreground">Posição patrimonial do período</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/8 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">
+          <div className="rounded-2xl border border-emerald-500/35 bg-emerald-500/12 p-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-emerald-900 dark:text-emerald-300">
               Receitas
             </p>
-            <p className="mt-2 text-xl font-semibold text-emerald-700 dark:text-emerald-200">
+            <p className="mt-2 text-xl font-semibold text-emerald-950 dark:text-emerald-200">
               {formatCurrency(income)}
             </p>
           </div>
-          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/8 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-rose-700 dark:text-rose-300">
+          <div className="rounded-2xl border border-rose-500/35 bg-rose-500/12 p-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-rose-900 dark:text-rose-300">
               Despesas
             </p>
-            <p className="mt-2 text-xl font-semibold text-rose-700 dark:text-rose-200">
+            <p className="mt-2 text-xl font-semibold text-rose-950 dark:text-rose-200">
               {formatCurrency(expense)}
             </p>
           </div>
@@ -87,11 +87,11 @@ function SectionPanel({
   title: string
   subtitle: string
   children: React.ReactNode
-}) {
+  }) {
   return (
-    <Card className="border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.45)]">
+    <Card className="border-border/80 bg-background/95 p-5 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.45)]">
       <div className="space-y-5">
-        <div className="space-y-2 border-b border-border/70 pb-4">
+        <div className="space-y-2 border-b border-border/80 pb-4">
           <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{eyebrow}</p>
           <h2 className="font-serif text-2xl tracking-tight text-foreground">{title}</h2>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground">{subtitle}</p>
@@ -110,7 +110,7 @@ function EmptySectionState({
   support: string
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 px-4 py-5">
+    <div className="rounded-2xl border border-dashed border-border/70 bg-muted/30 px-4 py-5">
       <p className="text-sm font-medium text-foreground">{children}</p>
       <p className="mt-1 text-sm text-muted-foreground">{support}</p>
     </div>
@@ -124,7 +124,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
 
   return (
     <div className="space-y-8">
-      <header className="overflow-hidden rounded-[2rem] border border-border/70 bg-card shadow-[0_24px_80px_-48px_rgba(15,23,42,0.35)]">
+      <header className="overflow-hidden rounded-[2rem] border border-border/80 bg-background/95 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.35)] ring-1 ring-border/40">
         <div className="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:px-8 lg:py-7">
           <div className="space-y-3">
             <p className="text-[11px] uppercase tracking-[0.38em] text-muted-foreground">
@@ -150,14 +150,14 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
           </div>
         </div>
 
-        <div className="border-t border-border/70 bg-muted/20 px-6 py-4 lg:px-8">
+        <div className="border-t border-border/80 bg-muted/30 px-6 py-4 lg:px-8">
           <form className="flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
             <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="month">
               Período
               <select
                 id="month"
                 name="month"
-                className="h-11 rounded-full border border-input bg-background px-4 text-sm shadow-sm"
+                className="h-11 rounded-full border border-border/80 bg-background/95 px-4 text-sm text-foreground shadow-sm"
                 defaultValue={report.period.month}
               >
                 {months.map((month) => (
@@ -208,7 +208,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
               report.pending.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
                 >
                   <div>
                     <p className="font-medium">{item.description}</p>
@@ -241,7 +241,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
             {report.accounts.map((account) => (
               <div
                 key={account.id}
-                className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+                className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
               >
                 <div>
                   <p className="font-medium">{account.name}</p>
@@ -273,7 +273,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
             {report.categories.map((category) => (
               <div
                 key={category.categoryId}
-                className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+                className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
               >
                 <div>
                   <p className="font-medium">{category.categoryName}</p>
@@ -301,7 +301,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
             {report.cardInvoices.map((invoice) => (
               <div
                 key={invoice.invoiceId}
-                className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+                className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
               >
                 <div>
                   <p className="font-medium">{invoice.cardName}</p>
@@ -336,7 +336,7 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
             {report.transfers.map((transfer) => (
               <div
                 key={transfer.transferId}
-                className="rounded-xl border bg-background/80 p-3"
+                className="rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>

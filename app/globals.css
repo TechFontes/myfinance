@@ -5,24 +5,24 @@
   --radius: 0.75rem;
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
-  --color-background: oklch(0.975 0.01 95);
+  --color-background: oklch(0.992 0.004 145);
   --color-foreground: oklch(0.22 0.015 95);
-  --color-card: oklch(0.995 0.005 95);
+  --color-card: oklch(0.999 0.003 145);
   --color-card-foreground: oklch(0.22 0.015 95);
-  --color-popover: oklch(0.995 0.005 95);
+  --color-popover: oklch(0.999 0.003 145);
   --color-popover-foreground: oklch(0.22 0.015 95);
   --color-primary: oklch(0.48 0.09 155);
   --color-primary-foreground: oklch(0.985 0.01 95);
-  --color-secondary: oklch(0.93 0.015 95);
+  --color-secondary: oklch(0.965 0.008 145);
   --color-secondary-foreground: oklch(0.24 0.015 95);
-  --color-muted: oklch(0.94 0.01 95);
+  --color-muted: oklch(0.968 0.007 145);
   --color-muted-foreground: oklch(0.5 0.015 95);
-  --color-accent: oklch(0.92 0.02 155);
+  --color-accent: oklch(0.945 0.015 150);
   --color-accent-foreground: oklch(0.24 0.015 95);
   --color-destructive: oklch(0.58 0.19 25);
   --color-destructive-foreground: oklch(0.985 0.01 95);
-  --color-border: oklch(0.88 0.01 95);
-  --color-input: oklch(0.97 0.008 95);
+  --color-border: oklch(0.93 0.008 145);
+  --color-input: oklch(0.989 0.004 145);
   --color-ring: oklch(0.48 0.09 155);
   --color-success: oklch(0.62 0.1 160);
   --color-success-foreground: oklch(0.985 0.01 95);
@@ -48,13 +48,85 @@
     background:
       radial-gradient(
         circle at top,
-        color-mix(in oklab, var(--color-primary) 11%, transparent),
-        transparent 30%
+        color-mix(in oklab, var(--color-primary) 9%, transparent),
+        transparent 28%
+      ),
+      radial-gradient(
+        circle at 84% 10%,
+        color-mix(in oklab, var(--color-accent) 8%, transparent),
+        transparent 26%
+      ),
+      linear-gradient(
+        180deg,
+        color-mix(in oklab, white 98%, var(--color-background)) 0%,
+        var(--color-background) 100%
+      ),
+      repeating-linear-gradient(
+        135deg,
+        color-mix(in oklab, var(--color-primary) 5%, transparent) 0 1px,
+        transparent 1px 64px
+      ),
+      repeating-linear-gradient(
+        45deg,
+        color-mix(in oklab, var(--color-primary) 3%, transparent) 0 1px,
+        transparent 1px 84px
       ),
       var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
   }
+}
+
+.shell-frame {
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 11% 14%,
+      color-mix(in oklab, var(--color-primary) 12%, transparent),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 88% 8%,
+      color-mix(in oklab, var(--color-accent) 8%, transparent),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, white 99%, var(--color-background)) 0%,
+      color-mix(in oklab, var(--color-background) 94%, white) 100%
+    );
+}
+
+.shell-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.78;
+  background-image:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-primary) 7%, transparent) 0 1px,
+      transparent 1px 56px
+    ),
+    linear-gradient(
+      45deg,
+      color-mix(in oklab, var(--color-primary) 4%, transparent) 0 1px,
+      transparent 1px 74px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-card) 90%, transparent),
+      transparent 42%
+    );
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.92), transparent 92%);
+}
+
+.shell-frame__inner {
+  position: relative;
+  z-index: 1;
 }
 
 .dark {
@@ -79,4 +151,38 @@
   --color-ring: oklch(0.65 0.08 155);
   --color-success: oklch(0.72 0.12 160);
   --color-success-foreground: oklch(0.18 0.01 95);
+}
+
+.dark .shell-frame {
+  background:
+    radial-gradient(
+      circle at 11% 14%,
+      color-mix(in oklab, var(--color-primary) 16%, transparent),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 88% 8%,
+      color-mix(in oklab, var(--color-accent) 10%, transparent),
+      transparent 24%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--color-background) 88%, white) 0%,
+      var(--color-background) 100%
+    );
+}
+
+.dark .shell-frame::before {
+  opacity: 0.35;
+  background-image:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-primary) 8%, transparent) 0 1px,
+      transparent 1px 56px
+    ),
+    linear-gradient(
+      45deg,
+      color-mix(in oklab, var(--color-primary) 5%, transparent) 0 1px,
+      transparent 1px 74px
+    );
 }

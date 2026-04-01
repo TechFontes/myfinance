@@ -43,6 +43,16 @@ describe('csv import review panel', () => {
     expect(screen.getByText('Almoço')).toBeInTheDocument()
     expect(screen.getByText('Mobilidade')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Confirmar importação' })).toBeDisabled()
+
+    const heroCard = screen
+      .getByRole('heading', { name: 'Revisão da importação CSV' })
+      .closest('.rounded-xl')
+    const heroNotice = screen.getByText('A confirmação só fica disponível depois da revisão do preview.').closest('.rounded-2xl')
+
+    expect(heroCard).toHaveClass('bg-background/95')
+    expect(heroCard).toHaveClass('border-border/80')
+    expect(heroCard).toHaveClass('ring-1')
+    expect(heroNotice).toHaveClass('bg-background/80')
   })
 
   it('keeps the real commit blocked until the preview is validated on the server and reviewed', async () => {

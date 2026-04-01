@@ -13,7 +13,6 @@ import {
   buildTransactionImportPreview,
   type CsvImportTransactionPreview,
   type TransactionImportCategory,
-  type TransactionImportRow,
 } from '@/modules/imports'
 import { CheckCircle2, FileUp, LoaderCircle, RefreshCcw, Sparkles } from 'lucide-react'
 
@@ -260,7 +259,7 @@ export function CsvImportReviewPanel({
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-slate-200/70 bg-gradient-to-br from-slate-50 via-white to-emerald-50 shadow-sm dark:border-slate-800 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
+      <Card className="overflow-hidden border-border/80 bg-background/95 shadow-sm ring-1 ring-border/40 dark:border-slate-800 dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-950 dark:to-slate-900 dark:ring-0">
         <CardHeader className="space-y-4">
           <div className="flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-muted-foreground">
             <Sparkles className="h-4 w-4" />
@@ -272,7 +271,7 @@ export function CsvImportReviewPanel({
               Carregue um CSV, revise o preview e só então confirme a importação.
             </CardDescription>
           </div>
-          <div className="rounded-2xl border border-dashed border-emerald-300 bg-white/80 p-4 text-sm text-muted-foreground dark:border-emerald-900 dark:bg-slate-950/60">
+          <div className="rounded-2xl border border-dashed border-emerald-400/40 bg-background/80 p-4 text-sm text-muted-foreground dark:border-emerald-900 dark:bg-slate-950/60">
             A confirmação só fica disponível depois da revisão do preview.
           </div>
         </CardHeader>

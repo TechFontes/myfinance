@@ -97,12 +97,10 @@ describe('dashboard service alignment', () => {
 
     expect(prismaMock.transaction.findMany).toHaveBeenCalledWith({
       where: { userId: 'user-1', status: { not: 'CANCELED' } },
-      orderBy: { competenceDate: 'asc' },
       select: { competenceDate: true },
     })
     expect(prismaMock.transfer.findMany).toHaveBeenCalledWith({
       where: { userId: 'user-1', status: { not: 'CANCELED' } },
-      orderBy: { competenceDate: 'asc' },
       select: { competenceDate: true },
     })
     expect(prismaMock.invoice.findMany).toHaveBeenCalledWith({
@@ -111,7 +109,6 @@ describe('dashboard service alignment', () => {
           userId: 'user-1',
         },
       },
-      orderBy: { dueDate: 'asc' },
       select: { dueDate: true },
     })
   })
@@ -227,5 +224,77 @@ describe('dashboard service alignment', () => {
     expect(report.transfers).toEqual([
       expect.objectContaining({ sourceAccountName: 'Main account', destinationAccountName: 'Savings' }),
     ])
+  })
+
+  it('queries the dashboard report with minimal selected fields instead of broad includes', async () => {
+    const { getDashboardReport } = await import('@/services/dashboardService')
+
+    prismaMock.transaction.findMany.mockResolvedValueOnce([])
+    prismaMock.transfer.findMany.mockResolvedValueOnce([])
+    prismaMock.invoice.findMany.mockResolvedValueOnce([])
+    prismaMock.account.findMany.mockResolvedValueOnce([])
+
+    await getDashboardReport('user-1', '2026-03')
+
+    expect(prismaMock.transaction.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          id: true,
+          type: true,
+          description: true,
+          value: true,
+          status: true,
+          competenceDate: true,
+          dueDate: true,
+          categoryId: true,
+          category: expect.any(Object),
+          account: expect.any(Object),
+        }),
+      }),
+    )
+    expect(prismaMock.transaction.findMany).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        include: expect.anything(),
+      }),
+    )
+
+    expect(prismaMock.transfer.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          id: true,
+          description: true,
+          amount: true,
+          competenceDate: true,
+          dueDate: true,
+          status: true,
+          sourceAccount: expect.any(Object),
+          destinationAccount: expect.any(Object),
+        }),
+      }),
+    )
+    expect(prismaMock.invoice.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          id: true,
+          month: true,
+          year: true,
+          status: true,
+          total: true,
+          dueDate: true,
+          creditCard: expect.any(Object),
+        }),
+      }),
+    )
+    expect(prismaMock.account.findMany).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+      orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        initialBalance: true,
+        active: true,
+      },
+    })
   })
 })

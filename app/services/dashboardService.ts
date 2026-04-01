@@ -337,7 +337,6 @@ export async function getAvailableMonths(userId: string) {
         userId,
         status: { not: 'CANCELED' },
       },
-      orderBy: { competenceDate: 'asc' },
       select: { competenceDate: true },
     }),
     prisma.transfer.findMany({
@@ -345,7 +344,6 @@ export async function getAvailableMonths(userId: string) {
         userId,
         status: { not: 'CANCELED' },
       },
-      orderBy: { competenceDate: 'asc' },
       select: { competenceDate: true },
     }),
     prisma.invoice.findMany({
@@ -354,7 +352,6 @@ export async function getAvailableMonths(userId: string) {
           userId,
         },
       },
-      orderBy: { dueDate: 'asc' },
       select: { dueDate: true },
     }),
   ])
@@ -391,9 +388,29 @@ export async function getDashboardReport(userId: string, month: string): Promise
           lte: end,
         },
       },
-      include: {
-        category: true,
-        account: true,
+      select: {
+        id: true,
+        type: true,
+        description: true,
+        value: true,
+        status: true,
+        competenceDate: true,
+        dueDate: true,
+        categoryId: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
+        account: {
+          select: {
+            id: true,
+            name: true,
+            type: true,
+          },
+        },
       },
       orderBy: [{ competenceDate: 'asc' }, { createdAt: 'asc' }],
     }),
@@ -408,9 +425,25 @@ export async function getDashboardReport(userId: string, month: string): Promise
           lte: end,
         },
       },
-      include: {
-        sourceAccount: true,
-        destinationAccount: true,
+      select: {
+        id: true,
+        description: true,
+        amount: true,
+        competenceDate: true,
+        dueDate: true,
+        status: true,
+        sourceAccount: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        destinationAccount: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy: [{ competenceDate: 'asc' }, { createdAt: 'asc' }],
     }),
@@ -424,15 +457,32 @@ export async function getDashboardReport(userId: string, month: string): Promise
           lte: end,
         },
       },
-      include: {
-        creditCard: true,
-        transactions: true,
+      select: {
+        id: true,
+        month: true,
+        year: true,
+        status: true,
+        total: true,
+        dueDate: true,
+        creditCard: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
       orderBy: { dueDate: 'asc' },
     }),
     prisma.account.findMany({
       where: { userId },
       orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        type: true,
+        initialBalance: true,
+        active: true,
+      },
     }),
   ])
 

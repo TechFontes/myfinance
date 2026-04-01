@@ -45,6 +45,7 @@ describe('sidebar', () => {
 
     expect(screen.getByText('MyFinance')).toBeInTheDocument()
     expect(screen.getByText('Finanças pessoais')).toBeInTheDocument()
+    expect(screen.getByRole('complementary')).toBeInTheDocument()
     expect(screen.queryByText('Workspace financeiro')).not.toBeInTheDocument()
     expect(screen.queryByText('Controle patrimonial')).not.toBeInTheDocument()
     expect(
@@ -58,7 +59,8 @@ describe('sidebar', () => {
     const activeLink = screen.getAllByRole('link', { name: 'Cartões' })[0]
 
     expect(activeLink).toHaveAttribute('aria-current', 'page')
-    expect(activeLink).toHaveClass('bg-card/80')
+    expect(activeLink).toHaveClass('bg-background/95')
+    expect(activeLink).toHaveClass('ring-1')
     expect(activeLink).not.toHaveClass('bg-foreground')
     expect(screen.getAllByRole('link', { name: 'Visão geral' })[0]).not.toHaveAttribute(
       'aria-current',

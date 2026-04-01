@@ -27,9 +27,16 @@ const mobileNavItems = [
   { href: '/dashboard/categories', label: 'Categorias' },
 ]
 
-export function Header() {
-  const { user, logout } = useAuth()
+type HeaderUser = {
+  id?: string | number
+  name: string | null
+  email: string
+}
+
+export function Header({ user: userOverride }: { user?: HeaderUser }) {
+  const { user: authUser, logout } = useAuth()
   const router = useRouter()
+  const user = userOverride ?? authUser
 
   const initials =
     user?.name
@@ -45,7 +52,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 px-4 py-3 backdrop-blur-xl md:px-6">
+    <header className="sticky top-0 z-20 border-b border-border/70 bg-background/95 px-4 py-3 backdrop-blur-xl md:px-6">
       <div className="flex items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
@@ -73,7 +80,7 @@ export function Header() {
               <button
                 type="button"
                 aria-label="Sair da conta"
-                className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/90 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 onClick={handleLogout}
               >
                 <LogOut size={14} />
@@ -128,7 +135,7 @@ export function Header() {
           <Link
             key={item.href}
             href={item.href}
-            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-card/90 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {item.label}
           </Link>

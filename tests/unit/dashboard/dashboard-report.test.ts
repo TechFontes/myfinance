@@ -196,7 +196,6 @@ describe('dashboard report aggregation', () => {
         userId: 'user-1',
         status: { not: 'CANCELED' },
       },
-      orderBy: { competenceDate: 'asc' },
       select: { competenceDate: true },
     })
     expect(prismaMock.transfer.findMany).toHaveBeenCalledWith({
@@ -204,7 +203,6 @@ describe('dashboard report aggregation', () => {
         userId: 'user-1',
         status: { not: 'CANCELED' },
       },
-      orderBy: { competenceDate: 'asc' },
       select: { competenceDate: true },
     })
     expect(prismaMock.invoice.findMany).toHaveBeenCalledWith({
@@ -213,7 +211,6 @@ describe('dashboard report aggregation', () => {
           userId: 'user-1',
         },
       },
-      orderBy: { dueDate: 'asc' },
       select: { dueDate: true },
     })
   })
