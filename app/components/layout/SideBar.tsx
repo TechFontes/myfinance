@@ -8,6 +8,7 @@ import { twMerge } from 'tailwind-merge'
 const navItems = [
   { href: '/dashboard', label: 'Visão geral' },
   { href: '/dashboard/transactions', label: 'Transações' },
+  { href: '/dashboard/transfers', label: 'Transfers' },
   { href: '/dashboard/accounts', label: 'Contas' },
   { href: '/dashboard/categories', label: 'Categorias' },
 ]
