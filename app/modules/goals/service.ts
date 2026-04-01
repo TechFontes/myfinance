@@ -29,7 +29,7 @@ type GoalWithContributions = {
   status: GoalRecord['status']
   createdAt: Date
   updatedAt: Date
-  contributions: Array<{
+  contributions?: Array<{
     amount: { toString(): string }
   }>
 }
@@ -51,12 +51,14 @@ function resolveCurrentAmount(contributions: GoalWithContributions['contribution
 }
 
 function mapGoal(goal: GoalWithContributions): GoalRecord {
+  const contributions = goal.contributions ?? []
+
   return {
     id: goal.id,
     userId: goal.userId,
     name: goal.name,
     targetAmount: goal.targetAmount.toString(),
-    currentAmount: resolveCurrentAmount(goal.contributions),
+    currentAmount: resolveCurrentAmount(contributions),
     reserveAccountId: goal.reserveAccountId,
     status: goal.status,
     description: null,

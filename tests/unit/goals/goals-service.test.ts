@@ -51,7 +51,7 @@ describe('goals service', () => {
 
     expect(prismaMock.goal.findMany).toHaveBeenCalledWith({
       where: { userId: 'user-1' },
-      orderBy: [{ createdAt: 'desc' }],
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       include: {
         contributions: {
           select: { amount: true },
@@ -93,7 +93,11 @@ describe('goals service', () => {
         targetAmount: '50000.00',
         reserveAccountId: null,
         status: 'ACTIVE',
-        description: null,
+      },
+      include: {
+        contributions: {
+          select: { amount: true },
+        },
       },
     })
   })
@@ -109,8 +113,7 @@ describe('goals service', () => {
       name: 'Meta ajustada',
       targetAmount: '6000.00',
       reserveAccountId: 8,
-      status: 'ACTIVE',
-      description: 'Atualizada',
+      status: 'COMPLETED',
       createdAt: new Date(),
       updatedAt: new Date(),
     } as never)
@@ -119,7 +122,7 @@ describe('goals service', () => {
       name: 'Meta ajustada',
       targetAmount: '6000.00',
       reserveAccountId: 8,
-      description: 'Atualizada',
+      status: 'COMPLETED',
     })
 
     expect(prismaMock.goal.findFirst).toHaveBeenCalledWith({
@@ -131,8 +134,12 @@ describe('goals service', () => {
         name: 'Meta ajustada',
         targetAmount: '6000.00',
         reserveAccountId: 8,
-        status: undefined,
-        description: 'Atualizada',
+        status: 'COMPLETED',
+      },
+      include: {
+        contributions: {
+          select: { amount: true },
+        },
       },
     })
     expect(updated?.name).toBe('Meta ajustada')
