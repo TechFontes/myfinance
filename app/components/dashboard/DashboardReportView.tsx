@@ -1,6 +1,7 @@
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import type { DashboardPeriod, DashboardReport } from '@/modules/dashboard'
+import type { DashboardReport } from '@/modules/dashboard'
 
 type DashboardReportViewProps = {
   report: DashboardReport
@@ -86,44 +87,57 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
 
   return (
     <div className="space-y-8">
-      <header className="space-y-5 rounded-3xl border bg-gradient-to-br from-background to-muted/30 p-6 shadow-sm">
-        <div className="space-y-2">
-          <p className="text-xs uppercase tracking-[0.35em] text-muted-foreground">
-            Dashboard mensal
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight">Visão geral</h1>
-          <p className="max-w-2xl text-muted-foreground">
-            Sua situação financeira consolidada do período selecionado.
-          </p>
+      <header className="overflow-hidden rounded-[2rem] border border-border/70 bg-card shadow-[0_24px_80px_-48px_rgba(15,23,42,0.35)]">
+        <div className="grid gap-6 px-6 py-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:px-8 lg:py-7">
+          <div className="space-y-3">
+            <p className="text-[11px] uppercase tracking-[0.38em] text-muted-foreground">
+              Dashboard mensal
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">Visão geral</h1>
+            <p className="max-w-2xl text-sm leading-6 text-muted-foreground md:text-base">
+              Sua situação financeira consolidada do período selecionado.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/dashboard/transactions/new"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-foreground px-5 text-sm font-medium text-background transition-colors hover:bg-foreground/90"
+            >
+              Nova transação
+            </Link>
+            <div className="rounded-full border border-border/70 bg-background px-4 py-2 text-sm text-muted-foreground">
+              Período atual:{' '}
+              <span className="font-medium text-foreground">{report.period.label}</span>
+            </div>
+          </div>
         </div>
 
-        <form className="flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
-          <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="month">
-            Período
-            <select
-              id="month"
-              name="month"
-              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-              defaultValue={report.period.month}
+        <div className="border-t border-border/70 bg-muted/20 px-6 py-4 lg:px-8">
+          <form className="flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
+            <label className="flex flex-col gap-2 text-sm font-medium" htmlFor="month">
+              Período
+              <select
+                id="month"
+                name="month"
+                className="h-11 rounded-full border border-input bg-background px-4 text-sm shadow-sm"
+                defaultValue={report.period.month}
+              >
+                {months.map((month) => (
+                  <option key={month} value={month}>
+                    {formatMonthLabel(month)}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <button
+              className="h-11 rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+              type="submit"
             >
-              {months.map((month) => (
-                <option key={month} value={month}>
-                  {formatMonthLabel(month)}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <button
-            className="h-10 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground"
-            type="submit"
-          >
-            Ver período
-          </button>
-        </form>
-
-        <div className="text-sm text-muted-foreground">
-          Período atual: <span className="font-medium text-foreground">{report.period.label}</span>
+              Ver período
+            </button>
+          </form>
         </div>
       </header>
 

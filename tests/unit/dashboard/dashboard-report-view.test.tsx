@@ -1,9 +1,46 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import { DashboardReportView } from '@/components/dashboard/DashboardReportView'
 
+afterEach(() => {
+  cleanup()
+})
+
 describe('dashboard report view', () => {
+  it('renders the editorial dashboard header and primary action', () => {
+    render(
+      <DashboardReportView
+        availableMonths={['2026-02', '2026-03']}
+        report={{
+          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          summary: {
+            forecastIncome: '1000.00',
+            forecastExpense: '250.00',
+            realizedIncome: '850.00',
+            realizedExpense: '200.00',
+            forecastBalance: '750.00',
+            realizedBalance: '650.00',
+          },
+          pending: [],
+          accounts: [],
+          categories: [],
+          cardInvoices: [],
+          transfers: [],
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Dashboard mensal')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Visão geral', level: 1 })).toBeInTheDocument()
+    expect(
+      screen.getByText('Sua situação financeira consolidada do período selecionado.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Nova transação' }),
+    ).toHaveAttribute('href', '/dashboard/transactions/new')
+  })
+
   it('renders the consolidated monthly sections and data', () => {
     render(
       <DashboardReportView
