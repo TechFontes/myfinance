@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope, Newsreader } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
@@ -9,13 +9,13 @@ export const metadata: Metadata = {
   description: "Controle financeiro pessoal multiusuário",
 };
 
-const fontSans = Manrope({
+const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
 });
 
-const fontSerif = Newsreader({
+const fontSerif = Sora({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",

@@ -40,12 +40,16 @@ afterEach(() => {
 })
 
 describe('sidebar', () => {
-  it('renders the sidebar as an editorial navigation rail', () => {
+  it('renders the sidebar with a concise personal finance identity', () => {
     render(<Sidebar />)
 
     expect(screen.getByText('MyFinance')).toBeInTheDocument()
-    expect(screen.getByText('Workspace financeiro')).toBeInTheDocument()
-    expect(screen.getByText('Controle patrimonial')).toBeInTheDocument()
+    expect(screen.getByText('Finanças pessoais')).toBeInTheDocument()
+    expect(screen.queryByText('Workspace financeiro')).not.toBeInTheDocument()
+    expect(screen.queryByText('Controle patrimonial')).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/leitura editorial e visão consolidada em uma única mesa/i),
+    ).not.toBeInTheDocument()
   })
 
   it('marks the active module with aria-current page', () => {
