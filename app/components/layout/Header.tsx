@@ -47,9 +47,12 @@ export function Header() {
             <span className="font-serif text-2xl tracking-tight text-foreground">
               MyFinance
             </span>
-            <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline-flex" />
-            <span className="hidden text-sm text-muted-foreground sm:inline">
-              controle patrimonial
+            <span
+              aria-hidden="true"
+              className="h-1 w-1 rounded-full bg-muted-foreground/40"
+            />
+            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+              Controle patrimonial
             </span>
           </div>
         </div>

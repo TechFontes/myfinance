@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
+import { within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { Header } from '@/components/layout/Header'
@@ -47,22 +48,25 @@ describe('sidebar', () => {
 })
 
 describe('header mobile navigation', () => {
-  it('exposes the dashboard routes when the sidebar is hidden', () => {
+  it('keeps the patrimonial label visible when the sidebar is hidden', () => {
     render(<Header />)
 
-    const navigation = screen.getByRole('navigation', { name: 'Navegação principal' })
+    const banner = screen.getByRole('banner')
+    const patrimonialLabel = within(banner).getByText('Controle patrimonial')
+    const navigation = within(banner).getByRole('navigation', { name: 'Navegação principal' })
 
+    expect(patrimonialLabel).toBeVisible()
+    expect(patrimonialLabel).not.toHaveClass('hidden')
     expect(navigation).toBeInTheDocument()
-    expect(screen.getByText('controle patrimonial')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute(
+    expect(within(navigation).getByRole('link', { name: 'Visão geral' })).toHaveAttribute(
       'href',
       '/dashboard',
     )
-    expect(screen.getByRole('link', { name: 'Transações' })).toHaveAttribute(
+    expect(within(navigation).getByRole('link', { name: 'Transações' })).toHaveAttribute(
       'href',
       '/dashboard/transactions',
     )
-    expect(screen.getByRole('link', { name: 'Cartões' })).toHaveAttribute(
+    expect(within(navigation).getByRole('link', { name: 'Cartões' })).toHaveAttribute(
       'href',
       '/dashboard/cards',
     )
