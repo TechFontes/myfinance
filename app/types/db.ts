@@ -10,8 +10,8 @@ import {
   TransactionStatus,
   AccountType,
   CategoryType,
-  Prisma
-} from "@prisma/client";
+  Prisma,
+} from "@prisma/client"
 
 // ===============================
 // BASE TYPES (Direto do Prisma)
@@ -59,28 +59,39 @@ export type RecurringTransactionWithRelations = RecurringRule & {
 
 // Criar transação
 export interface CreateTransactionDTO {
-  type: TransactionType;
-  status: TransactionStatus;
-  amount: number;
-  date: Date | string;
-  description: string;
-  categoryId: number;
-  userId: number;
-  accountId?: number | null;
-  creditCardId?: number | null;
-  invoiceId?: number | null;
+  type: TransactionType
+  status?: TransactionStatus
+  value: string
+  competenceDate: Date | string
+  dueDate: Date | string
+  paidAt?: Date | string | null
+  description: string
+  categoryId: number
+  userId: string
+  accountId?: number | null
+  creditCardId?: number | null
+  invoiceId?: number | null
+  fixed?: boolean
+  installment?: number | null
+  installments?: number | null
 }
 
 // Atualizar transação
 export interface UpdateTransactionDTO {
-  id: number;
-  amount?: number;
-  description?: string;
-  date?: string | Date;
-  status?: TransactionStatus;
-  categoryId?: number;
-  accountId?: number | null;
-  invoiceId?: number | null;
+  id: number
+  value?: string
+  description?: string
+  competenceDate?: string | Date
+  dueDate?: string | Date
+  paidAt?: string | Date | null
+  status?: TransactionStatus
+  categoryId?: number
+  accountId?: number | null
+  creditCardId?: number | null
+  invoiceId?: number | null
+  fixed?: boolean
+  installment?: number | null
+  installments?: number | null
 }
 
 // Criar conta
@@ -127,12 +138,16 @@ export interface CreateRecurringTransactionDTO {
 // ===================================
 
 export interface TransactionFilters {
-  search?: string;
-  type?: TransactionType | "ALL";
-  month?: string; // yyyy-mm
-  categoryId?: number;
-  accountId?: number;
-  status?: TransactionStatus;
+  search?: string
+  type?: TransactionType | "ALL"
+  status?: TransactionStatus
+  categoryId?: number
+  accountId?: number
+  creditCardId?: number
+  periodStart?: Date | string
+  periodEnd?: Date | string
+  page?: number
+  pageSize?: number
 }
 
 // ===================================
@@ -154,10 +169,10 @@ export interface MonthlyCategorySummary {
 }
 
 export interface AccountSummary {
-  id: number;
-  name: string;
-  type: AccountType;
-  balance: number;
+  id: number
+  name: string
+  type: AccountType
+  balance: number
 }
 
 // ===================================
@@ -165,9 +180,9 @@ export interface AccountSummary {
 // ===================================
 
 export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
+  success: boolean
+  data?: T
+  error?: string
 }
 
 export type TransactionListResponse = ApiResponse<TransactionWithRelations[]>;
