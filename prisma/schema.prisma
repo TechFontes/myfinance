@@ -54,6 +54,12 @@ enum InvoiceStatus {
   CANCELED
 }
 
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  CANCELED
+}
+
 // --------------------------------------------
 // USER
 // --------------------------------------------
@@ -74,6 +80,7 @@ model User {
   categories      Category[]
   transactions    Transaction[]
   transfers       Transfer[]
+  goals           Goal[]
   creditCards     CreditCard[]
   recurringRules  RecurringRule[]
 }
@@ -98,6 +105,7 @@ model Account {
   transactions   Transaction[]
   sentTransfers  Transfer[]      @relation("TransferSender")
   receivedTransfers Transfer[]    @relation("TransferReceiver")
+  reserveGoals    Goal[]          @relation("GoalReserveAccount")
   recurringRules RecurringRule[]
 }
 
@@ -212,6 +220,41 @@ model Transfer {
   user                User           @relation(fields: [userId], references: [id])
   sourceAccount       Account        @relation("TransferSender", fields: [sourceAccountId], references: [id])
   destinationAccount   Account        @relation("TransferReceiver", fields: [destinationAccountId], references: [id])
+  goalContributions   GoalContribution[]
+}
+
+// --------------------------------------------
+// GOAL
+// --------------------------------------------
+model Goal {
+  id              Int          @id @default(autoincrement())
+  userId          String
+  reserveAccountId Int?
+  name            String
+  targetAmount    Decimal      @db.Decimal(10, 2)
+  status          GoalStatus   @default(ACTIVE)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user            User         @relation(fields: [userId], references: [id])
+  reserveAccount  Account?     @relation("GoalReserveAccount", fields: [reserveAccountId], references: [id])
+  contributions   GoalContribution[]
+}
+
+// --------------------------------------------
+// GOAL CONTRIBUTION
+// --------------------------------------------
+model GoalContribution {
+  id                   Int       @id @default(autoincrement())
+  goalId               Int
+  transferId           Int?
+  amount               Decimal   @db.Decimal(10, 2)
+  reflectFinancially    Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  goal                 Goal      @relation(fields: [goalId], references: [id])
+  transfer             Transfer? @relation(fields: [transferId], references: [id])
 }
 
 // --------------------------------------------
