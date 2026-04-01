@@ -1,176 +1,248 @@
-import {
-  User,
-  Account,
-  Category,
-  CreditCard,
-  Invoice,
-  Transaction,
-  RecurringRule,
-  TransactionType,
-  TransactionStatus,
+import type {
   AccountType,
   CategoryType,
-  Prisma
-} from "@prisma/client";
+  TransactionStatus,
+} from '@/types/domain'
 
-// ===============================
-// BASE TYPES (Direto do Prisma)
-// ===============================
+type TransactionType = 'INCOME' | 'EXPENSE'
 
-export type DBUser = User;
-export type DBAccount = Account;
-export type DBCategory = Category;
-export type DBCreditCard = CreditCard;
-export type DBCreditCardInvoice = Invoice;
-export type DBTransaction = Transaction;
-export type DBRecurringTransaction = RecurringRule;
+export type DBUser = {
+  id: string
+  name: string | null
+  email: string
+  password: string
+  resetToken: string | null
+  resetTokenExpiry: Date | null
+  role: 'USER' | 'ADMIN'
+  blockedAt: Date | null
+  blockedReason: string | null
+  createdAt: Date
+  updatedAt: Date
+}
 
-// ===================================
-// RELATION TYPES (Com joins/prisma)
-// ===================================
+export type DBAccount = {
+  id: number
+  userId: string
+  name: string
+  type: AccountType
+  initialBalance: string
+  active: boolean
+  institution: string | null
+  color: string | null
+  icon: string | null
+  createdAt: Date
+  updatedAt: Date
+}
 
-// Transaction com category + account + invoice + user
-export type TransactionWithRelations = Transaction & {
-  user?: User | null;
-  category?: Category | null;
-  account?: Account | null;
-  creditCard?: CreditCard | null;
-  invoice?: Invoice | null;
-};
+export type DBCategory = {
+  id: number
+  userId: string
+  name: string
+  type: CategoryType
+  parentId: number | null
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
+}
 
-// Invoice com cartão + transações
-export type InvoiceWithRelations = Invoice & {
-  creditCard: CreditCard;
-  transactions: Transaction[];
-};
+export type DBCreditCard = {
+  id: number
+  userId: string
+  name: string
+  limit: string
+  closeDay: number
+  dueDay: number
+  color: string | null
+  icon: string | null
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
+}
 
-// RecurringTransaction com category + account + user
-export type RecurringTransactionWithRelations = RecurringRule & {
-  user: User;
-  category: Category;
-  account?: Account | null;
-  creditCard?: CreditCard | null;
-  transactions: Transaction[];
-};
+export type DBCreditCardInvoice = {
+  id: number
+  creditCardId: number
+  month: number
+  year: number
+  dueDate: Date
+  total: string
+  status: 'OPEN' | 'PAID' | 'CANCELED'
+  createdAt: Date
+  updatedAt: Date
+}
 
-// ===================================
-// DTOs (Data Transfer Objects)
-// ===================================
+export type DBTransaction = {
+  id: number
+  userId: string
+  type: TransactionType
+  status: TransactionStatus
+  value: string
+  competenceDate: Date
+  dueDate: Date
+  paidAt: Date | null
+  description: string
+  categoryId: number
+  accountId: number | null
+  creditCardId: number | null
+  invoiceId: number | null
+  fixed: boolean
+  installment: number | null
+  installments: number | null
+  recurringRuleId: number | null
+  createdAt: Date
+  updatedAt: Date
+}
 
-// Criar transação
+export type DBRecurringTransaction = {
+  id: number
+  userId: string
+  type: TransactionType
+  status: 'ACTIVE' | 'INACTIVE'
+  value: string
+  description: string
+  categoryId: number
+  accountId: number | null
+  creditCardId: number | null
+  frequency: 'MONTHLY'
+  dayOfMonth: number | null
+  startDate: Date
+  endDate: Date | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type TransactionWithRelations = DBTransaction & {
+  user?: DBUser | null
+  category?: DBCategory | null
+  account?: DBAccount | null
+  creditCard?: DBCreditCard | null
+  invoice?: DBCreditCardInvoice | null
+}
+
+export type InvoiceWithRelations = DBCreditCardInvoice & {
+  creditCard: DBCreditCard
+  transactions: DBTransaction[]
+}
+
+export type RecurringTransactionWithRelations = DBRecurringTransaction & {
+  user: DBUser
+  category: DBCategory
+  account?: DBAccount | null
+  creditCard?: DBCreditCard | null
+  transactions: DBTransaction[]
+}
+
 export interface CreateTransactionDTO {
-  type: TransactionType;
-  status: TransactionStatus;
-  amount: number;
-  date: Date | string;
-  description: string;
-  categoryId: number;
-  userId: number;
-  accountId?: number | null;
-  creditCardId?: number | null;
-  invoiceId?: number | null;
+  type: TransactionType
+  status?: TransactionStatus
+  value: string
+  competenceDate: Date | string
+  dueDate: Date | string
+  paidAt?: Date | string | null
+  description: string
+  categoryId: number
+  userId: string
+  accountId?: number | null
+  creditCardId?: number | null
+  invoiceId?: number | null
+  fixed?: boolean
+  installment?: number | null
+  installments?: number | null
 }
 
-// Atualizar transação
 export interface UpdateTransactionDTO {
-  id: number;
-  amount?: number;
-  description?: string;
-  date?: string | Date;
-  status?: TransactionStatus;
-  categoryId?: number;
-  accountId?: number | null;
-  invoiceId?: number | null;
+  id: number
+  value?: string
+  description?: string
+  competenceDate?: string | Date
+  dueDate?: string | Date
+  paidAt?: string | Date | null
+  status?: TransactionStatus
+  categoryId?: number
+  accountId?: number | null
+  creditCardId?: number | null
+  invoiceId?: number | null
+  fixed?: boolean
+  installment?: number | null
+  installments?: number | null
 }
 
-// Criar conta
 export interface CreateAccountDTO {
-  userId: number;
-  name: string;
-  type: AccountType;
-  balance?: number;
+  userId: string
+  name: string
+  type: AccountType
+  balance?: number
 }
 
-// Criar categoria
 export interface CreateCategoryDTO {
-  userId: number;
-  name: string;
-  type: CategoryType;
+  userId: string
+  name: string
+  type: CategoryType
 }
 
-// Criar fatura de cartão
 export interface CreateInvoiceDTO {
-  creditCardId: number;
-  month: number;
-  year: number;
-  dueDate: string | Date;
-  amount?: number;
+  creditCardId: number
+  month: number
+  year: number
+  dueDate: string | Date
+  amount?: number
 }
 
-// Criar transação recorrente
 export interface CreateRecurringTransactionDTO {
-  userId: number;
-  type: TransactionType;
-  categoryId: number;
-  amount: number;
-  description: string;
-  frequency: string;
-  dayOfMonth?: number;
-  startDate: string | Date;
-  endDate?: string | Date | null;
-  accountId?: number | null;
-  creditCardId?: number | null;
+  userId: string
+  type: TransactionType
+  categoryId: number
+  amount: number
+  description: string
+  frequency: string
+  dayOfMonth?: number
+  startDate: string | Date
+  endDate?: string | Date | null
+  accountId?: number | null
+  creditCardId?: number | null
 }
-
-// ===================================
-// FILTER TYPES
-// ===================================
 
 export interface TransactionFilters {
-  search?: string;
-  type?: TransactionType | "ALL";
-  month?: string; // yyyy-mm
-  categoryId?: number;
-  accountId?: number;
-  status?: TransactionStatus;
+  search?: string
+  type?: TransactionType | 'ALL'
+  status?: TransactionStatus
+  categoryId?: number
+  accountId?: number
+  creditCardId?: number
+  periodStart?: Date | string
+  periodEnd?: Date | string
+  page?: number
+  pageSize?: number
 }
 
-// ===================================
-// SUMMARY TYPES (Dashboard)
-// ===================================
-
 export interface FinanceSummary {
-  totalIncome: number;
-  totalExpense: number;
-  balance: number;
-  monthIncome: number;
-  monthExpense: number;
+  totalIncome: number
+  totalExpense: number
+  balance: number
+  monthIncome: number
+  monthExpense: number
 }
 
 export interface MonthlyCategorySummary {
-  category: string;
-  total: number;
-  type: CategoryType;
+  category: string
+  total: number
+  type: CategoryType
 }
 
 export interface AccountSummary {
-  id: number;
-  name: string;
-  type: AccountType;
-  balance: number;
+  id: number
+  name: string
+  type: AccountType
+  balance: number
 }
-
-// ===================================
-// API RESPONSE TYPES
-// ===================================
 
 export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
+  success: boolean
+  data?: T
+  error?: string
 }
 
-export type TransactionListResponse = ApiResponse<TransactionWithRelations[]>;
-export type TransactionResponse = ApiResponse<TransactionWithRelations>;
-export type AccountListResponse = ApiResponse<AccountSummary[]>;
-export type CategoryListResponse = ApiResponse<Category[]>;
+export type TransactionListResponse = ApiResponse<TransactionWithRelations[]>
+export type TransactionResponse = ApiResponse<TransactionWithRelations>
+export type AccountListResponse = ApiResponse<AccountSummary[]>
+export type CategoryListResponse = ApiResponse<DBCategory[]>

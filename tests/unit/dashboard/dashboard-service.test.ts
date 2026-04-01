@@ -1,0 +1,231 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const prismaMock = vi.hoisted(() => ({
+  transaction: {
+    findMany: vi.fn(),
+    groupBy: vi.fn(),
+  },
+  account: {
+    findMany: vi.fn(),
+  },
+  transfer: {
+    findMany: vi.fn(),
+  },
+  invoice: {
+    findMany: vi.fn(),
+  },
+}))
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: prismaMock,
+}))
+
+vi.setConfig({
+  testTimeout: 15000,
+  hookTimeout: 15000,
+})
+
+describe('dashboard service alignment', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('queries transactions by competenceDate for the monthly summary', async () => {
+    const { getFinanceSummary } = await import('@/services/dashboardService')
+
+    prismaMock.transaction.findMany.mockResolvedValueOnce([
+      { type: 'INCOME', value: '100.00' },
+      { type: 'EXPENSE', value: '25.00' },
+    ])
+
+    await getFinanceSummary('user-1', '2026-03')
+
+    expect(prismaMock.transaction.findMany).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        userId: 'user-1',
+        status: { not: 'CANCELED' },
+        competenceDate: {
+          gte: expect.any(Date),
+          lte: expect.any(Date),
+        },
+      }),
+    })
+  })
+
+  it('groups categories by competenceDate for the monthly totals', async () => {
+    const { getCategoryTotals } = await import('@/services/dashboardService')
+
+    prismaMock.transaction.groupBy.mockResolvedValueOnce([])
+
+    await getCategoryTotals('user-1', '2026-03')
+
+    expect(prismaMock.transaction.groupBy).toHaveBeenCalledWith({
+      by: ['categoryId'],
+      where: expect.objectContaining({
+        userId: 'user-1',
+        status: { not: 'CANCELED' },
+        competenceDate: {
+          gte: expect.any(Date),
+          lte: expect.any(Date),
+        },
+      }),
+      _sum: { value: true },
+      orderBy: { _sum: { value: 'desc' } },
+    })
+  })
+
+  it('lists available months from competenceDate values', async () => {
+    const { getAvailableMonths } = await import('@/services/dashboardService')
+
+    prismaMock.transaction.findMany.mockResolvedValueOnce([
+      { competenceDate: new Date('2026-01-10T00:00:00.000Z') },
+      { competenceDate: new Date('2026-03-02T00:00:00.000Z') },
+    ])
+    prismaMock.transfer.findMany.mockResolvedValueOnce([
+      { competenceDate: new Date('2026-02-14T00:00:00.000Z') },
+    ])
+    prismaMock.invoice.findMany.mockResolvedValueOnce([
+      { dueDate: new Date('2026-04-20T00:00:00.000Z') },
+    ])
+
+    await expect(getAvailableMonths('user-1')).resolves.toEqual([
+      '2026-01',
+      '2026-02',
+      '2026-03',
+      '2026-04',
+    ])
+
+    expect(prismaMock.transaction.findMany).toHaveBeenCalledWith({
+      where: { userId: 'user-1', status: { not: 'CANCELED' } },
+      orderBy: { competenceDate: 'asc' },
+      select: { competenceDate: true },
+    })
+    expect(prismaMock.transfer.findMany).toHaveBeenCalledWith({
+      where: { userId: 'user-1', status: { not: 'CANCELED' } },
+      orderBy: { competenceDate: 'asc' },
+      select: { competenceDate: true },
+    })
+    expect(prismaMock.invoice.findMany).toHaveBeenCalledWith({
+      where: {
+        creditCard: {
+          userId: 'user-1',
+        },
+      },
+      orderBy: { dueDate: 'asc' },
+      select: { dueDate: true },
+    })
+  })
+
+  it('returns a consolidated dashboard report with forecast, realized and pending sections', async () => {
+    const { getDashboardReport } = await import('@/services/dashboardService')
+
+    prismaMock.transaction.findMany.mockResolvedValueOnce([
+      {
+        id: 1,
+        type: 'INCOME',
+        description: 'Salary',
+        value: '1000.00',
+        competenceDate: new Date('2026-03-05T00:00:00.000Z'),
+        dueDate: new Date('2026-03-05T00:00:00.000Z'),
+        paidAt: new Date('2026-03-05T00:00:00.000Z'),
+        status: 'PAID',
+        categoryId: 10,
+        category: { id: 10, name: 'Income', type: 'INCOME' },
+      },
+      {
+        id: 2,
+        type: 'EXPENSE',
+        description: 'Rent',
+        value: '300.00',
+        competenceDate: new Date('2026-03-10T00:00:00.000Z'),
+        dueDate: new Date('2026-03-15T00:00:00.000Z'),
+        paidAt: null,
+        status: 'PENDING',
+        categoryId: 11,
+        category: { id: 11, name: 'Housing', type: 'EXPENSE' },
+      },
+      {
+        id: 3,
+        type: 'EXPENSE',
+        description: 'Groceries',
+        value: '150.00',
+        competenceDate: new Date('2026-03-20T00:00:00.000Z'),
+        dueDate: new Date('2026-03-20T00:00:00.000Z'),
+        paidAt: null,
+        status: 'PLANNED',
+        categoryId: 11,
+        category: { id: 11, name: 'Housing', type: 'EXPENSE' },
+      },
+      {
+        id: 4,
+        type: 'EXPENSE',
+        description: 'Canceled item',
+        value: '999.00',
+        competenceDate: new Date('2026-03-20T00:00:00.000Z'),
+        dueDate: new Date('2026-03-20T00:00:00.000Z'),
+        paidAt: null,
+        status: 'CANCELED',
+        categoryId: 11,
+        category: { id: 11, name: 'Housing', type: 'EXPENSE' },
+      },
+    ])
+    prismaMock.account.findMany.mockResolvedValueOnce([
+      {
+        id: 7,
+        name: 'Main account',
+        type: 'BANK',
+        initialBalance: '500.00',
+        active: true,
+      },
+    ])
+    prismaMock.transfer.findMany.mockResolvedValueOnce([
+      {
+        id: 20,
+        description: 'Move to savings',
+        amount: '200.00',
+        competenceDate: new Date('2026-03-12T00:00:00.000Z'),
+        dueDate: new Date('2026-03-12T00:00:00.000Z'),
+        paidAt: null,
+        status: 'PENDING',
+        sourceAccount: { name: 'Main account' },
+        destinationAccount: { name: 'Savings' },
+      },
+    ])
+    prismaMock.invoice.findMany.mockResolvedValueOnce([
+      {
+        id: 30,
+        month: 3,
+        year: 2026,
+        status: 'OPEN',
+        dueDate: new Date('2026-03-25T00:00:00.000Z'),
+        total: '450.00',
+        creditCard: { id: 8, name: 'Card one' },
+      },
+    ])
+
+    const report = await getDashboardReport('user-1', '2026-03')
+
+    expect(report.summary).toMatchObject({
+      forecastIncome: '0.00',
+      forecastExpense: '450.00',
+      realizedIncome: '1000.00',
+      realizedExpense: '0.00',
+      forecastBalance: '-450.00',
+      realizedBalance: '1000.00',
+    })
+    expect(report.pending).toHaveLength(3)
+    expect(report.accounts).toEqual([
+      expect.objectContaining({ name: 'Main account', active: true }),
+    ])
+    expect(report.categories).toEqual([
+      expect.objectContaining({ categoryName: 'Income' }),
+      expect.objectContaining({ categoryName: 'Housing' }),
+    ])
+    expect(report.cardInvoices).toEqual([
+      expect.objectContaining({ cardName: 'Card one', total: '450.00' }),
+    ])
+    expect(report.transfers).toEqual([
+      expect.objectContaining({ sourceAccountName: 'Main account', destinationAccountName: 'Savings' }),
+    ])
+  })
+})

@@ -21,9 +21,9 @@ async function main() {
   // Accounts
   const accounts = await prisma.account.createMany({
     data: [
-      { name: 'Carteira Física', type: 'WALLET', balance: 250, userId: user.id },
-      { name: 'Nubank', type: 'BANK', balance: 1250.5, userId: user.id },
-      { name: 'Caixa', type: 'BANK', balance: 3200, userId: user.id },
+      { name: 'Carteira Física', type: 'WALLET', initialBalance: 250, userId: user.id },
+      { name: 'Nubank', type: 'BANK', initialBalance: 1250.5, userId: user.id },
+      { name: 'Caixa', type: 'BANK', initialBalance: 3200, userId: user.id },
     ],
   })
 
@@ -55,7 +55,9 @@ async function main() {
         type: 'INCOME',
         status: 'PAID',
         value: 4200,
-        date: new Date(),
+        competenceDate: new Date(),
+        dueDate: new Date(),
+        paidAt: new Date(),
         description: 'Salário mensal',
       },
       {
@@ -65,7 +67,9 @@ async function main() {
         type: 'EXPENSE',
         status: 'PAID',
         value: 55.9,
-        date: new Date(),
+        competenceDate: new Date(),
+        dueDate: new Date(),
+        paidAt: new Date(),
         description: 'Spotify',
       },
       {
@@ -75,7 +79,8 @@ async function main() {
         type: 'EXPENSE',
         status: 'PENDING',
         value: 38.5,
-        date: new Date(),
+        competenceDate: new Date(),
+        dueDate: new Date(),
         description: 'Lanche',
       },
     ],
