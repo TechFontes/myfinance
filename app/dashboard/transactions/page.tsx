@@ -1,130 +1,35 @@
-import { NewTransactionButton } from "@/components/newTransactionButton"
-import { Badge } from "@/components/ui/badge"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react"
-import { getUserFromRequest } from "@/lib/auth"
-import { listTransactionsByUser } from "@/services/transactionServer"
-import { Decimal } from "@prisma/client/runtime/library"
-
+import { NewTransactionButton } from '@/components/newTransactionButton'
+import { getUserFromRequest } from '@/lib/auth'
+import { listTransactionsByUser } from '@/modules/transactions/service'
+import { TransactionsList } from '@/components/transactions/TransactionsList'
 
 async function getTransactions() {
   const user = await getUserFromRequest()
+
   if (!user) {
-    return [{
-      id: 0,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userId: '',
-      type: 'EXPENSE',
-      accountId: 0,
-      creditCardId: 0,
-      invoiceId: 0,
-      categoryId: 0,
-      value: new Decimal(2),
-      date: new Date(),
-      status: 'PENDING',
-      fixed: true,
-      recurringRuleId: 0,
-      installment: 0,
-      installments: 0,
-      description: "",
-      category:{id:0,name:""}
-    }]
+    return []
   }
-  return await listTransactionsByUser(user.id)
+
+  return listTransactionsByUser(user.id)
 }
 
 export default async function TransactionsPage() {
-  const transactions = (await getTransactions()).sort((a, b)=> new Date(a.date).getTime() < new Date(b.date).getTime()?1:-1)
-  
+  const transactions = await getTransactions()
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Transações</h1>
-          <p className="text-muted-foreground">Veja e gerencie suas receitas e despesas</p>
+          <p className="text-muted-foreground">
+            Veja e gerencie receitas, despesas e seu estado financeiro atual.
+          </p>
         </div>
 
         <NewTransactionButton />
       </div>
 
-      <Card className="p-4 flex flex-col md:flex-row gap-4 items-center md:items-end">
-        <div className="w-full md:w-1/3">
-          <label className="text-sm font-medium">Buscar</label>
-          <Input placeholder="Descrição, categoria…" />
-        </div>
-
-        <div className="w-full md:w-1/4">
-          <label className="text-sm font-medium">Tipo</label>
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="INCOME">Receitas</SelectItem>
-              <SelectItem value="EXPENSE">Despesas</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="w-full md:w-1/4">
-          <label className="text-sm font-medium">Mês</label>
-          <Input type="month" />
-        </div>
-      </Card>
-
-      {/* TABLE */}
-      <Card className="p-0 overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 border-b">
-            <tr>
-              <th className="p-3 text-left font-medium">Descrição</th>
-              <th className="p-3 text-left font-medium">Categoria</th>
-              <th className="p-3 text-left font-medium">Tipo</th>
-              <th className="p-3 text-left font-medium">Valor</th>
-              <th className="p-3 text-left font-medium">Data</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {transactions.map((t) => (
-              <tr key={t.id} className="border-b hover:bg-muted/30">
-                <td className="p-3">{t.description}</td>
-                <td className="p-3">{t.category?.name ?? "—"}</td>
-
-                <td className="p-3">
-                  {t.type === "INCOME" ? (
-                    <Badge className="bg-success text-success-foreground flex items-center gap-1">
-                      <ArrowUpIcon size={14} />
-                      Receita
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-destructive text-destructive-foreground flex items-center gap-1">
-                      <ArrowDownIcon size={14} />
-                      Despesa
-                    </Badge>
-                  )}
-                </td>
-
-                <td className="p-3 font-semibold">
-                  {t.type === "INCOME" ? "+" : "-"}{" "}
-                  {Number(t.value).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-                </td>
-
-                <td className="p-3">
-                  {new Date(t.date).toLocaleDateString("pt-BR")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </Card>
+      <TransactionsList transactions={transactions} />
     </div>
   )
 }
