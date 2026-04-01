@@ -24,5 +24,4 @@ export const recurrenceCreateSchema = z.object({
 export const recurrenceUpdateSchema = recurrenceCreateSchema.partial().extend({
   id: positiveId,
   editScope: z.enum(recurrenceEditScopes).optional(),
-  active: z.boolean().optional(),
 })

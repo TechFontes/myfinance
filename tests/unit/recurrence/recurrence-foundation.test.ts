@@ -13,7 +13,7 @@ describe('recurrence module foundation', () => {
     expect(recurrenceTypes).toEqual(['INCOME', 'EXPENSE'])
     expect(recurrenceStatuses).toEqual(['ACTIVE', 'INACTIVE'])
     expect(recurrenceFrequencies).toEqual(['MONTHLY'])
-    expect(recurrenceEditScopes).toEqual(['THIS_ONLY', 'THIS_AND_FOLLOWING'])
+    expect(recurrenceEditScopes).toEqual(['THIS_OCCURRENCE', 'THIS_AND_FUTURE'])
   })
 
   it('validates recurrence creation payloads', () => {
@@ -48,14 +48,14 @@ describe('recurrence module foundation', () => {
     const payload = recurrenceUpdateSchema.parse({
       id: 33,
       description: 'Academia premium',
-      editScope: 'THIS_AND_FOLLOWING',
+      editScope: 'THIS_AND_FUTURE',
       active: false,
     })
 
     expect(payload).toMatchObject({
       id: 33,
       description: 'Academia premium',
-      editScope: 'THIS_AND_FOLLOWING',
+      editScope: 'THIS_AND_FUTURE',
       active: false,
     })
   })
