@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TransactionForm } from '@/components/transactions/TransactionForm'
@@ -18,6 +18,8 @@ vi.mock('next/navigation', () => ({
   }),
 }))
 
+type PrototypeMethod<T> = T | undefined
+
 const elementPrototype = HTMLElement.prototype as HTMLElement & {
   hasPointerCapture?: (pointerId: number) => boolean
   releasePointerCapture?: (pointerId: number) => void
@@ -25,21 +27,10 @@ const elementPrototype = HTMLElement.prototype as HTMLElement & {
   scrollIntoView?: (options?: ScrollIntoViewOptions) => void
 }
 
-if (!elementPrototype.hasPointerCapture) {
-  elementPrototype.hasPointerCapture = () => false
-}
-
-if (!elementPrototype.releasePointerCapture) {
-  elementPrototype.releasePointerCapture = () => undefined
-}
-
-if (!elementPrototype.setPointerCapture) {
-  elementPrototype.setPointerCapture = () => undefined
-}
-
-if (!elementPrototype.scrollIntoView) {
-  elementPrototype.scrollIntoView = () => undefined
-}
+const originalHasPointerCapture = elementPrototype.hasPointerCapture
+const originalReleasePointerCapture = elementPrototype.releasePointerCapture
+const originalSetPointerCapture = elementPrototype.setPointerCapture
+const originalScrollIntoView = elementPrototype.scrollIntoView
 
 const options = {
   categories: [
@@ -47,24 +38,73 @@ const options = {
     { id: 12, name: 'Salário', type: 'INCOME' as const },
   ],
   accounts: [{ id: 21, name: 'Conta Principal' }],
-  cards: [{ id: 31, name: 'Cartão Azul' }],
+  cards: [
+    { id: 31, name: 'Cartão Azul' },
+    { id: 32, name: 'Cartão Verde' },
+  ],
+}
+
+function createDeferredResponse<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve
+  })
+
+  return { promise, resolve }
+}
+
+function applyElementShims() {
+  elementPrototype.hasPointerCapture = () => false
+  elementPrototype.releasePointerCapture = () => undefined
+  elementPrototype.setPointerCapture = () => undefined
+  elementPrototype.scrollIntoView = () => undefined
+}
+
+function restoreElementShims() {
+  const restorations: Array<[keyof typeof elementPrototype, PrototypeMethod<unknown>]> = [
+    ['hasPointerCapture', originalHasPointerCapture],
+    ['releasePointerCapture', originalReleasePointerCapture],
+    ['setPointerCapture', originalSetPointerCapture],
+    ['scrollIntoView', originalScrollIntoView],
+  ]
+
+  for (const [key, original] of restorations) {
+    if (original === undefined) {
+      delete elementPrototype[key]
+      continue
+    }
+
+    elementPrototype[key] = original as never
+  }
+}
+
+function getSelectField(labelText: string) {
+  const label = screen.getByText(labelText, { selector: 'label' })
+  const field = label.closest('div.space-y-2')
+
+  if (!field) {
+    throw new Error(`Missing field wrapper for select "${labelText}"`)
+  }
+
+  return field
 }
 
 function getSelectTrigger(labelText: string) {
-  const label = screen.getByText(labelText, { selector: 'label' })
-  const triggerId = label.getAttribute('for')
+  const field = getSelectField(labelText)
+  const trigger = within(field).getByRole('combobox', { name: labelText })
+  const triggerId = trigger.getAttribute('id')
 
   if (!triggerId) {
     throw new Error(`Missing trigger id for select "${labelText}"`)
   }
 
-  const trigger = document.getElementById(triggerId)
+  const element = document.getElementById(triggerId)
 
-  if (!trigger) {
+  if (!element) {
     throw new Error(`Missing select trigger element for "${labelText}"`)
   }
 
-  return trigger
+  return element
 }
 
 async function selectOption(user: ReturnType<typeof userEvent.setup>, name: string, optionText: string) {
@@ -75,21 +115,24 @@ async function selectOption(user: ReturnType<typeof userEvent.setup>, name: stri
 describe('transaction form', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    fetchMock.mockReset()
     vi.stubGlobal('fetch', fetchMock)
+    applyElementShims()
   })
 
   afterEach(() => {
     cleanup()
+    restoreElementShims()
   })
 
   it('renders selection controls instead of raw ID inputs', () => {
     render(<TransactionForm options={options} />)
 
     expect(screen.getByRole('heading', { name: 'Nova transação' })).toBeInTheDocument()
-    expect(getSelectTrigger('Categoria')).toBeInTheDocument()
-    expect(getSelectTrigger('Conta')).toBeInTheDocument()
-    expect(getSelectTrigger('Cartão')).toBeInTheDocument()
-    expect(getSelectTrigger('Fatura')).toBeInTheDocument()
+    expect(within(getSelectField('Categoria')).getByRole('combobox', { name: 'Categoria' })).toBeInTheDocument()
+    expect(within(getSelectField('Conta')).getByRole('combobox', { name: 'Conta' })).toBeInTheDocument()
+    expect(within(getSelectField('Cartão')).getByRole('combobox', { name: 'Cartão' })).toBeInTheDocument()
+    expect(within(getSelectField('Fatura')).getByRole('combobox', { name: 'Fatura' })).toBeInTheDocument()
     expect(screen.queryByLabelText('Categoria ID')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Conta ID opcional')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Cartão ID opcional')).not.toBeInTheDocument()
@@ -116,7 +159,12 @@ describe('transaction form', () => {
     await selectOption(user, 'Cartão', 'Cartão Azul')
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/api/invoices?creditCardId=31')
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/invoices?creditCardId=31',
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
+      )
     })
 
     await user.click(getSelectTrigger('Fatura'))
@@ -150,5 +198,45 @@ describe('transaction form', () => {
       installments: null,
     })
     expect(routerMock.push).toHaveBeenCalledWith('/dashboard/transactions')
+  })
+
+  it('keeps invoice options aligned with the latest selected card when requests resolve out of order', async () => {
+    const user = userEvent.setup()
+    const firstInvoices = createDeferredResponse<{ ok: boolean; json: () => Promise<{ id: number; month: number; year: number }[]> }>()
+    const secondInvoices = createDeferredResponse<{ ok: boolean; json: () => Promise<{ id: number; month: number; year: number }[]> }>()
+
+    fetchMock
+      .mockImplementationOnce(() => firstInvoices.promise)
+      .mockImplementationOnce(() => secondInvoices.promise)
+
+    render(<TransactionForm options={options} />)
+
+    await selectOption(user, 'Cartão', 'Cartão Azul')
+    await selectOption(user, 'Cartão', 'Cartão Verde')
+
+    secondInvoices.resolve({
+      ok: true,
+      json: async () => [{ id: 52, month: 6, year: 2026 }],
+    })
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        '/api/invoices?creditCardId=32',
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
+      )
+    })
+
+    firstInvoices.resolve({
+      ok: true,
+      json: async () => [{ id: 51, month: 5, year: 2026 }],
+    })
+
+    await user.click(getSelectTrigger('Fatura'))
+
+    expect(await screen.findByRole('option', { name: '06/2026' })).toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: '05/2026' })).not.toBeInTheDocument()
   })
 })

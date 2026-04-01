@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
 import { useForm, useWatch } from 'react-hook-form'
@@ -58,6 +58,7 @@ export function TransactionForm({ options }: TransactionFormProps) {
   const [loading, setLoading] = useState(false)
   const [invoiceLoading, setInvoiceLoading] = useState(false)
   const [invoices, setInvoices] = useState<TransactionInvoiceOption[]>([])
+  const latestInvoiceRequestId = useRef(0)
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
@@ -106,21 +107,42 @@ export function TransactionForm({ options }: TransactionFormProps) {
   }, [categoryOptions, form])
 
   useEffect(() => {
-    async function loadInvoices(creditCardId: string) {
-      setInvoiceLoading(true)
+    const requestId = latestInvoiceRequestId.current + 1
+    latestInvoiceRequestId.current = requestId
+    const controller = new AbortController()
 
+    async function loadInvoices(creditCardId: string) {
       try {
-        const response = await fetch(`/api/invoices?creditCardId=${creditCardId}`)
+        const response = await fetch(`/api/invoices?creditCardId=${creditCardId}`, {
+          signal: controller.signal,
+        })
 
         if (!response.ok) {
           throw new Error('Falha ao carregar faturas')
         }
 
         const payload = (await response.json()) as TransactionInvoiceOption[]
+
+        if (controller.signal.aborted || latestInvoiceRequestId.current !== requestId) {
+          return
+        }
+
         setInvoices(payload)
-      } catch {
+      } catch (error) {
+        if (
+          controller.signal.aborted ||
+          latestInvoiceRequestId.current !== requestId ||
+          (error instanceof Error && error.name === 'AbortError')
+        ) {
+          return
+        }
+
         setInvoices([])
       } finally {
+        if (controller.signal.aborted || latestInvoiceRequestId.current !== requestId) {
+          return
+        }
+
         setInvoiceLoading(false)
       }
     }
@@ -130,10 +152,17 @@ export function TransactionForm({ options }: TransactionFormProps) {
     if (!selectedCardId) {
       setInvoices([])
       setInvoiceLoading(false)
-      return
+      return () => {
+        controller.abort()
+      }
     }
 
+    setInvoiceLoading(true)
     void loadInvoices(selectedCardId)
+
+    return () => {
+      controller.abort()
+    }
   }, [form, selectedCardId])
 
   async function onSubmit(values: TransactionFormValues) {
