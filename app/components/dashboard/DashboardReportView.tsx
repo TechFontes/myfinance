@@ -31,30 +31,45 @@ function formatMonthLabel(month: string) {
 
 function SummaryCard({
   title,
+  eyebrow,
+  accentClassName,
   income,
   expense,
   balance,
 }: {
   title: string
+  eyebrow: string
+  accentClassName: string
   income: string
   expense: string
   balance: string
 }) {
   return (
-    <Card className="p-5">
-      <div className="space-y-4">
-        <div>
-          <p className="text-sm uppercase tracking-[0.24em] text-muted-foreground">{title}</p>
-          <h3 className="text-2xl font-semibold">{formatCurrency(balance)}</h3>
+    <Card className="overflow-hidden border-border/80 bg-card p-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)]">
+      <div className={accentClassName} aria-hidden="true" />
+      <div className="space-y-6 p-6">
+        <div className="space-y-2">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{eyebrow}</p>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <h3 className="font-serif text-4xl tracking-tight text-foreground">{formatCurrency(balance)}</h3>
+          <p className="text-sm text-muted-foreground">Posição patrimonial do período</p>
         </div>
-        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-muted-foreground">Receitas</p>
-            <p className="font-semibold text-emerald-600">{formatCurrency(income)}</p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/8 p-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-emerald-700 dark:text-emerald-300">
+              Receitas
+            </p>
+            <p className="mt-2 text-xl font-semibold text-emerald-700 dark:text-emerald-200">
+              {formatCurrency(income)}
+            </p>
           </div>
-          <div className="rounded-lg bg-muted/50 p-3">
-            <p className="text-muted-foreground">Despesas</p>
-            <p className="font-semibold text-rose-600">{formatCurrency(expense)}</p>
+          <div className="rounded-2xl border border-rose-500/20 bg-rose-500/8 p-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-rose-700 dark:text-rose-300">
+              Despesas
+            </p>
+            <p className="mt-2 text-xl font-semibold text-rose-700 dark:text-rose-200">
+              {formatCurrency(expense)}
+            </p>
           </div>
         </div>
       </div>
@@ -62,26 +77,41 @@ function SummaryCard({
   )
 }
 
-function SectionTitle({
+function SectionPanel({
   eyebrow,
   title,
   subtitle,
+  children,
 }: {
   eyebrow: string
   title: string
-  subtitle?: string
+  subtitle: string
+  children: React.ReactNode
 }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{eyebrow}</p>
-      <h2 className="text-xl font-semibold">{title}</h2>
-      {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}
-    </div>
+    <Card className="border-border/80 bg-card p-5 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.45)]">
+      <div className="space-y-5">
+        <div className="space-y-2 border-b border-border/70 pb-4">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{eyebrow}</p>
+          <h2 className="font-serif text-2xl tracking-tight text-foreground">{title}</h2>
+          <p className="max-w-xl text-sm leading-6 text-muted-foreground">{subtitle}</p>
+        </div>
+        {children}
+      </div>
+    </Card>
   )
 }
 
 function EmptySectionState({ children }: { children: React.ReactNode }) {
-  return <p className="text-sm text-muted-foreground">{children}</p>
+  return (
+    <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 px-4 py-5">
+      <p className="text-sm font-medium text-foreground">{children}</p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Quando houver movimentação, este painel passa a destacar os lançamentos com maior peso
+        patrimonial.
+      </p>
+    </div>
+  )
 }
 
 export function DashboardReportView({ report, availableMonths }: DashboardReportViewProps) {
@@ -148,12 +178,16 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
       <section className="grid gap-4 lg:grid-cols-2">
         <SummaryCard
           title="Saldo previsto"
+          eyebrow="Projeção"
+          accentClassName="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300"
           income={report.summary.forecastIncome}
           expense={report.summary.forecastExpense}
           balance={report.summary.forecastBalance}
         />
         <SummaryCard
           title="Saldo realizado"
+          eyebrow="Realizado"
+          accentClassName="h-1.5 w-full bg-gradient-to-r from-foreground via-foreground/85 to-foreground/65"
           income={report.summary.realizedIncome}
           expense={report.summary.realizedExpense}
           balance={report.summary.realizedBalance}
@@ -161,13 +195,11 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
-        <Card className="p-5">
-          <div className="space-y-4">
-            <SectionTitle
-              eyebrow="Pendências"
-              title="Itens a vencer"
-              subtitle="Lançamentos previstos e pendentes do período."
-            />
+        <SectionPanel
+          eyebrow="Pendências"
+          title="Itens a vencer"
+          subtitle="Lançamentos previstos e pendentes do período."
+        >
             <div className="space-y-3">
               {report.pending.length > 0 ? (
                 report.pending.map((item) => (
@@ -191,16 +223,13 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                 <EmptySectionState>Nenhuma pendência neste período.</EmptySectionState>
               )}
             </div>
-          </div>
-        </Card>
+        </SectionPanel>
 
-        <Card className="p-5">
-          <div className="space-y-4">
-            <SectionTitle
-              eyebrow="Contas"
-              title="Saldos por conta"
-              subtitle="Posição consolidada de caixa no período."
-            />
+        <SectionPanel
+          eyebrow="Contas"
+          title="Saldos por conta"
+          subtitle="Posição consolidada de caixa no período."
+        >
             <div className="space-y-3">
               {report.accounts.map((account) => (
                 <div
@@ -217,21 +246,18 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                 </div>
               ))}
               {report.accounts.length === 0 ? (
-                <EmptySectionState>Nenhuma conta cadastrada neste período.</EmptySectionState>
+                <EmptySectionState>Nenhuma conta patrimonial registrada neste período.</EmptySectionState>
               ) : null}
             </div>
-          </div>
-        </Card>
+        </SectionPanel>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">
-        <Card className="p-5 xl:col-span-1">
-          <div className="space-y-4">
-            <SectionTitle
-              eyebrow="Categorias"
-              title="Totais por categoria"
-              subtitle="Categorias com maior impacto no período."
-            />
+        <SectionPanel
+          eyebrow="Categorias"
+          title="Totais por categoria"
+          subtitle="Categorias com maior impacto no período."
+        >
             <div className="space-y-3">
               {report.categories.map((category) => (
                 <div
@@ -246,19 +272,16 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                 </div>
               ))}
               {report.categories.length === 0 ? (
-                <EmptySectionState>Nenhuma categoria movimentada neste período.</EmptySectionState>
+                <EmptySectionState>Nenhuma categoria com impacto relevante neste período.</EmptySectionState>
               ) : null}
             </div>
-          </div>
-        </Card>
+        </SectionPanel>
 
-        <Card className="p-5 xl:col-span-1">
-          <div className="space-y-4">
-            <SectionTitle
-              eyebrow="Cartões"
-              title="Cartões e faturas"
-              subtitle="Resumo das faturas em aberto, pagas ou canceladas."
-            />
+        <SectionPanel
+          eyebrow="Cartões"
+          title="Cartões e faturas"
+          subtitle="Resumo das faturas em aberto, pagas ou canceladas."
+        >
             <div className="space-y-3">
               {report.cardInvoices.map((invoice) => (
                 <div
@@ -280,19 +303,16 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                 </div>
               ))}
               {report.cardInvoices.length === 0 ? (
-                <EmptySectionState>Nenhuma fatura de cartão neste período.</EmptySectionState>
+                <EmptySectionState>Nenhuma fatura patrimonial aberta neste período.</EmptySectionState>
               ) : null}
             </div>
-          </div>
-        </Card>
+        </SectionPanel>
 
-        <Card className="p-5 xl:col-span-1">
-          <div className="space-y-4">
-            <SectionTitle
-              eyebrow="Movimentações internas"
-              title="Transferências"
-              subtitle="Movimentos entre contas, separados de receitas e despesas."
-            />
+        <SectionPanel
+          eyebrow="Movimentações internas"
+          title="Transferências"
+          subtitle="Movimentos entre contas, separados de receitas e despesas."
+        >
             <div className="space-y-3">
               {report.transfers.map((transfer) => (
                 <div
@@ -315,11 +335,10 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
                 </div>
               ))}
               {report.transfers.length === 0 ? (
-                <EmptySectionState>Nenhuma transferência interna neste período.</EmptySectionState>
+                <EmptySectionState>Nenhuma movimentação interna registrada neste período.</EmptySectionState>
               ) : null}
             </div>
-          </div>
-        </Card>
+        </SectionPanel>
       </section>
     </div>
   )

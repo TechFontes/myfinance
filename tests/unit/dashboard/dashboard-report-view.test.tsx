@@ -41,6 +41,36 @@ describe('dashboard report view', () => {
     ).toHaveAttribute('href', '/dashboard/transactions/new')
   })
 
+  it('renders patrimonial summary cards with stronger financial semantics', () => {
+    render(
+      <DashboardReportView
+        availableMonths={['2026-03']}
+        report={{
+          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          summary: {
+            forecastIncome: '1000.00',
+            forecastExpense: '250.00',
+            realizedIncome: '850.00',
+            realizedExpense: '200.00',
+            forecastBalance: '750.00',
+            realizedBalance: '650.00',
+          },
+          pending: [],
+          accounts: [],
+          categories: [],
+          cardInvoices: [],
+          transfers: [],
+        }}
+      />,
+    )
+
+    expect(screen.getByText('Saldo previsto')).toBeInTheDocument()
+    expect(screen.getByText('Saldo realizado')).toBeInTheDocument()
+    expect(screen.getAllByText('Receitas')).toHaveLength(2)
+    expect(screen.getAllByText('Despesas')).toHaveLength(2)
+    expect(screen.getAllByText('Posição patrimonial do período')).toHaveLength(2)
+  })
+
   it('renders the consolidated monthly sections and data', () => {
     render(
       <DashboardReportView
@@ -121,7 +151,7 @@ describe('dashboard report view', () => {
     expect(screen.getAllByText('março de 2026').length).toBeGreaterThan(0)
   })
 
-  it('renders explicit empty states for blank dashboard sections', () => {
+  it('renders richer empty states and highlighted section chrome', () => {
     render(
       <DashboardReportView
         availableMonths={['2026-03']}
@@ -144,9 +174,9 @@ describe('dashboard report view', () => {
       />,
     )
 
-    expect(screen.getByText('Nenhuma conta cadastrada neste período.')).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma categoria movimentada neste período.')).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma fatura de cartão neste período.')).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma transferência interna neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma conta patrimonial registrada neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma categoria com impacto relevante neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma fatura patrimonial aberta neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma movimentação interna registrada neste período.')).toBeInTheDocument()
   })
 })
