@@ -3,10 +3,12 @@ import {
   goalContributionModes,
   goalStatuses,
   goalsEditScopes,
+} from '@/modules/goals/contracts'
+import {
   goalsCreateSchema,
   goalsUpdateSchema,
   goalContributionSchema,
-} from '@/modules/goals'
+} from '@/modules/goals/validators'
 
 describe('goals module foundation', () => {
   it('exports the expected enums for goals and contributions', () => {
