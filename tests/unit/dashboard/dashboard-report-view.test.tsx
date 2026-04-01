@@ -64,6 +64,8 @@ describe('dashboard report view', () => {
       />,
     )
 
+    expect(screen.getByText('Projeção')).toBeInTheDocument()
+    expect(screen.getByText('Realizado')).toBeInTheDocument()
     expect(screen.getByText('Saldo previsto')).toBeInTheDocument()
     expect(screen.getByText('Saldo realizado')).toBeInTheDocument()
     expect(screen.getAllByText('Receitas')).toHaveLength(2)
@@ -175,8 +177,33 @@ describe('dashboard report view', () => {
     )
 
     expect(screen.getByText('Nenhuma conta patrimonial registrada neste período.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Quando houver lançamentos previstos, este painel destacará vencimentos e valores com leitura patrimonial.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Quando houver contas patrimoniais, este painel destacará saldos, tipo e status de cada posição.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByText('Nenhuma categoria com impacto relevante neste período.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Quando houver categorias movimentadas, este painel destacará seus impactos e pesos no período.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByText('Nenhuma fatura patrimonial aberta neste período.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Quando houver faturas em aberto, este painel destacará cartão, vencimento e valor consolidado.',
+      ),
+    ).toBeInTheDocument()
     expect(screen.getByText('Nenhuma movimentação interna registrada neste período.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Quando houver transferências internas, este painel destacará origem, destino e data de competência.',
+      ),
+    ).toBeInTheDocument()
   })
 })

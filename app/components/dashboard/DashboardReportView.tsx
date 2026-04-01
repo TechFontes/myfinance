@@ -102,14 +102,17 @@ function SectionPanel({
   )
 }
 
-function EmptySectionState({ children }: { children: React.ReactNode }) {
+function EmptySectionState({
+  children,
+  support,
+}: {
+  children: React.ReactNode
+  support: string
+}) {
   return (
     <div className="rounded-2xl border border-dashed border-border/70 bg-muted/20 px-4 py-5">
       <p className="text-sm font-medium text-foreground">{children}</p>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Quando houver movimentação, este painel passa a destacar os lançamentos com maior peso
-        patrimonial.
-      </p>
+      <p className="mt-1 text-sm text-muted-foreground">{support}</p>
     </div>
   )
 }
@@ -200,29 +203,33 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
           title="Itens a vencer"
           subtitle="Lançamentos previstos e pendentes do período."
         >
-            <div className="space-y-3">
-              {report.pending.length > 0 ? (
-                report.pending.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
-                  >
-                    <div>
-                      <p className="font-medium">{item.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Vence em {formatDate(item.dueDate)}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">{formatCurrency(item.amount)}</p>
-                      <Badge variant="outline">{item.status}</Badge>
-                    </div>
+          <div className="space-y-3">
+            {report.pending.length > 0 ? (
+              report.pending.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+                >
+                  <div>
+                    <p className="font-medium">{item.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Vence em {formatDate(item.dueDate)}
+                    </p>
                   </div>
-                ))
-              ) : (
-                <EmptySectionState>Nenhuma pendência neste período.</EmptySectionState>
-              )}
-            </div>
+                  <div className="text-right">
+                    <p className="font-semibold">{formatCurrency(item.amount)}</p>
+                    <Badge variant="outline">{item.status}</Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <EmptySectionState
+                support="Quando houver lançamentos previstos, este painel destacará vencimentos e valores com leitura patrimonial."
+              >
+                Nenhuma pendência neste período.
+              </EmptySectionState>
+            )}
+          </div>
         </SectionPanel>
 
         <SectionPanel
@@ -230,25 +237,29 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
           title="Saldos por conta"
           subtitle="Posição consolidada de caixa no período."
         >
-            <div className="space-y-3">
-              {report.accounts.map((account) => (
-                <div
-                  key={account.id}
-                  className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
-                >
-                  <div>
-                    <p className="font-medium">{account.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {account.type} {account.active ? 'Ativa' : 'Inativa'}
-                    </p>
-                  </div>
-                  <p className="font-semibold">{formatCurrency(account.balance)}</p>
+          <div className="space-y-3">
+            {report.accounts.map((account) => (
+              <div
+                key={account.id}
+                className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+              >
+                <div>
+                  <p className="font-medium">{account.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {account.type} {account.active ? 'Ativa' : 'Inativa'}
+                  </p>
                 </div>
-              ))}
-              {report.accounts.length === 0 ? (
-                <EmptySectionState>Nenhuma conta patrimonial registrada neste período.</EmptySectionState>
-              ) : null}
-            </div>
+                <p className="font-semibold">{formatCurrency(account.balance)}</p>
+              </div>
+            ))}
+            {report.accounts.length === 0 ? (
+              <EmptySectionState
+                support="Quando houver contas patrimoniais, este painel destacará saldos, tipo e status de cada posição."
+              >
+                Nenhuma conta patrimonial registrada neste período.
+              </EmptySectionState>
+            ) : null}
+          </div>
         </SectionPanel>
       </section>
 
@@ -258,23 +269,27 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
           title="Totais por categoria"
           subtitle="Categorias com maior impacto no período."
         >
-            <div className="space-y-3">
-              {report.categories.map((category) => (
-                <div
-                  key={category.categoryId}
-                  className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
-                >
-                  <div>
-                    <p className="font-medium">{category.categoryName}</p>
-                    <p className="text-sm text-muted-foreground">{category.type}</p>
-                  </div>
-                  <p className="font-semibold">{formatCurrency(category.total)}</p>
+          <div className="space-y-3">
+            {report.categories.map((category) => (
+              <div
+                key={category.categoryId}
+                className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+              >
+                <div>
+                  <p className="font-medium">{category.categoryName}</p>
+                  <p className="text-sm text-muted-foreground">{category.type}</p>
                 </div>
-              ))}
-              {report.categories.length === 0 ? (
-                <EmptySectionState>Nenhuma categoria com impacto relevante neste período.</EmptySectionState>
-              ) : null}
-            </div>
+                <p className="font-semibold">{formatCurrency(category.total)}</p>
+              </div>
+            ))}
+            {report.categories.length === 0 ? (
+              <EmptySectionState
+                support="Quando houver categorias movimentadas, este painel destacará seus impactos e pesos no período."
+              >
+                Nenhuma categoria com impacto relevante neste período.
+              </EmptySectionState>
+            ) : null}
+          </div>
         </SectionPanel>
 
         <SectionPanel
@@ -282,30 +297,34 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
           title="Cartões e faturas"
           subtitle="Resumo das faturas em aberto, pagas ou canceladas."
         >
-            <div className="space-y-3">
-              {report.cardInvoices.map((invoice) => (
-                <div
-                  key={invoice.invoiceId}
-                  className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
-                >
-                  <div>
-                    <p className="font-medium">{invoice.cardName}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {String(invoice.month).padStart(2, '0')}/{invoice.year} {invoice.status}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">{formatCurrency(invoice.total)}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Vence em {formatDate(invoice.dueDate)}
-                    </p>
-                  </div>
+          <div className="space-y-3">
+            {report.cardInvoices.map((invoice) => (
+              <div
+                key={invoice.invoiceId}
+                className="flex items-center justify-between rounded-xl border bg-background/80 p-3"
+              >
+                <div>
+                  <p className="font-medium">{invoice.cardName}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {String(invoice.month).padStart(2, '0')}/{invoice.year} {invoice.status}
+                  </p>
                 </div>
-              ))}
-              {report.cardInvoices.length === 0 ? (
-                <EmptySectionState>Nenhuma fatura patrimonial aberta neste período.</EmptySectionState>
-              ) : null}
-            </div>
+                <div className="text-right">
+                  <p className="font-semibold">{formatCurrency(invoice.total)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Vence em {formatDate(invoice.dueDate)}
+                  </p>
+                </div>
+              </div>
+            ))}
+            {report.cardInvoices.length === 0 ? (
+              <EmptySectionState
+                support="Quando houver faturas em aberto, este painel destacará cartão, vencimento e valor consolidado."
+              >
+                Nenhuma fatura patrimonial aberta neste período.
+              </EmptySectionState>
+            ) : null}
+          </div>
         </SectionPanel>
 
         <SectionPanel
@@ -313,31 +332,35 @@ export function DashboardReportView({ report, availableMonths }: DashboardReport
           title="Transferências"
           subtitle="Movimentos entre contas, separados de receitas e despesas."
         >
-            <div className="space-y-3">
-              {report.transfers.map((transfer) => (
-                <div
-                  key={transfer.transferId}
-                  className="rounded-xl border bg-background/80 p-3"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="font-medium">{transfer.description}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {transfer.sourceAccountName} → {transfer.destinationAccountName}
-                      </p>
-                    </div>
-                    <p className="font-semibold">{formatCurrency(transfer.amount)}</p>
+          <div className="space-y-3">
+            {report.transfers.map((transfer) => (
+              <div
+                key={transfer.transferId}
+                className="rounded-xl border bg-background/80 p-3"
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-medium">{transfer.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {transfer.sourceAccountName} → {transfer.destinationAccountName}
+                    </p>
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-sm text-muted-foreground">
-                    <span>{transfer.status}</span>
-                    <span>{formatDate(transfer.competenceDate)}</span>
-                  </div>
+                  <p className="font-semibold">{formatCurrency(transfer.amount)}</p>
                 </div>
-              ))}
-              {report.transfers.length === 0 ? (
-                <EmptySectionState>Nenhuma movimentação interna registrada neste período.</EmptySectionState>
-              ) : null}
-            </div>
+                <div className="mt-2 flex items-center justify-between text-sm text-muted-foreground">
+                  <span>{transfer.status}</span>
+                  <span>{formatDate(transfer.competenceDate)}</span>
+                </div>
+              </div>
+            ))}
+            {report.transfers.length === 0 ? (
+              <EmptySectionState
+                support="Quando houver transferências internas, este painel destacará origem, destino e data de competência."
+              >
+                Nenhuma movimentação interna registrada neste período.
+              </EmptySectionState>
+            ) : null}
+          </div>
         </SectionPanel>
       </section>
     </div>
