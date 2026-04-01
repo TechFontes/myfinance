@@ -95,6 +95,7 @@ describe("auth routes", () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
+    expect(response.headers.get("cache-control")).toBe("no-store")
     expect(body.user).toBeNull()
   })
 

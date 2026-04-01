@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 import { CardsList } from '@/components/cards/CardsList'
 import { Button } from '@/components/ui/button'
@@ -6,18 +7,14 @@ import { Card } from '@/components/ui/card'
 import { getUserFromRequest } from '@/lib/auth'
 import { listCardsByUser } from '@/modules/cards/service'
 
-async function getCards() {
+export default async function CardsPage() {
   const user = await getUserFromRequest()
 
   if (!user) {
-    return []
+    return redirect('/login?callbackUrl=%2Fdashboard%2Fcards')
   }
 
-  return listCardsByUser(user.id)
-}
-
-export default async function CardsPage() {
-  const cards = await getCards()
+  const cards = await listCardsByUser(user.id)
 
   return (
     <div className="space-y-6">

@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
 import { InvoiceDetails } from '@/components/invoices/InvoiceDetails'
 import { getUserFromRequest } from '@/lib/auth'
@@ -12,12 +12,12 @@ type InvoicePageProps = {
 
 export default async function InvoicePage({ params }: InvoicePageProps) {
   const user = await getUserFromRequest()
+  const { invoiceId: rawInvoiceId } = await params
 
   if (!user) {
-    notFound()
+    return redirect(`/login?callbackUrl=${encodeURIComponent(`/dashboard/invoices/${rawInvoiceId}`)}`)
   }
 
-  const { invoiceId: rawInvoiceId } = await params
   const invoiceId = Number(rawInvoiceId)
 
   const invoice = await prisma.invoice.findFirst({

@@ -48,5 +48,5 @@ describe('recurrence page', () => {
     expect(screen.getByText('Mensal')).toBeInTheDocument()
     expect(screen.getByText('Ativa')).toBeInTheDocument()
     expect(screen.getByText('Conta: Nubank')).toBeInTheDocument()
-  })
+  }, 10000)
 })

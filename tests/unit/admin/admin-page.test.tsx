@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authMock = vi.hoisted(() => ({
   getUserFromRequest: vi.fn(),
@@ -10,11 +10,22 @@ const adminMock = vi.hoisted(() => ({
   getAdminFinancialOverview: vi.fn(),
   listAdminUsers: vi.fn(),
 }))
+const redirectMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/admin/service', () => adminMock)
+vi.mock('next/navigation', () => ({
+  redirect: redirectMock,
+}))
 
 describe('admin page', () => {
+  beforeEach(() => {
+    redirectMock.mockReset()
+    authMock.getUserFromRequest.mockReset()
+    adminMock.listAdminUsers.mockReset()
+    adminMock.getAdminFinancialOverview.mockReset()
+  })
+
   it('renders the administrative entry point separate from the user dashboard', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'admin-1', role: 'ADMIN' })
     adminMock.listAdminUsers.mockResolvedValue([
@@ -63,4 +74,15 @@ describe('admin page', () => {
     expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('admin-1')
     expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('user-2')
   }, 10000)
+
+  it('redirects unauthenticated access to login instead of rendering admin chrome', async () => {
+    authMock.getUserFromRequest.mockResolvedValue(null)
+
+    const { default: AdminPage } = await import('@/admin/page')
+    await AdminPage()
+
+    expect(redirectMock).toHaveBeenCalledWith('/login?callbackUrl=%2Fadmin')
+    expect(adminMock.listAdminUsers).not.toHaveBeenCalled()
+    expect(adminMock.getAdminFinancialOverview).not.toHaveBeenCalled()
+  })
 })

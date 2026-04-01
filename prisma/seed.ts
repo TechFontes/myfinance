@@ -2,88 +2,211 @@ import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
+const SEEDED_USER_EMAIL = 'daniel@example.com'
+
+async function ensureAccount({
+  userId,
+  name,
+  type,
+  initialBalance,
+}: {
+  userId: string
+  name: string
+  type: 'BANK' | 'WALLET' | 'OTHER'
+  initialBalance: number
+}) {
+  const existingAccount = await prisma.account.findFirst({
+    where: { userId, name },
+  })
+
+  if (existingAccount) {
+    return existingAccount
+  }
+
+  return prisma.account.create({
+    data: {
+      userId,
+      name,
+      type,
+      initialBalance,
+    },
+  })
+}
+
+async function ensureCategory({
+  userId,
+  name,
+  type,
+}: {
+  userId: string
+  name: string
+  type: 'INCOME' | 'EXPENSE'
+}) {
+  const existingCategory = await prisma.category.findFirst({
+    where: { userId, name },
+  })
+
+  if (existingCategory) {
+    return existingCategory
+  }
+
+  return prisma.category.create({
+    data: {
+      userId,
+      name,
+      type,
+    },
+  })
+}
+
+async function ensureTransaction({
+  userId,
+  accountId,
+  categoryId,
+  type,
+  status,
+  value,
+  competenceDate,
+  dueDate,
+  paidAt,
+  description,
+}: {
+  userId: string
+  accountId: number
+  categoryId: number
+  type: 'INCOME' | 'EXPENSE'
+  status: 'PLANNED' | 'PENDING' | 'PAID' | 'CANCELED'
+  value: number
+  competenceDate: Date
+  dueDate: Date
+  paidAt?: Date
+  description: string
+}) {
+  const existingTransaction = await prisma.transaction.findFirst({
+    where: {
+      userId,
+      description,
+      competenceDate,
+    },
+  })
+
+  if (existingTransaction) {
+    return existingTransaction
+  }
+
+  return prisma.transaction.create({
+    data: {
+      userId,
+      accountId,
+      categoryId,
+      type,
+      status,
+      value,
+      competenceDate,
+      dueDate,
+      paidAt,
+      description,
+    },
+  })
+}
 
 async function main() {
   console.log('🌱 Seeding...')
 
   const passwordHash = await bcrypt.hash('123456', 10)
 
-  const user = await prisma.user.create({
-    data: {
+  const user = await prisma.user.upsert({
+    where: { email: SEEDED_USER_EMAIL },
+    update: {
       name: 'Daniel Teste',
-      email: 'daniel@example.com',
+      password: passwordHash,
+    },
+    create: {
+      name: 'Daniel Teste',
+      email: SEEDED_USER_EMAIL,
       password: passwordHash,
     },
   })
 
   console.log('User created:', user.email)
 
-  // Accounts
-  const accounts = await prisma.account.createMany({
-    data: [
-      { name: 'Carteira Física', type: 'WALLET', initialBalance: 250, userId: user.id },
-      { name: 'Nubank', type: 'BANK', initialBalance: 1250.5, userId: user.id },
-      { name: 'Caixa', type: 'BANK', initialBalance: 3200, userId: user.id },
-    ],
+  await ensureAccount({
+    userId: user.id,
+    name: 'Carteira Física',
+    type: 'WALLET',
+    initialBalance: 250,
+  })
+  await ensureAccount({
+    userId: user.id,
+    name: 'Nubank',
+    type: 'BANK',
+    initialBalance: 1250.5,
+  })
+  await ensureAccount({
+    userId: user.id,
+    name: 'Caixa',
+    type: 'BANK',
+    initialBalance: 3200,
   })
 
-  // Categories
-  const categories = await prisma.category.createMany({
-    data: [
-      { name: 'Salário', type: 'INCOME', userId: user.id },
-      { name: 'Alimentação', type: 'EXPENSE', userId: user.id },
-      { name: 'Assinaturas', type: 'EXPENSE', userId: user.id },
-      { name: 'Transporte', type: 'EXPENSE', userId: user.id },
-    ],
+  await ensureCategory({ userId: user.id, name: 'Salário', type: 'INCOME' })
+  await ensureCategory({ userId: user.id, name: 'Alimentação', type: 'EXPENSE' })
+  await ensureCategory({ userId: user.id, name: 'Assinaturas', type: 'EXPENSE' })
+  await ensureCategory({ userId: user.id, name: 'Transporte', type: 'EXPENSE' })
+
+  const nubank = await prisma.account.findFirst({ where: { userId: user.id, name: 'Nubank' } })
+  const carteira = await prisma.account.findFirst({
+    where: { userId: user.id, name: 'Carteira Física' },
   })
 
-  // Find for relations
-  const nubank = await prisma.account.findFirst({ where: { name: 'Nubank' } })
-  const carteira = await prisma.account.findFirst({ where: { name: 'Carteira Física' } })
+  const salario = await prisma.category.findFirst({
+    where: { userId: user.id, name: 'Salário' },
+  })
+  const assinaturas = await prisma.category.findFirst({
+    where: { userId: user.id, name: 'Assinaturas' },
+  })
+  const alimentacao = await prisma.category.findFirst({
+    where: { userId: user.id, name: 'Alimentação' },
+  })
 
-  const salario = await prisma.category.findFirst({ where: { name: 'Salário' } })
-  const assinaturas = await prisma.category.findFirst({ where: { name: 'Assinaturas' } })
-  const alimentacao = await prisma.category.findFirst({ where: { name: 'Alimentação' } })
+  if (!nubank || !carteira || !salario || !assinaturas || !alimentacao) {
+    throw new Error('Seed prerequisites were not created correctly.')
+  }
 
-  // Transactions
-  await prisma.transaction.createMany({
-    data: [
-      {
-        userId: user.id,
-        accountId: nubank!.id,
-        categoryId: salario!.id,
-        type: 'INCOME',
-        status: 'PAID',
-        value: 4200,
-        competenceDate: new Date(),
-        dueDate: new Date(),
-        paidAt: new Date(),
-        description: 'Salário mensal',
-      },
-      {
-        userId: user.id,
-        accountId: nubank!.id,
-        categoryId: assinaturas!.id,
-        type: 'EXPENSE',
-        status: 'PAID',
-        value: 55.9,
-        competenceDate: new Date(),
-        dueDate: new Date(),
-        paidAt: new Date(),
-        description: 'Spotify',
-      },
-      {
-        userId: user.id,
-        accountId: carteira!.id,
-        categoryId: alimentacao!.id,
-        type: 'EXPENSE',
-        status: 'PENDING',
-        value: 38.5,
-        competenceDate: new Date(),
-        dueDate: new Date(),
-        description: 'Lanche',
-      },
-    ],
+  await ensureTransaction({
+    userId: user.id,
+    accountId: nubank.id,
+    categoryId: salario.id,
+    type: 'INCOME',
+    status: 'PAID',
+    value: 4200,
+    competenceDate: new Date('2026-03-05T00:00:00.000Z'),
+    dueDate: new Date('2026-03-05T00:00:00.000Z'),
+    paidAt: new Date('2026-03-05T00:00:00.000Z'),
+    description: 'Salário mensal',
+  })
+  await ensureTransaction({
+    userId: user.id,
+    accountId: nubank.id,
+    categoryId: assinaturas.id,
+    type: 'EXPENSE',
+    status: 'PAID',
+    value: 55.9,
+    competenceDate: new Date('2026-03-06T00:00:00.000Z'),
+    dueDate: new Date('2026-03-06T00:00:00.000Z'),
+    paidAt: new Date('2026-03-06T00:00:00.000Z'),
+    description: 'Spotify',
+  })
+  await ensureTransaction({
+    userId: user.id,
+    accountId: carteira.id,
+    categoryId: alimentacao.id,
+    type: 'EXPENSE',
+    status: 'PENDING',
+    value: 38.5,
+    competenceDate: new Date('2026-03-07T00:00:00.000Z'),
+    dueDate: new Date('2026-03-07T00:00:00.000Z'),
+    description: 'Lanche',
   })
 
   console.log('🌱 Seed finalizado com sucesso!')

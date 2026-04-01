@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest"
 import { NextRequest } from "next/server"
 import { signAuthToken } from "@/modules/auth"
-import { middleware } from "@/middleware"
+import { config, middleware } from "@/middleware"
 
 describe("auth middleware", () => {
+  it("declares explicit protected matchers for dashboard, admin and api routes", () => {
+    expect(config.matcher).toEqual([
+      "/dashboard/:path*",
+      "/admin/:path*",
+      "/api/:path*",
+    ])
+  })
+
   it("redirects unauthenticated dashboard access to login", () => {
     const request = new NextRequest("http://localhost/dashboard")
     const response = middleware(request)

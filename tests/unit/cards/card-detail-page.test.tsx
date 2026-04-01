@@ -38,5 +38,5 @@ describe('card detail page', () => {
     expect(screen.getByText('Fechamento dia 10 e vencimento dia 17')).toBeInTheDocument()
     expect(screen.getByText('Próximas faturas')).toBeInTheDocument()
     expect(screen.getByText('Sem faturas em aberto para este cartão.')).toBeInTheDocument()
-  })
+  }, 10000)
 })

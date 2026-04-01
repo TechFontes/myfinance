@@ -2,19 +2,16 @@ import { NewTransactionButton } from '@/components/newTransactionButton'
 import { getUserFromRequest } from '@/lib/auth'
 import { listTransactionsByUser } from '@/modules/transactions/service'
 import { TransactionsList } from '@/components/transactions/TransactionsList'
+import { redirect } from 'next/navigation'
 
-async function getTransactions() {
+export default async function TransactionsPage() {
   const user = await getUserFromRequest()
 
   if (!user) {
-    return []
+    return redirect('/login?callbackUrl=%2Fdashboard%2Ftransactions')
   }
 
-  return listTransactionsByUser(user.id)
-}
-
-export default async function TransactionsPage() {
-  const transactions = await getTransactions()
+  const transactions = await listTransactionsByUser(user.id)
 
   return (
     <div className="space-y-6">

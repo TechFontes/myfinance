@@ -1,4 +1,5 @@
 import { PlusIcon, FolderTreeIcon } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -15,7 +16,12 @@ function getStatusLabel(active: boolean) {
 
 export default async function CategoriesPage() {
   const user = await getUserFromRequest()
-  const categories = user ? await listCategoriesByUser(user.id) : []
+
+  if (!user) {
+    return redirect('/login?callbackUrl=%2Fdashboard%2Fcategories')
+  }
+
+  const categories = await listCategoriesByUser(user.id)
   const categoryNamesById = new Map(categories.map((category) => [category.id, category.name]))
 
   return (

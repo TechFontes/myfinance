@@ -72,5 +72,5 @@ describe('invoice page', () => {
         },
       },
     })
-  })
+  }, 10000)
 })

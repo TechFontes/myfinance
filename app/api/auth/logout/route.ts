@@ -1,9 +1,9 @@
 // app/api/auth/logout/route.ts
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const TOKEN_COOKIE_NAME = 'auth_token'
 
-export async function POST(_req: NextRequest) {
+export async function POST() {
   const res = NextResponse.json({ success: true })
   res.cookies.set(TOKEN_COOKIE_NAME, '', {
     httpOnly: true,

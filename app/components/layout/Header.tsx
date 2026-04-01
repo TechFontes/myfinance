@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -28,6 +29,7 @@ const mobileNavItems = [
 
 export function Header() {
   const { user, logout } = useAuth()
+  const router = useRouter()
 
   const initials =
     user?.name
@@ -35,6 +37,12 @@ export function Header() {
       .map((n) => n[0])
       .join('')
       .toUpperCase() || 'U'
+
+  async function handleLogout() {
+    await logout()
+    router.replace('/login')
+    router.refresh()
+  }
 
   return (
     <header className="sticky top-0 z-20 border-b border-border/70 bg-background/85 px-4 py-3 backdrop-blur-xl md:px-6">
@@ -61,41 +69,53 @@ export function Header() {
           <ThemeToggle />
 
           {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                aria-label="Abrir menu da conta"
-                className="flex items-center gap-2 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            <>
+              <button
+                type="button"
+                aria-label="Sair da conta"
+                className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-card/80 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                onClick={handleLogout}
               >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-muted font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
+                <LogOut size={14} />
+                <span className="hidden sm:inline">Sair</span>
+              </button>
 
-                <span className="hidden text-sm font-medium text-foreground sm:block">
-                  {user.name || user.email}
-                </span>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
-
-                <DropdownMenuItem className="flex items-center gap-2">
-                  <User size={14} />
-                  Perfil
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem
-                  className="flex cursor-pointer items-center gap-2 text-destructive"
-                  onClick={logout}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label="Abrir menu da conta"
+                  className="flex items-center gap-2 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
-                  <LogOut size={14} />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-muted font-semibold">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <span className="hidden text-sm font-medium text-foreground sm:block">
+                    {user.name || user.email}
+                  </span>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuLabel>Minha conta</DropdownMenuLabel>
+
+                  <DropdownMenuItem className="flex items-center gap-2">
+                    <User size={14} />
+                    Perfil
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem
+                    className="flex cursor-pointer items-center gap-2 text-destructive"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={14} />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           )}
         </div>
       </div>

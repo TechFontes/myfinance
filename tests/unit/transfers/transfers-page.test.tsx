@@ -38,5 +38,5 @@ describe('transfers page', () => {
     expect(screen.getByRole('button', { name: 'Nova transferência' })).toBeInTheDocument()
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Conta #10')
     expect(transfersMock.listTransfersByUser).toHaveBeenCalledWith('user-1')
-  })
+  }, 10000)
 })

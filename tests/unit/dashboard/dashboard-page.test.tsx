@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authMock = vi.hoisted(() => ({
   getUserFromRequest: vi.fn(),
@@ -12,9 +12,13 @@ const dashboardMock = vi.hoisted(() => ({
 }))
 
 const reportViewMock = vi.hoisted(() => vi.fn())
+const redirectMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/services/dashboardService', () => dashboardMock)
+vi.mock('next/navigation', () => ({
+  redirect: redirectMock,
+}))
 vi.mock('@/components/dashboard/DashboardReportView', () => ({
   DashboardReportView: ({
     report,
@@ -34,8 +38,15 @@ vi.mock('@/components/dashboard/DashboardReportView', () => ({
 }))
 
 describe('dashboard page', () => {
-  it('renders the dashboard wrapper with monthly selection', async () => {
+  beforeEach(() => {
+    redirectMock.mockReset()
     reportViewMock.mockReset()
+    dashboardMock.getDashboardReport.mockReset()
+    dashboardMock.getAvailableMonths.mockReset()
+    authMock.getUserFromRequest.mockReset()
+  })
+
+  it('renders the dashboard wrapper with monthly selection', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     dashboardMock.getAvailableMonths.mockResolvedValue(['2026-02', '2026-03'])
     dashboardMock.getDashboardReport.mockResolvedValue({
@@ -72,5 +83,17 @@ describe('dashboard page', () => {
         }),
       }),
     })
+  }, 10000)
+
+  it('redirects to login when the session is absent', async () => {
+    authMock.getUserFromRequest.mockResolvedValue(null)
+
+    const { default: DashboardPage } = await import('@/dashboard/page')
+    await DashboardPage({ searchParams: { month: '2026-03' } })
+
+    expect(redirectMock).toHaveBeenCalledWith('/login?callbackUrl=%2Fdashboard')
+    expect(reportViewMock).not.toHaveBeenCalled()
+    expect(dashboardMock.getDashboardReport).not.toHaveBeenCalled()
+    expect(dashboardMock.getAvailableMonths).not.toHaveBeenCalled()
   })
 })

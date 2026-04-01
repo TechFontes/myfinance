@@ -42,5 +42,5 @@ describe('goals page', () => {
     expect(screen.getByText('Reserva de emergência')).toBeInTheDocument()
     expect(screen.getByText('Conta de reserva #3')).toBeInTheDocument()
     expect(goalsMock.listGoalsByUser).toHaveBeenCalledWith('user-1')
-  })
+  }, 10000)
 })

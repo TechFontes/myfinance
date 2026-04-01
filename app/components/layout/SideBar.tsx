@@ -20,27 +20,27 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-card)_92%,transparent),color-mix(in_oklab,var(--color-background)_88%,transparent))] px-5 py-6 backdrop-blur md:flex">
-      <div className="rounded-[2rem] border border-border/70 bg-card/92 p-5 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)]">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-border/60 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-background)_97%,transparent),color-mix(in_oklab,var(--color-card)_88%,transparent))] px-4 py-5 backdrop-blur md:flex">
+      <div className="rounded-[1.75rem] border border-border/60 bg-card/75 p-4 shadow-[0_18px_50px_-48px_rgba(15,23,42,0.32)]">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-foreground text-sm font-semibold text-background">
+          <div className="flex h-11 w-11 items-center justify-center rounded-[1.1rem] border border-border/70 bg-background text-sm font-semibold text-foreground">
             MF
           </div>
           <div className="space-y-1">
             <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
               Workspace financeiro
             </p>
-            <h2 className="font-serif text-2xl tracking-tight text-foreground">
+            <h2 className="font-serif text-xl tracking-tight text-foreground">
               MyFinance
             </h2>
           </div>
         </div>
-        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">
           <span>Controle patrimonial</span>, leitura editorial e visão consolidada em uma única mesa.
         </p>
       </div>
 
-      <nav className="mt-6 space-y-1">
+      <nav className="mt-5 space-y-1">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -52,9 +52,9 @@ export function Sidebar() {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={twMerge(
-                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border/70 hover:bg-card hover:text-foreground',
+                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-card/80 hover:text-foreground',
                 isActive &&
-                  'border-border/80 bg-foreground text-background shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] hover:bg-foreground hover:text-background'
+                  'border-border/70 bg-card/80 text-foreground shadow-[0_12px_30px_-32px_rgba(15,23,42,0.28)] hover:bg-card/80 hover:text-foreground'
               )}
             >
               {item.label}

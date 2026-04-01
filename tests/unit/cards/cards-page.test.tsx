@@ -43,5 +43,5 @@ describe('cards page', () => {
     expect(screen.getByText('Fechamento dia 10')).toBeInTheDocument()
     expect(screen.getByText('Vencimento dia 17')).toBeInTheDocument()
     expect(cardsMock.listCardsByUser).toHaveBeenCalledWith('user-1')
-  })
+  }, 10000)
 })

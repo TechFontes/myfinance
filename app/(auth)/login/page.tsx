@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormField,
@@ -24,6 +23,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -34,6 +34,8 @@ type LoginSchemaType = z.infer<typeof LoginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginSchemaType>({
@@ -47,17 +49,11 @@ export default function LoginPage() {
   async function onSubmit(data: LoginSchemaType) {
     try {
       setLoading(true);
+      await login(data.email, data.password);
 
-      const req = await fetch("/api/auth/login", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
-
-      if (!req.ok) {
-        throw new Error("Credenciais inválidas");
-      }
-
-      router.push("/dashboard");
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+      router.replace(callbackUrl);
+      router.refresh();
     } catch (err) {
       console.error(err);
     } finally {

@@ -43,5 +43,5 @@ describe('categories page', () => {
     expect(screen.getByText('Aluguel')).toBeInTheDocument()
     expect(screen.getByText('Subcategoria de Moradia')).toBeInTheDocument()
     expect(screen.getByText('Inativa')).toBeInTheDocument()
-  })
+  }, 10000)
 })

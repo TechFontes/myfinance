@@ -1,23 +1,19 @@
 import { PlusIcon } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 import { AccountsList } from '@/components/accounts/AccountsList'
 import { Button } from '@/components/ui/button'
 import { getUserFromRequest } from '@/lib/auth'
 import { listAccountsByUser } from '@/services/accountService'
 
-async function getAccounts() {
-  const user = await getUserFromRequest();
+export default async function AccountsPage() {
+  const user = await getUserFromRequest()
+
   if (!user) {
-    return [];
+    return redirect('/login?callbackUrl=%2Fdashboard%2Faccounts')
   }
 
-  const accounts = await listAccountsByUser(user.id);
-
-  return accounts
-}
-
-export default async function AccountsPage() {
-  const accounts = await getAccounts();
+  const accounts = await listAccountsByUser(user.id)
 
   return (
     <div className="space-y-6">
@@ -37,5 +33,5 @@ export default async function AccountsPage() {
 
       <AccountsList accounts={accounts} />
     </div>
-  );
+  )
 }

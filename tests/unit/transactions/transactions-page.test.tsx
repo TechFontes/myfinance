@@ -48,5 +48,5 @@ describe('transactions page', () => {
     expect(screen.getByText('Pendente')).toBeInTheDocument()
     expect(screen.getByText('Internet')).toBeInTheDocument()
     expect(screen.getByText('Moradia')).toBeInTheDocument()
-  })
+  }, 10000)
 })

@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 import { GoalsList } from '@/components/goals/GoalsList'
 import { Button } from '@/components/ui/button'
@@ -6,18 +7,14 @@ import { Card } from '@/components/ui/card'
 import { getUserFromRequest } from '@/lib/auth'
 import { listGoalsByUser } from '@/modules/goals/service'
 
-async function getGoals() {
+export default async function GoalsPage() {
   const user = await getUserFromRequest()
 
   if (!user) {
-    return []
+    return redirect('/login?callbackUrl=%2Fdashboard%2Fgoals')
   }
 
-  return listGoalsByUser(user.id)
-}
-
-export default async function GoalsPage() {
-  const goals = await getGoals()
+  const goals = await listGoalsByUser(user.id)
 
   return (
     <div className="space-y-6">

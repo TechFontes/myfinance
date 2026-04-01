@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card'
 import { getUserFromRequest } from '@/lib/auth'
 import { listTransfersByUser } from '@/modules/transfers/service'
 import { TransfersList } from '@/components/transfers/TransfersList'
+import { redirect } from 'next/navigation'
 
 function buildTransferLabel(id: number) {
   return `Conta #${id}`
@@ -12,17 +13,7 @@ export default async function TransfersPage() {
   const user = await getUserFromRequest()
 
   if (!user) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Movimentações internas</h1>
-          <p className="text-muted-foreground">Transferências entre contas que não entram como receita ou despesa.</p>
-        </div>
-        <Card className="border-dashed p-6 text-sm text-muted-foreground">
-          Acesse sua conta para visualizar as movimentações internas.
-        </Card>
-      </div>
-    )
+    return redirect('/login?callbackUrl=%2Fdashboard%2Ftransfers')
   }
 
   const transfers = await listTransfersByUser(user.id)

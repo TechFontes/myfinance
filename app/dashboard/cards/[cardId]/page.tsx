@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getUserFromRequest } from '@/lib/auth'
 import { listCardsByUser } from '@/modules/cards/service'
+import { redirect } from 'next/navigation'
 
 type CardDetailPageProps = {
   params: {
@@ -23,17 +24,7 @@ export default async function CardDetailPage({ params }: CardDetailPageProps) {
   const user = await getUserFromRequest()
 
   if (!user) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Cartão</h1>
-          <p className="text-muted-foreground">Detalhe do cartão e próximas faturas.</p>
-        </div>
-        <Card className="border-dashed p-6 text-sm text-muted-foreground">
-          Acesse sua conta para visualizar os detalhes do cartão.
-        </Card>
-      </div>
-    )
+    return redirect(`/login?callbackUrl=${encodeURIComponent(`/dashboard/cards/${params.cardId}`)}`)
   }
 
   const cards = await listCardsByUser(user.id)

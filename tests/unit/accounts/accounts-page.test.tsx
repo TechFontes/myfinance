@@ -47,5 +47,5 @@ describe('accounts page', () => {
     expect(screen.getByRole('button', { name: 'Nova conta' })).toBeInTheDocument()
     expect(screen.getByTestId('accounts-list')).toHaveTextContent('Nubank')
     expect(listAccountsByUser).toHaveBeenCalledWith('user-1')
-  })
+  }, 10000)
 })

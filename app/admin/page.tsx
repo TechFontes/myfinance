@@ -2,12 +2,17 @@ import { Card } from '@/components/ui/card'
 import { AdminConsole } from '@/components/admin/AdminConsole'
 import { getUserFromRequest } from '@/lib/auth'
 import { getAdminFinancialOverview, listAdminUsers } from '@/modules/admin/service'
+import { redirect } from 'next/navigation'
 
 async function getAdminConsoleUsers() {
   const user = await getUserFromRequest()
 
-  if (!user || user.role !== 'ADMIN') {
-    return []
+  if (!user) {
+    return redirect('/login?callbackUrl=%2Fadmin')
+  }
+
+  if (user.role !== 'ADMIN') {
+    return redirect('/dashboard')
   }
 
   const users = await listAdminUsers()

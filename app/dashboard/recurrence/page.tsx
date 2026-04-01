@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -6,19 +7,15 @@ import { getUserFromRequest } from '@/lib/auth'
 import { listRecurringRulesByUser } from '@/modules/recurrence/service'
 import { RecurrenceList } from '@/components/recurrence/RecurrenceList'
 
-async function getRecurringRules(): Promise<Awaited<ReturnType<typeof listRecurringRulesByUser>>> {
+export default async function RecurrencePage() {
   const user = await getUserFromRequest()
 
   if (!user) {
-    return []
+    return redirect('/login?callbackUrl=%2Fdashboard%2Frecurrence')
   }
 
-  return listRecurringRulesByUser(user.id)
-}
-
-export default async function RecurrencePage() {
-  const recurrenceRules = await getRecurringRules()
-  type RecurrenceRuleItem = Awaited<ReturnType<typeof getRecurringRules>>[number]
+  const recurrenceRules = await listRecurringRulesByUser(user.id)
+  type RecurrenceRuleItem = Awaited<ReturnType<typeof listRecurringRulesByUser>>[number]
 
   if (recurrenceRules.length === 0) {
     return (

@@ -5,9 +5,11 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   ReactNode,
 } from 'react'
+import { resolveSessionUser } from './authSessionState'
 
 type User = {
   id: string
@@ -27,23 +29,44 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const authVersionRef = useRef(0)
+  const userRef = useRef<User | null>(null)
+
+  function setAuthUser(nextUser: User | null) {
+    userRef.current = nextUser
+    setUser(nextUser)
+  }
 
   // Fetch user on mount
   useEffect(() => {
+    const snapshotVersion = authVersionRef.current
+
     async function fetchUser() {
       try {
         const res = await fetch('/api/auth/me', {
+          cache: 'no-store',
           credentials: 'include',
         })
-        if (res.ok) {
-          const data = await res.json()
-          setUser(data.user)
-        } else {
-          setUser(null)
-        }
+        const fetchedUser = res.ok ? (await res.json()).user : null
+
+        setAuthUser(
+          resolveSessionUser({
+            currentUser: userRef.current,
+            currentVersion: authVersionRef.current,
+            fetchedUser,
+            snapshotVersion,
+          }),
+        )
       } catch (error) {
         console.error('Error loading user', error)
-        setUser(null)
+        setAuthUser(
+          resolveSessionUser({
+            currentUser: userRef.current,
+            currentVersion: authVersionRef.current,
+            fetchedUser: null,
+            snapshotVersion,
+          }),
+        )
       } finally {
         setLoading(false)
       }
@@ -53,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   async function login(email: string, password: string) {
+    authVersionRef.current += 1
+
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -65,15 +90,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await res.json()
-    setUser(data.user)
+    setAuthUser(data.user)
   }
 
   async function logout() {
+    authVersionRef.current += 1
+
     await fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
     })
-    setUser(null)
+    setAuthUser(null)
   }
 
   return (
