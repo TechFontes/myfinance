@@ -56,6 +56,7 @@ describe('csv import api routes', () => {
       new Request('http://localhost/api/imports/transactions/preview', {
         method: 'POST',
         body: JSON.stringify({
+          sourceName: 'nubank.csv',
           text: [
             'type,description,value,categoryName,competenceDate,dueDate,status,fixed',
             'EXPENSE,Uber,27.50,Alimentação,2026-03-01,2026-03-02,PENDING,true',
@@ -68,6 +69,7 @@ describe('csv import api routes', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
+    expect(payload.sourceName).toBe('nubank.csv')
     expect(payload.previewToken).toEqual(expect.any(String))
     expect(payload.preview.readyToCommit).toBe(false)
     expect(payload.preview.summary).toMatchObject({
@@ -104,13 +106,10 @@ describe('csv import api routes', () => {
     expect(await response.json()).toEqual({ error: 'Unauthorized' })
   })
 
-  it('commits reviewed rows while skipping unaccepted duplicates', async () => {
+  it('rejects the commit when the review still has unresolved duplicate rows', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     categoriesMock.listCategoriesByUser.mockResolvedValue([{ id: 11, name: 'Alimentação' }])
     transactionsMock.listTransactionsByUser.mockResolvedValue([])
-    transactionsMock.createTransactionForUser
-      .mockResolvedValueOnce({ id: 101, description: 'Mercado' })
-      .mockResolvedValueOnce({ id: 102, description: 'Café' })
 
     const previewResponse = await previewPOST(
       new Request('http://localhost/api/imports/transactions/preview', {
@@ -139,13 +138,83 @@ describe('csv import api routes', () => {
     )
     const commitPayload = await commitResponse.json()
 
+    expect(commitResponse.status).toBe(400)
+    expect(transactionsMock.createTransactionForUser).not.toHaveBeenCalled()
+    expect(commitPayload).toEqual({
+      error: 'Import review has pending issues',
+      pendingLines: [
+        expect.objectContaining({ line: 2 }),
+        expect.objectContaining({ line: 3 }),
+      ],
+    })
+  })
+
+  it('commits all reviewed rows after applying category mappings', async () => {
+    authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+    categoriesMock.listCategoriesByUser.mockResolvedValue([
+      { id: 11, name: 'Alimentação' },
+      { id: 22, name: 'Transporte' },
+    ])
+    transactionsMock.listTransactionsByUser.mockResolvedValue([])
+    transactionsMock.createTransactionForUser
+      .mockResolvedValueOnce({ id: 101, description: 'Mercado' })
+      .mockResolvedValueOnce({ id: 102, description: 'Taxi' })
+
+    const previewResponse = await previewPOST(
+      new Request('http://localhost/api/imports/transactions/preview', {
+        method: 'POST',
+        body: JSON.stringify({
+          text: [
+            'type,description,value,categoryName,competenceDate,dueDate,status,fixed',
+            'EXPENSE,Mercado,150.00,Alimentação,2026-03-01,2026-03-02,PENDING,false',
+            'EXPENSE,Taxi,15.00,Transporte Urbano,2026-03-03,2026-03-04,PENDING,false',
+          ].join('\n'),
+        }),
+      }) as never,
+    )
+    const previewPayload = await previewResponse.json()
+
+    const commitResponse = await commitPOST(
+      new Request('http://localhost/api/imports/transactions/commit', {
+        method: 'POST',
+        body: JSON.stringify({
+          previewToken: previewPayload.previewToken,
+          acceptedDuplicateLineNumbers: [],
+          categoryMappings: [
+            {
+              sourceName: 'Transporte Urbano',
+              needsMapping: true,
+              mappedCategoryId: 22,
+            },
+          ],
+        }),
+      }) as never,
+    )
+    const commitPayload = await commitResponse.json()
+
     expect(commitResponse.status).toBe(201)
-    expect(transactionsMock.createTransactionForUser).toHaveBeenCalledTimes(1)
-    expect(transactionsMock.createTransactionForUser).toHaveBeenCalledWith('user-1', {
+    expect(transactionsMock.createTransactionForUser).toHaveBeenCalledTimes(2)
+    expect(transactionsMock.createTransactionForUser).toHaveBeenNthCalledWith(1, 'user-1', {
       type: 'EXPENSE',
-      description: 'Café',
-      value: '12.00',
+      description: 'Mercado',
+      value: '150.00',
       categoryId: 11,
+      accountId: null,
+      creditCardId: null,
+      invoiceId: null,
+      competenceDate: new Date('2026-03-01T00:00:00.000Z'),
+      dueDate: new Date('2026-03-02T00:00:00.000Z'),
+      paidAt: null,
+      status: 'PENDING',
+      fixed: false,
+      installment: null,
+      installments: null,
+    })
+    expect(transactionsMock.createTransactionForUser).toHaveBeenNthCalledWith(2, 'user-1', {
+      type: 'EXPENSE',
+      description: 'Taxi',
+      value: '15.00',
+      categoryId: 22,
       accountId: null,
       creditCardId: null,
       invoiceId: null,
@@ -157,11 +226,11 @@ describe('csv import api routes', () => {
       installment: null,
       installments: null,
     })
-    expect(commitPayload).toMatchObject({
-      committedRows: 1,
-      skippedRows: [
-        expect.objectContaining({ line: 2 }),
-        expect.objectContaining({ line: 3 }),
+    expect(commitPayload).toEqual({
+      committedRows: 2,
+      transactions: [
+        { id: 101, description: 'Mercado' },
+        { id: 102, description: 'Taxi' },
       ],
     })
   })

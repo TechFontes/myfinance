@@ -4,10 +4,7 @@ import { z } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import { listCategoriesByUser } from '@/modules/categories/service'
 import { createTransactionForUser } from '@/modules/transactions/service'
-import {
-  csvImportCommitSchema,
-  type CsvImportTransactionPreview,
-} from '@/modules/imports'
+import { csvImportCommitSchema, type CsvImportTransactionPreview } from '@/modules/imports'
 
 type PreviewTokenPayload = {
   userId: string
@@ -26,7 +23,14 @@ const previewTokenPayloadSchema = z.object({
         mappedCategoryId: z.number().int().positive().nullable(),
         issues: z.array(
           z.object({
-            code: z.enum(['missing_category', 'duplicate_row', 'invalid_row']),
+            code: z.enum([
+              'missing_field',
+              'invalid_value',
+              'invalid_date',
+              'missing_category',
+              'duplicate_row',
+              'invalid_row',
+            ]),
             field: z.string().trim().min(1).optional(),
             message: z.string().trim().min(1),
           }),
@@ -165,13 +169,12 @@ export async function POST(request: NextRequest) {
       ] as const),
   )
 
-  const createdTransactions: Array<Awaited<ReturnType<typeof createTransactionForUser>>> = []
-  const skippedRows: Array<{ line: number; reasons: string[] }> = []
+  const pendingLines: Array<{ line: number; reasons: string[] }> = []
+  const rowsToCreate = [] as Array<Parameters<typeof createTransactionForUser>[1]>
 
   for (const row of previewPayload.preview.rows) {
     const reasons: string[] = []
     const duplicateIssue = row.issues.some((issue) => issue.code === 'duplicate_row')
-    const hasResolvableCategoryIssue = row.issues.some((issue) => issue.code === 'missing_category')
 
     let categoryId = row.mappedCategoryId
 
@@ -183,26 +186,26 @@ export async function POST(request: NextRequest) {
       reasons.push('duplicate row was not reviewed')
     }
 
-    if (categoryId === null && hasResolvableCategoryIssue) {
+    if (categoryId === null) {
       reasons.push('category mapping is required')
-    }
-
-    if (categoryId !== null && !knownCategoryIds.has(categoryId)) {
+    } else if (!knownCategoryIds.has(categoryId)) {
       reasons.push('mapped category does not belong to this user')
     }
 
-    const unresolvableIssues = row.issues.filter((issue) => issue.code === 'invalid_row')
+    const unresolvedIssues = row.issues.filter(
+      (issue) => issue.code !== 'duplicate_row' && issue.code !== 'missing_category',
+    )
 
-    if (unresolvableIssues.length > 0) {
-      reasons.push(...unresolvableIssues.map((issue) => issue.message))
+    if (unresolvedIssues.length > 0) {
+      reasons.push(...unresolvedIssues.map((issue) => issue.message))
     }
 
-    if (reasons.length > 0 || categoryId === null) {
-      skippedRows.push({ line: row.line, reasons: reasons.length > 0 ? reasons : ['row is not ready to commit'] })
+    if (reasons.length > 0) {
+      pendingLines.push({ line: row.line, reasons })
       continue
     }
 
-    const createdTransaction = await createTransactionForUser(user.id, {
+    rowsToCreate.push({
       type: row.transaction.type,
       description: row.transaction.description,
       value: row.transaction.value,
@@ -218,25 +221,30 @@ export async function POST(request: NextRequest) {
       installment: row.transaction.installment ?? null,
       installments: row.transaction.installments ?? null,
     })
-
-    createdTransactions.push(createdTransaction)
   }
 
-  if (createdTransactions.length === 0) {
+  if (pendingLines.length > 0) {
     return NextResponse.json(
       {
-        error: 'No rows were ready to commit',
-        skippedRows,
+        error: 'Import review has pending issues',
+        pendingLines,
       },
       { status: 400 },
     )
   }
 
+  if (rowsToCreate.length === 0) {
+    return NextResponse.json({ error: 'No rows were ready to commit' }, { status: 400 })
+  }
+
+  const transactions = await Promise.all(
+    rowsToCreate.map((row) => createTransactionForUser(user.id, row)),
+  )
+
   return NextResponse.json(
     {
-      committedRows: createdTransactions.length,
-      skippedRows,
-      transactions: createdTransactions,
+      committedRows: transactions.length,
+      transactions,
     },
     { status: 201 },
   )
