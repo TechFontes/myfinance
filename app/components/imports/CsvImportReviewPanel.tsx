@@ -11,27 +11,21 @@ import {
 } from '@/components/ui/card'
 import {
   buildTransactionImportPreview,
+  type CsvImportTransactionPreview,
   type TransactionImportCategory,
   type TransactionImportRow,
 } from '@/modules/imports'
-import { CheckCircle2, FileUp, Sparkles } from 'lucide-react'
+import { CheckCircle2, FileUp, LoaderCircle, RefreshCcw, Sparkles } from 'lucide-react'
 
 type CsvImportReviewPanelProps = {
   availableCategories: TransactionImportCategory[]
   initialCsvText?: string
 }
 
-type PreviewResponsePayload = {
-  sourceName: string
-  preview: ReturnType<typeof buildTransactionImportPreview>
-  previewToken: string
-}
-
-type CommitResponsePayload = {
+type CommitResponse = {
   committedRows?: number
-  transactions?: Array<{ id: number; description: string }>
-  error?: string
   skippedRows?: Array<{ line: number; reasons: string[] }>
+  error?: string
 }
 
 function formatCount(value: number, singular: string, plural: string) {
@@ -42,16 +36,57 @@ function rowKey(row: TransactionImportRow) {
   return `${row.line}-${row.transaction.description}-${row.transaction.value}`
 }
 
-function buildDefaultNotice(previewReady: boolean, acknowledged: boolean) {
-  if (!previewReady) {
+function formatSuggestedCategories(
+  suggestedCategoryIds: number[] | undefined,
+  availableCategories: TransactionImportCategory[],
+) {
+  if (!suggestedCategoryIds || suggestedCategoryIds.length === 0) {
+    return 'Sem sugestão automática disponível.'
+  }
+
+  const suggestedNames = suggestedCategoryIds
+    .map((categoryId) =>
+      availableCategories.find((category) => category.id === categoryId)?.name ?? `#${categoryId}`,
+    )
+    .join(', ')
+
+  return `Sugestões: ${suggestedNames}`
+}
+
+function buildDefaultNotice(
+  preview: CsvImportTransactionPreview,
+  reviewAcknowledged: boolean,
+  previewToken: string | null,
+) {
+  if (!previewToken) {
+    return 'Valide o preview no servidor antes de liberar a confirmação real.'
+  }
+
+  if (!preview.readyToCommit) {
     return 'Revise os itens pendentes para liberar a confirmação.'
   }
 
-  if (!acknowledged) {
+  if (!reviewAcknowledged) {
     return 'Marque a revisão para habilitar a confirmação.'
   }
 
-  return 'A confirmação está liberada para a próxima etapa.'
+  return 'A confirmação real está liberada para persistir as linhas prontas.'
+}
+
+async function readJsonResponse(response: Response) {
+  try {
+    return await response.json()
+  } catch {
+    return null
+  }
+}
+
+function buildCommitDetails(payload: CommitResponse | null) {
+  if (!payload?.skippedRows?.length) {
+    return []
+  }
+
+  return payload.skippedRows.map((row) => `Linha ${row.line}: ${row.reasons.join(' · ')}`)
 }
 
 export function CsvImportReviewPanel({
@@ -60,22 +95,16 @@ export function CsvImportReviewPanel({
 }: CsvImportReviewPanelProps) {
   const [csvText, setCsvText] = useState(initialCsvText)
   const [reviewAcknowledged, setReviewAcknowledged] = useState(false)
-  const [previewSyncState, setPreviewSyncState] = useState<'idle' | 'syncing' | 'synced' | 'error'>(
-    'idle',
-  )
-  const [commitState, setCommitState] = useState<'idle' | 'submitting' | 'success' | 'error'>(
-    'idle',
-  )
   const [sourceLabel, setSourceLabel] = useState(
     initialCsvText ? 'Conteúdo inicial' : 'Aguardando CSV',
   )
+  const [serverPreview, setServerPreview] = useState<CsvImportTransactionPreview | null>(null)
   const [previewToken, setPreviewToken] = useState<string | null>(null)
-  const [serverPreview, setServerPreview] = useState<ReturnType<typeof buildTransactionImportPreview> | null>(
-    null,
-  )
-  const [serverMessage, setServerMessage] = useState<string | null>(null)
-  const [commitError, setCommitError] = useState<string | null>(null)
-  const [commitSkippedRows, setCommitSkippedRows] = useState<Array<{ line: number; reasons: string[] }>>([])
+  const [previewStatus, setPreviewStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [previewFeedback, setPreviewFeedback] = useState<string | null>(null)
+  const [commitStatus, setCommitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const [commitFeedback, setCommitFeedback] = useState<string | null>(null)
+  const [commitDetails, setCommitDetails] = useState<string[]>([])
 
   const localPreview = useMemo(
     () => buildTransactionImportPreview(csvText, availableCategories),
@@ -83,24 +112,24 @@ export function CsvImportReviewPanel({
   )
 
   const preview = serverPreview ?? localPreview
-  const canSyncPreview = csvText.trim().length > 0 && previewSyncState !== 'syncing'
+  const canValidatePreview = csvText.trim().length > 0 && previewStatus !== 'loading' && commitStatus !== 'loading'
   const canConfirm =
+    Boolean(previewToken) &&
     preview.readyToCommit &&
     reviewAcknowledged &&
-    previewToken !== null &&
-    previewSyncState === 'synced' &&
-    commitState !== 'submitting'
+    previewStatus === 'success' &&
+    commitStatus !== 'loading'
 
-  function resetServerReviewState(nextSourceLabel: string) {
+  function resetReviewFlow(nextSourceLabel: string) {
     setSourceLabel(nextSourceLabel)
     setReviewAcknowledged(false)
-    setPreviewSyncState('idle')
-    setCommitState('idle')
-    setPreviewToken(null)
     setServerPreview(null)
-    setServerMessage(null)
-    setCommitError(null)
-    setCommitSkippedRows([])
+    setPreviewToken(null)
+    setPreviewStatus('idle')
+    setPreviewFeedback(null)
+    setCommitStatus('idle')
+    setCommitFeedback(null)
+    setCommitDetails([])
   }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
@@ -112,23 +141,24 @@ export function CsvImportReviewPanel({
 
     const text = await file.text()
     setCsvText(text)
-    resetServerReviewState(file.name)
+    resetReviewFlow(file.name)
   }
 
   function handleCsvTextChange(event: ChangeEvent<HTMLTextAreaElement>) {
     setCsvText(event.target.value)
-    resetServerReviewState('Conteúdo colado')
+    resetReviewFlow('Conteúdo colado')
   }
 
   async function handlePreviewSync() {
-    if (!canSyncPreview) {
+    if (!csvText.trim()) {
       return
     }
 
-    setPreviewSyncState('syncing')
-    setServerMessage(null)
-    setCommitError(null)
-    setCommitSkippedRows([])
+    setPreviewStatus('loading')
+    setPreviewFeedback(null)
+    setCommitStatus('idle')
+    setCommitFeedback(null)
+    setCommitDetails([])
 
     try {
       const response = await fetch('/api/imports/transactions/preview', {
@@ -137,39 +167,54 @@ export function CsvImportReviewPanel({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sourceName: sourceLabel,
           text: csvText,
+          sourceName: sourceLabel,
         }),
       })
+      const payload = (await readJsonResponse(response)) as
+        | {
+            preview?: CsvImportTransactionPreview
+            previewToken?: string
+            error?: string
+            sourceName?: string
+          }
+        | null
 
-      const payload = (await response.json()) as PreviewResponsePayload & { error?: string }
-
-      if (!response.ok) {
-        setPreviewSyncState('error')
-        setServerMessage(payload.error ?? 'Não foi possível validar o preview no servidor.')
+      if (!response.ok || !payload?.preview || !payload.previewToken) {
+        setPreviewStatus('error')
+        setPreviewToken(null)
+        setServerPreview(null)
+        setPreviewFeedback(payload?.error ?? 'Não foi possível validar o preview no servidor.')
         return
       }
 
       setServerPreview(payload.preview)
       setPreviewToken(payload.previewToken)
-      setPreviewSyncState('synced')
-      setServerMessage('Preview validado no servidor. A importação já pode ser confirmada.')
+      setSourceLabel(payload.sourceName ?? sourceLabel)
+      setPreviewStatus('success')
+      setPreviewFeedback(
+        payload.preview.readyToCommit
+          ? 'Preview validado no servidor. A importação já pode ser confirmada.'
+          : 'Preview validado no servidor. Ainda existem pendências antes da confirmação.',
+      )
     } catch {
-      setPreviewSyncState('error')
-      setServerMessage('Não foi possível validar o preview no servidor.')
+      setPreviewStatus('error')
+      setPreviewToken(null)
+      setServerPreview(null)
+      setPreviewFeedback('Não foi possível validar o preview no servidor.')
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!canConfirm || previewToken === null) {
+    if (!canConfirm || !previewToken) {
       return
     }
 
-    setCommitState('submitting')
-    setCommitError(null)
-    setCommitSkippedRows([])
+    setCommitStatus('loading')
+    setCommitFeedback(null)
+    setCommitDetails([])
 
     try {
       const response = await fetch('/api/imports/transactions/commit', {
@@ -180,32 +225,30 @@ export function CsvImportReviewPanel({
         body: JSON.stringify({
           previewToken,
           acceptedDuplicateLineNumbers: [],
-          categoryMappings: preview.pendingCategoryMappings
-            .filter((mapping) => mapping.mappedCategoryId !== null && mapping.mappedCategoryId !== undefined)
-            .map((mapping) => ({
-              sourceName: mapping.sourceName,
-              needsMapping: mapping.needsMapping,
-              mappedCategoryId: mapping.mappedCategoryId,
-            })),
+          categoryMappings: [],
         }),
       })
-
-      const payload = (await response.json()) as CommitResponsePayload
+      const payload = (await readJsonResponse(response)) as CommitResponse | null
 
       if (!response.ok) {
-        setCommitState('error')
-        setCommitError(payload.error ?? 'Não foi possível confirmar a importação.')
-        setCommitSkippedRows(payload.skippedRows ?? [])
+        setCommitStatus('error')
+        setCommitFeedback(payload?.error ?? 'Não foi possível concluir a importação.')
+        setCommitDetails(buildCommitDetails(payload))
         return
       }
 
-      setCommitState('success')
-      setServerMessage(
-        `Importação concluída com sucesso. ${payload.committedRows ?? 0} linha foi enviada para persistência.`,
+      const committedRows = payload?.committedRows ?? 0
+
+      setCommitStatus('success')
+      setCommitFeedback(
+        committedRows === 1
+          ? 'Importação concluída com sucesso. 1 linha foi enviada para persistência.'
+          : `Importação concluída com sucesso. ${committedRows} linhas foram enviadas para persistência.`,
       )
     } catch {
-      setCommitState('error')
-      setCommitError('Não foi possível confirmar a importação.')
+      setCommitStatus('error')
+      setCommitFeedback('Não foi possível concluir a importação.')
+      setCommitDetails([])
     }
   }
 
@@ -265,10 +308,39 @@ export function CsvImportReviewPanel({
 
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <Badge variant={preview.readyToCommit ? 'secondary' : 'outline'}>
-                {preview.readyToCommit ? 'Pronto para revisão final' : 'Aguardando revisão'}
+                {preview.readyToCommit ? 'Preview limpo' : 'Preview com pendências'}
+              </Badge>
+              <Badge variant={serverPreview ? 'secondary' : 'outline'}>
+                {serverPreview ? 'Preview sincronizado com servidor' : 'Preview local'}
               </Badge>
               <span>Fonte: {sourceLabel}</span>
             </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Button disabled={!canValidatePreview} type="button" onClick={handlePreviewSync}>
+                {previewStatus === 'loading' ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCcw className="h-4 w-4" />
+                )}
+                Validar preview no servidor
+              </Button>
+              <p className="flex-1 text-sm text-muted-foreground">
+                Nenhuma linha será persistida antes da revisão limpa e da confirmação explícita.
+              </p>
+            </div>
+
+            {previewFeedback ? (
+              <div
+                className={
+                  previewStatus === 'error'
+                    ? 'rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
+                    : 'rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+                }
+              >
+                {previewFeedback}
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -300,29 +372,8 @@ export function CsvImportReviewPanel({
             </div>
 
             <div className="rounded-2xl border border-dashed bg-muted/20 p-4 text-sm text-muted-foreground">
-              {buildDefaultNotice(preview.readyToCommit, reviewAcknowledged)}
+              {buildDefaultNotice(preview, reviewAcknowledged, previewToken)}
             </div>
-
-            {serverMessage ? (
-              <div className="rounded-2xl border bg-background/80 p-4 text-sm text-muted-foreground">
-                {serverMessage}
-              </div>
-            ) : null}
-
-            {commitError ? (
-              <div className="rounded-2xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
-                <p>{commitError}</p>
-                {commitSkippedRows.length > 0 ? (
-                  <div className="mt-2 space-y-1">
-                    {commitSkippedRows.map((row) => (
-                      <p key={`skipped-${row.line}`}>
-                        Linha {row.line}: {row.reasons.join(', ')}
-                      </p>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
 
             <form className="space-y-4" onSubmit={handleSubmit}>
               <label className="flex items-start gap-3 rounded-2xl border bg-background/80 p-4 text-sm">
@@ -333,8 +384,9 @@ export function CsvImportReviewPanel({
                   type="checkbox"
                   onChange={(event) => {
                     setReviewAcknowledged(event.target.checked)
-                    setCommitState('idle')
-                    setCommitError(null)
+                    setCommitStatus('idle')
+                    setCommitFeedback(null)
+                    setCommitDetails([])
                   }}
                 />
                 <span>
@@ -343,20 +395,33 @@ export function CsvImportReviewPanel({
                 </span>
               </label>
 
-              <Button
-                className="w-full"
-                disabled={!canSyncPreview}
-                type="button"
-                variant="outline"
-                onClick={handlePreviewSync}
-              >
-                Validar preview no servidor
-              </Button>
-
               <Button className="w-full" disabled={!canConfirm} type="submit">
-                <CheckCircle2 className="h-4 w-4" />
+                {commitStatus === 'loading' ? (
+                  <LoaderCircle className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
                 Confirmar importação
               </Button>
+
+              {commitFeedback ? (
+                <div
+                  className={
+                    commitStatus === 'error'
+                      ? 'space-y-2 rounded-2xl border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200'
+                      : 'rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200'
+                  }
+                >
+                  <p>{commitFeedback}</p>
+                  {commitDetails.length > 0 ? (
+                    <div className="space-y-1">
+                      {commitDetails.map((detail) => (
+                        <p key={detail}>{detail}</p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
             </form>
           </CardContent>
         </Card>
@@ -441,9 +506,7 @@ export function CsvImportReviewPanel({
                           <Badge variant="outline">Mapeamento pendente</Badge>
                         </div>
                         <p className="mt-2 text-muted-foreground">
-                          {mapping.suggestedCategoryIds?.length
-                            ? `Sugestões: ${mapping.suggestedCategoryIds.join(', ')}`
-                            : 'Sem sugestão automática disponível.'}
+                          {formatSuggestedCategories(mapping.suggestedCategoryIds, availableCategories)}
                         </p>
                       </div>
                     ))
@@ -456,25 +519,19 @@ export function CsvImportReviewPanel({
               <div>
                 <p className="text-sm font-medium">Possíveis duplicidades</p>
                 <div className="mt-3 space-y-2">
-                  {preview.summary.duplicateRows > 0 ? (
-                    preview.rows
-                      .filter((row) =>
-                        row.issues.some((issue) => issue.code === 'duplicate_row'),
-                      )
-                      .map((row) => (
-                        <div
-                          key={rowKey(row)}
-                          className="rounded-2xl border bg-background/80 p-4 text-sm"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <strong>{row.transaction.description}</strong>
-                            <Badge variant="outline">Duplicidade</Badge>
-                          </div>
-                          <p className="mt-2 text-muted-foreground">
-                            Linha {row.line} · {row.transaction.value} · {row.transaction.dueDate}
-                          </p>
+                  {preview.possibleDuplicates.length > 0 ? (
+                    preview.possibleDuplicates.map((duplicate) => (
+                      <div
+                        key={`${duplicate.lineNumber}-${duplicate.reason}`}
+                        className="rounded-2xl border bg-background/80 p-4 text-sm"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <strong>Linha {duplicate.lineNumber}</strong>
+                          <Badge variant="outline">Duplicidade</Badge>
                         </div>
-                      ))
+                        <p className="mt-2 text-muted-foreground">{duplicate.reason}</p>
+                      </div>
+                    ))
                   ) : (
                     <p className="text-sm text-muted-foreground">Nenhuma duplicidade detectada.</p>
                   )}
