@@ -6,9 +6,13 @@ import { getUserFromRequest } from '@/lib/auth'
 import { DashboardReportView } from '@/components/dashboard/DashboardReportView'
 
 type DashboardPageProps = {
-  searchParams?: {
-    month?: string
-  }
+  searchParams?:
+    | Promise<{
+        month?: string
+      }>
+    | {
+        month?: string
+      }
 }
 
 function createEmptyReport(month: string) {
@@ -35,7 +39,8 @@ function createEmptyReport(month: string) {
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const currentMonth = searchParams?.month ?? new Date().toISOString().slice(0, 7)
+  const resolvedSearchParams = searchParams ? await Promise.resolve(searchParams) : undefined
+  const currentMonth = resolvedSearchParams?.month ?? new Date().toISOString().slice(0, 7)
   const user = await getUserFromRequest()
 
   if (!user) {
