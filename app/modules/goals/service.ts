@@ -1,4 +1,3 @@
-import type { Goal, GoalContribution, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import type {
   GoalContributionInput,
@@ -7,14 +6,32 @@ import type {
   GoalUpdateInput,
 } from './contracts'
 
-type GoalWithContributions = Goal & {
-  contributions: Array<{
-    amount: string
-  }>
-}
-
 type GoalContributionWithTransferInput = GoalContributionInput & {
   transferId?: number | null
+}
+
+type GoalContributionRecord = {
+  id: number
+  goalId: number
+  transferId: number | null
+  amount: { toString(): string }
+  reflectFinancially: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+type GoalWithContributions = {
+  id: number
+  userId: string
+  name: string
+  targetAmount: { toString(): string }
+  reserveAccountId: number | null
+  status: GoalRecord['status']
+  createdAt: Date
+  updatedAt: Date
+  contributions: Array<{
+    amount: { toString(): string }
+  }>
 }
 
 function toCents(value: string | number | null | undefined) {
@@ -42,7 +59,7 @@ function mapGoal(goal: GoalWithContributions): GoalRecord {
     currentAmount: resolveCurrentAmount(goal.contributions),
     reserveAccountId: goal.reserveAccountId,
     status: goal.status,
-    description: goal.description,
+    description: null,
     createdAt: goal.createdAt,
     updatedAt: goal.updatedAt,
   }
@@ -51,7 +68,7 @@ function mapGoal(goal: GoalWithContributions): GoalRecord {
 export async function listGoalsByUser(userId: string): Promise<GoalRecord[]> {
   const goals = await prisma.goal.findMany({
     where: { userId },
-    orderBy: [{ createdAt: 'desc' }],
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     include: {
       contributions: {
         select: { amount: true },
@@ -65,24 +82,30 @@ export async function listGoalsByUser(userId: string): Promise<GoalRecord[]> {
 export async function createGoalForUser(
   userId: string,
   input: GoalCreateInput,
-): Promise<Goal> {
-  return prisma.goal.create({
+): Promise<GoalRecord> {
+  const goal = await prisma.goal.create({
     data: {
       userId,
       name: input.name,
       targetAmount: input.targetAmount,
       reserveAccountId: input.reserveAccountId ?? null,
       status: input.status ?? 'ACTIVE',
-      description: input.description ?? null,
+    },
+    include: {
+      contributions: {
+        select: { amount: true },
+      },
     },
   })
+
+  return mapGoal(goal as GoalWithContributions)
 }
 
 export async function updateGoalForUser(
   userId: string,
   goalId: number,
   input: GoalUpdateInput,
-): Promise<Goal | null> {
+): Promise<GoalRecord | null> {
   const goal = await prisma.goal.findFirst({
     where: { id: goalId, userId },
   })
@@ -91,7 +114,12 @@ export async function updateGoalForUser(
     return null
   }
 
-  const data: Prisma.GoalUpdateInput = {}
+  const data: {
+    name?: string
+    targetAmount?: string
+    reserveAccountId?: number | null
+    status?: GoalRecord['status']
+  } = {}
 
   if (input.name !== undefined) {
     data.name = input.name
@@ -109,20 +137,23 @@ export async function updateGoalForUser(
     data.status = input.status
   }
 
-  if (input.description !== undefined) {
-    data.description = input.description
-  }
-
-  return prisma.goal.update({
+  const updatedGoal = await prisma.goal.update({
     where: { id: goalId },
     data,
+    include: {
+      contributions: {
+        select: { amount: true },
+      },
+    },
   })
+
+  return mapGoal(updatedGoal as GoalWithContributions)
 }
 
 export async function recordGoalContributionForUser(
   userId: string,
   input: GoalContributionWithTransferInput,
-): Promise<GoalContribution | null> {
+): Promise<GoalContributionRecord | null> {
   const goal = await prisma.goal.findFirst({
     where: { id: input.goalId, userId },
   })
@@ -136,8 +167,7 @@ export async function recordGoalContributionForUser(
       goalId: input.goalId,
       amount: input.amount,
       reflectFinancially: input.mode === 'TRANSFER_TO_RESERVE',
-      transferId:
-        input.mode === 'TRANSFER_TO_RESERVE' ? input.transferId ?? null : null,
+      transferId: input.mode === 'TRANSFER_TO_RESERVE' ? input.transferId ?? null : null,
     },
   })
 }
