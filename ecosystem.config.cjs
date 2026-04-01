@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 module.exports = {
   apps: [
     {
@@ -10,7 +12,7 @@ module.exports = {
       watch: false,
       env: {
         NODE_ENV: 'production',
-        PORT: 3000,
+        PORT: process.env.PORT || 3000,
         HOSTNAME: '0.0.0.0',
       },
     },

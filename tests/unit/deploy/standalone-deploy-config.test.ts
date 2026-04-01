@@ -12,15 +12,32 @@ describe('standalone deploy configuration', () => {
   })
 
   it('provides a PM2 ecosystem file pointing to the standalone server entrypoint', () => {
-    const ecosystem = require('../../../ecosystem.config.cjs')
-    const app = Array.isArray(ecosystem.apps) ? ecosystem.apps[0] : ecosystem.apps
+    const ecosystemPath = require.resolve('../../../ecosystem.config.cjs')
+    const originalPort = process.env.PORT
 
-    expect(app).toBeDefined()
-    expect(app.name).toBe('myfinance')
-    expect(path.normalize(app.script)).toContain(
-      path.join('.next', 'standalone', 'server.js'),
-    )
-    expect(app.exec_mode).toBe('fork')
+    process.env.PORT = '4310'
+    delete require.cache[ecosystemPath]
+
+    try {
+      const ecosystem = require('../../../ecosystem.config.cjs')
+      const app = Array.isArray(ecosystem.apps) ? ecosystem.apps[0] : ecosystem.apps
+
+      expect(app).toBeDefined()
+      expect(app.name).toBe('myfinance')
+      expect(path.normalize(app.script)).toContain(
+        path.join('.next', 'standalone', 'server.js'),
+      )
+      expect(app.exec_mode).toBe('fork')
+      expect(app.env.PORT).toBe('4310')
+      expect(app.env.HOSTNAME).toBe('0.0.0.0')
+    } finally {
+      if (originalPort === undefined) {
+        delete process.env.PORT
+      } else {
+        process.env.PORT = originalPort
+      }
+      delete require.cache[ecosystemPath]
+    }
   })
 
   it('exposes a direct standalone startup script for operational parity outside PM2', () => {

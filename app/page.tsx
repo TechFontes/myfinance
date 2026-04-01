@@ -1,3 +1,5 @@
+import { PortfolioHome } from '@/components/marketing/PortfolioHome'
+
 export default function Home() {
-  return <div>Home</div>
+  return <PortfolioHome />
 }
