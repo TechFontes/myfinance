@@ -20,23 +20,23 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col border-r border-border/70 bg-background/90 px-5 py-6 backdrop-blur md:flex">
-      <div className="rounded-3xl border border-border/70 bg-card/85 p-4 shadow-sm shadow-black/5">
+    <aside className="hidden w-72 shrink-0 flex-col border-r border-border/70 bg-[linear-gradient(180deg,color-mix(in_oklab,var(--color-card)_92%,transparent),color-mix(in_oklab,var(--color-background)_88%,transparent))] px-5 py-6 backdrop-blur md:flex">
+      <div className="rounded-[2rem] border border-border/70 bg-card/92 p-5 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)]">
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground">
+          <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-foreground text-sm font-semibold text-background">
             MF
           </div>
-          <div className="space-y-0.5">
-            <p className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+          <div className="space-y-1">
+            <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">
               Workspace financeiro
             </p>
-            <h2 className="text-base font-semibold tracking-tight text-foreground">
+            <h2 className="font-serif text-2xl tracking-tight text-foreground">
               MyFinance
             </h2>
           </div>
         </div>
-        <p className="mt-3 max-w-xs text-sm leading-6 text-muted-foreground">
-          Operação diária, visão consolidada e decisões rápidas em um único espaço.
+        <p className="mt-4 text-sm leading-6 text-muted-foreground">
+          <span>Controle patrimonial</span>, leitura editorial e visão consolidada em uma única mesa.
         </p>
       </div>
 
@@ -52,9 +52,9 @@ export function Sidebar() {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={twMerge(
-                'block rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border/70 hover:bg-card hover:text-foreground',
                 isActive &&
-                  'bg-foreground text-background hover:bg-foreground hover:text-background'
+                  'border-border/80 bg-foreground text-background shadow-[0_16px_40px_-30px_rgba(15,23,42,0.55)] hover:bg-foreground hover:text-background'
               )}
             >
               {item.label}

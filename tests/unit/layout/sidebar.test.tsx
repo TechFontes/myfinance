@@ -25,11 +25,12 @@ afterEach(() => {
 })
 
 describe('sidebar', () => {
-  it('renders the premium brand block', () => {
+  it('renders the sidebar as an editorial navigation rail', () => {
     render(<Sidebar />)
 
     expect(screen.getByText('MyFinance')).toBeInTheDocument()
     expect(screen.getByText('Workspace financeiro')).toBeInTheDocument()
+    expect(screen.getByText('Controle patrimonial')).toBeInTheDocument()
   })
 
   it('marks the active module with aria-current page', () => {
@@ -52,6 +53,7 @@ describe('header mobile navigation', () => {
     const navigation = screen.getByRole('navigation', { name: 'Navegação principal' })
 
     expect(navigation).toBeInTheDocument()
+    expect(screen.getByText('controle patrimonial')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Visão geral' })).toHaveAttribute(
       'href',
       '/dashboard',

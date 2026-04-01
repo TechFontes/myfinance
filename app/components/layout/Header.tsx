@@ -44,12 +44,12 @@ export function Header() {
             Workspace financeiro
           </p>
           <div className="flex items-center gap-2">
-            <span className="text-lg font-semibold tracking-tight text-foreground">
+            <span className="font-serif text-2xl tracking-tight text-foreground">
               MyFinance
             </span>
             <span className="hidden h-1 w-1 rounded-full bg-muted-foreground/40 sm:inline-flex" />
             <span className="hidden text-sm text-muted-foreground sm:inline">
-              controle editorial
+              controle patrimonial
             </span>
           </div>
         </div>
@@ -61,7 +61,7 @@ export function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger
                 aria-label="Abrir menu da conta"
-                className="flex items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-opacity hover:opacity-80"
+                className="flex items-center gap-2 rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-muted font-semibold">
@@ -105,7 +105,7 @@ export function Header() {
           <Link
             key={item.href}
             href={item.href}
-            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-card px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             {item.label}
           </Link>
