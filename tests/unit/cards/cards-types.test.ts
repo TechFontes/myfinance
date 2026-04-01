@@ -18,7 +18,6 @@ describe('cards module types', () => {
     }>()
 
     expectTypeOf<CreditCardUpdateInput>().toMatchTypeOf<{
-      id: number
       name?: string
       limit?: string
       closeDay?: number

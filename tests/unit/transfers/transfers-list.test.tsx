@@ -43,4 +43,29 @@ describe('TransfersList', () => {
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Paga')
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Prevista')
   })
+
+  it('renders a fallback label when the transfer description is missing', () => {
+    render(
+      <TransfersList
+        transfers={[
+          {
+            id: 3,
+            sourceAccountLabel: 'Conta #20',
+            destinationAccountLabel: 'Conta #21',
+            amount: '25.00',
+            description: null,
+            competenceDate: '2026-03-31',
+            dueDate: '2026-04-01',
+            paidAt: null,
+            status: 'PENDING',
+          },
+        ]}
+      />,
+    )
+
+    const latestList = screen.getAllByTestId('transfers-list').at(-1)
+
+    expect(latestList).toHaveTextContent('Transferência interna')
+    expect(latestList).toHaveTextContent('Pendente')
+  })
 })

@@ -1,7 +1,5 @@
 import type { CsvImportCategoryMapping, CsvImportPossibleDuplicate } from './contracts'
 
-export const transactionImportTypes = ['TRANSACTION'] as const
-
 export type CsvImportParsedRow = Record<string, string>
 
 export type CsvImportParsedText = {
@@ -10,6 +8,9 @@ export type CsvImportParsedText = {
 }
 
 export type CsvImportIssueCode =
+  | 'missing_field'
+  | 'invalid_value'
+  | 'invalid_date'
   | 'missing_category'
   | 'duplicate_row'
   | 'invalid_row'

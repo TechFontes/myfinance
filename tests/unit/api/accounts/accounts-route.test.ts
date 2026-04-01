@@ -25,7 +25,7 @@ describe('accounts api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     accountsMock.listAccountsByUser.mockResolvedValue([{ id: 1, name: 'Conta' }])
 
-    const response = await GET(new Request('http://localhost/api/accounts') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -61,7 +61,7 @@ describe('accounts api routes', () => {
         method: 'PATCH',
         body: JSON.stringify({ name: 'Carteira' }),
       }) as never,
-      { params: { accountId: '10' } },
+      { params: Promise.resolve({ accountId: '10' }) },
     )
     const payload = await response.json()
 

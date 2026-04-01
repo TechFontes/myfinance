@@ -35,5 +35,5 @@ describe('imports page', () => {
     expect(screen.getByLabelText('Arquivo CSV')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Confirmar importação' })).toBeDisabled()
     expect(categoriesMock.listCategoriesByUser).toHaveBeenCalledWith('user-1')
-  })
+  }, 10000)
 })

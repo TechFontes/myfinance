@@ -29,7 +29,31 @@ export default async function TransactionsPage() {
         <NewTransactionButton />
       </div>
 
-      <TransactionsList transactions={transactions} />
+      <TransactionsList
+        transactions={transactions.map((transaction) => {
+          const categoryTransaction = transaction as typeof transaction & {
+            category?: {
+              name: string | null
+            } | null
+          }
+
+          return {
+            id: transaction.id,
+            description: transaction.description,
+            type: transaction.type,
+            value: transaction.value.toString(),
+            status: transaction.status,
+            competenceDate: transaction.competenceDate,
+            dueDate: transaction.dueDate,
+            paidAt: transaction.paidAt ?? null,
+            category: categoryTransaction.category
+            ? {
+                name: categoryTransaction.category.name,
+              }
+            : null,
+          }
+        })}
+      />
     </div>
   )
 }

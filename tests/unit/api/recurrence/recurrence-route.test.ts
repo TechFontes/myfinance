@@ -24,7 +24,7 @@ describe('recurrence api routes', () => {
   it('returns unauthorized for requests without session', async () => {
     authMock.getUserFromRequest.mockResolvedValue(null)
 
-    const response = await GET(new Request('http://localhost/api/recurrence') as never)
+    const response = await GET()
 
     expect(response.status).toBe(401)
     expect(await response.json()).toEqual({ error: 'Unauthorized' })
@@ -34,7 +34,7 @@ describe('recurrence api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     recurrenceMock.listRecurringRulesByUser.mockResolvedValue([{ id: 1, description: 'Aluguel' }])
 
-    const response = await GET(new Request('http://localhost/api/recurrence') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -92,7 +92,7 @@ describe('recurrence api routes', () => {
           editScope: 'THIS_AND_FUTURE',
         }),
       }) as never,
-      { params: { ruleId: '10' } },
+      { params: Promise.resolve({ ruleId: '10' }) },
     )
     const payload = await response.json()
 
@@ -117,7 +117,7 @@ describe('recurrence api routes', () => {
           description: 'Missing',
         }),
       }) as never,
-      { params: { ruleId: '999' } },
+      { params: Promise.resolve({ ruleId: '999' }) },
     )
 
     expect(response.status).toBe(404)

@@ -40,6 +40,4 @@ export type TransactionCreateInput = {
   installments?: number | null
 }
 
-export type TransactionUpdateInput = Partial<TransactionCreateInput> & {
-  id: number
-}
+export type TransactionUpdateInput = Partial<TransactionCreateInput>

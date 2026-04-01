@@ -32,7 +32,13 @@ function formatCount(value: number, singular: string, plural: string) {
   return `${value} ${value === 1 ? singular : plural}`
 }
 
-function rowKey(row: TransactionImportRow) {
+function rowKey(row: {
+  line: number
+  transaction: {
+    description: string
+    value: string
+  }
+}) {
   return `${row.line}-${row.transaction.description}-${row.transaction.value}`
 }
 

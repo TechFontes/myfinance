@@ -24,7 +24,7 @@ describe('goals api routes', () => {
   it('returns unauthorized without session', async () => {
     authMock.getUserFromRequest.mockResolvedValue(null)
 
-    const response = await GET(new Request('http://localhost/api/goals') as never)
+    const response = await GET()
 
     expect(response.status).toBe(401)
     expect(await response.json()).toEqual({ error: 'Unauthorized' })
@@ -34,7 +34,7 @@ describe('goals api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     goalsMock.listGoalsByUser.mockResolvedValue([{ id: 1, name: 'Reserva' }])
 
-    const response = await GET(new Request('http://localhost/api/goals') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -85,7 +85,7 @@ describe('goals api routes', () => {
           editScope: 'THIS_GOAL',
         }),
       }) as never,
-      { params: { goalId: '9' } },
+      { params: Promise.resolve({ goalId: '9' }) },
     )
     const payload = await response.json()
 
@@ -111,7 +111,7 @@ describe('goals api routes', () => {
           name: 'Missing',
         }),
       }) as never,
-      { params: { goalId: '999' } },
+      { params: Promise.resolve({ goalId: '999' }) },
     )
 
     expect(response.status).toBe(404)

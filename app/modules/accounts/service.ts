@@ -1,19 +1,53 @@
-import type { Account } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import type { AccountCreateInput, AccountUpdateInput } from './contracts'
 
-export async function listAccountsByUser(userId: string): Promise<Account[]> {
-  return prisma.account.findMany({
+type AccountRecord = {
+  id: number
+  userId: string
+  name: string
+  type: 'BANK' | 'WALLET' | 'OTHER'
+  initialBalance: string
+  active: boolean
+  institution: string | null
+  color: string | null
+  icon: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+function mapAccountRecord(account: {
+  id: number
+  userId: string
+  name: string
+  type: 'BANK' | 'WALLET' | 'OTHER'
+  initialBalance: { toString(): string }
+  active: boolean
+  institution: string | null
+  color: string | null
+  icon: string | null
+  createdAt: Date
+  updatedAt: Date
+}): AccountRecord {
+  return {
+    ...account,
+    initialBalance: account.initialBalance.toString(),
+  }
+}
+
+export async function listAccountsByUser(userId: string): Promise<AccountRecord[]> {
+  const accounts = await prisma.account.findMany({
     where: { userId },
     orderBy: { name: 'asc' },
   })
+
+  return accounts.map(mapAccountRecord)
 }
 
 export async function createAccountForUser(
   userId: string,
   input: AccountCreateInput,
-): Promise<Account> {
-  return prisma.account.create({
+): Promise<AccountRecord> {
+  const account = await prisma.account.create({
     data: {
       userId,
       name: input.name,
@@ -25,13 +59,15 @@ export async function createAccountForUser(
       active: true,
     },
   })
+
+  return mapAccountRecord(account)
 }
 
 export async function updateAccountForUser(
   userId: string,
   accountId: number,
   input: AccountUpdateInput,
-): Promise<Account | null> {
+): Promise<AccountRecord | null> {
   const account = await prisma.account.findFirst({
     where: { id: accountId, userId },
   })
@@ -40,7 +76,7 @@ export async function updateAccountForUser(
     return null
   }
 
-  return prisma.account.update({
+  const updatedAccount = await prisma.account.update({
     where: { id: accountId },
     data: {
       name: input.name,
@@ -52,19 +88,21 @@ export async function updateAccountForUser(
       active: input.active,
     },
   })
+
+  return mapAccountRecord(updatedAccount)
 }
 
 export async function setAccountActiveState(
   userId: string,
   accountId: number,
   active: boolean,
-): Promise<Account | null> {
+): Promise<AccountRecord | null> {
   return updateAccountForUser(userId, accountId, { active })
 }
 
 export async function deactivateAccountForUser(
   userId: string,
   accountId: number,
-): Promise<Account | null> {
+): Promise<AccountRecord | null> {
   return setAccountActiveState(userId, accountId, false)
 }

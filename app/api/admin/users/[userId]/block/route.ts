@@ -22,7 +22,7 @@ async function requireAdmin() {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const result = await requireAdmin()
 
@@ -44,7 +44,8 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 
-  const user = await blockUserForAdmin(params.userId, parsedBody.data.reason)
+  const { userId } = await params
+  const user = await blockUserForAdmin(userId, parsedBody.data.reason)
 
   if (!user) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -55,7 +56,7 @@ export async function POST(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const result = await requireAdmin()
 
@@ -63,7 +64,8 @@ export async function DELETE(
     return result.error
   }
 
-  const user = await unblockUserForAdmin(params.userId)
+  const { userId } = await params
+  const user = await unblockUserForAdmin(userId)
 
   if (!user) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

@@ -24,7 +24,7 @@ describe('cards api routes', () => {
   it('returns unauthorized for requests without session', async () => {
     authMock.getUserFromRequest.mockResolvedValue(null)
 
-    const response = await GET(new Request('http://localhost/api/cards') as never)
+    const response = await GET()
 
     expect(response.status).toBe(401)
     expect(await response.json()).toEqual({ error: 'Unauthorized' })
@@ -34,7 +34,7 @@ describe('cards api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     cardsMock.listCardsByUser.mockResolvedValue([{ id: 1, name: 'Nubank' }])
 
-    const response = await GET(new Request('http://localhost/api/cards') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -88,7 +88,7 @@ describe('cards api routes', () => {
           dueDay: 20,
         }),
       }) as never,
-      { params: { cardId: '10' } },
+      { params: Promise.resolve({ cardId: '10' }) },
     )
     const payload = await response.json()
 
@@ -114,7 +114,7 @@ describe('cards api routes', () => {
           name: 'Missing',
         }),
       }) as never,
-      { params: { cardId: '999' } },
+      { params: Promise.resolve({ cardId: '999' }) },
     )
 
     expect(response.status).toBe(404)

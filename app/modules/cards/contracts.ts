@@ -23,6 +23,4 @@ export type CreditCardCreateInput = {
   active?: boolean
 }
 
-export type CreditCardUpdateInput = Partial<CreditCardCreateInput> & {
-  id: number
-}
+export type CreditCardUpdateInput = Partial<CreditCardCreateInput>

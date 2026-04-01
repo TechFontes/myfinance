@@ -1,5 +1,4 @@
 import { prisma } from '@/lib/prisma'
-import type { Prisma, Category } from '@prisma/client'
 
 type CategoryInput = {
   name: string
@@ -9,6 +8,17 @@ type CategoryInput = {
 
 type CategoryUpdateInput = Partial<CategoryInput> & {
   active?: boolean
+}
+
+type CategoryRecord = {
+  id: number
+  userId: string
+  name: string
+  type: 'INCOME' | 'EXPENSE'
+  parentId: number | null
+  active: boolean
+  createdAt: Date
+  updatedAt: Date
 }
 
 type CategoryError = Error & { code: string }
@@ -44,7 +54,7 @@ async function assertParentCategory(
   }
 }
 
-export async function listCategoriesByUser(userId: string): Promise<Category[]> {
+export async function listCategoriesByUser(userId: string): Promise<CategoryRecord[]> {
   return prisma.category.findMany({
     where: { userId },
     orderBy: { name: 'asc' },
@@ -54,7 +64,7 @@ export async function listCategoriesByUser(userId: string): Promise<Category[]> 
 export async function createCategory(
   userId: string,
   data: CategoryInput,
-): Promise<Category> {
+): Promise<CategoryRecord> {
   if (data.parentId) {
     await assertParentCategory(userId, data.parentId, data.type)
   }
@@ -73,7 +83,7 @@ export async function updateCategoryById(
   userId: string,
   categoryId: number,
   data: CategoryUpdateInput,
-): Promise<Category | null> {
+): Promise<CategoryRecord | null> {
   const category = await prisma.category.findFirst({
     where: { id: categoryId, userId },
   })
@@ -88,7 +98,7 @@ export async function updateCategoryById(
     await assertParentCategory(userId, data.parentId, nextType)
   }
 
-  const updateData: Prisma.CategoryUpdateInput = {}
+  const updateData: CategoryUpdateInput = {}
 
   if (data.name !== undefined) {
     updateData.name = data.name
@@ -115,7 +125,7 @@ export async function updateCategoryById(
 export async function deleteCategoryById(
   userId: string,
   categoryId: number,
-): Promise<Category | null> {
+): Promise<CategoryRecord | null> {
   const category = await prisma.category.findFirst({
     where: { id: categoryId, userId },
     include: {

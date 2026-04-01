@@ -25,7 +25,7 @@ describe('transfers api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     transfersMock.listTransfersByUser.mockResolvedValue([{ id: 1, description: 'Entre contas' }])
 
-    const response = await GET(new Request('http://localhost/api/transfers') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -35,7 +35,7 @@ describe('transfers api routes', () => {
   it('returns unauthorized when the user is not authenticated', async () => {
     authMock.getUserFromRequest.mockResolvedValue(null)
 
-    const response = await GET(new Request('http://localhost/api/transfers') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(401)
@@ -109,7 +109,7 @@ describe('transfers api routes', () => {
         method: 'PATCH',
         body: JSON.stringify({ description: 'Reserva ajustada' }),
       }) as never,
-      { params: { transferId: '10' } },
+      { params: Promise.resolve({ transferId: '10' }) },
     )
     const payload = await response.json()
 
@@ -129,7 +129,7 @@ describe('transfers api routes', () => {
         method: 'PATCH',
         body: JSON.stringify({ description: 'Reserva ajustada' }),
       }) as never,
-      { params: { transferId: '10' } },
+      { params: Promise.resolve({ transferId: '10' }) },
     )
     const payload = await response.json()
 

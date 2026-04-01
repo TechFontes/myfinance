@@ -11,7 +11,7 @@ function parseTransactionId(transactionId: string) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { transactionId: string } },
+  { params }: { params: Promise<{ transactionId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -19,7 +19,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const transactionId = parseTransactionId(params.transactionId)
+  const { transactionId: transactionIdParam } = await params
+  const transactionId = parseTransactionId(transactionIdParam)
 
   if (!transactionId) {
     return NextResponse.json({ error: 'Invalid transaction id' }, { status: 400 })

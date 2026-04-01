@@ -8,7 +8,7 @@ import { categoryUpdateSchema } from '@/modules/categories'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { categoryId: string } },
+  { params }: { params: Promise<{ categoryId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -16,7 +16,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const categoryId = Number(params.categoryId)
+  const { categoryId: categoryIdParam } = await params
+  const categoryId = Number(categoryIdParam)
   const payload = categoryUpdateSchema.parse(await request.json())
   const category = await updateCategoryById(user.id, categoryId, payload)
 
@@ -29,7 +30,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { categoryId: string } },
+  { params }: { params: Promise<{ categoryId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -37,7 +38,8 @@ export async function DELETE(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const categoryId = Number(params.categoryId)
+  const { categoryId: categoryIdParam } = await params
+  const categoryId = Number(categoryIdParam)
   const category = await deleteCategoryById(user.id, categoryId)
 
   if (!category) {

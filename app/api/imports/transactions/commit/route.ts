@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     const reasons: string[] = []
     const duplicateIssue = row.issues.some((issue) => issue.code === 'duplicate_row')
 
-    let categoryId = row.mappedCategoryId
+    let categoryId: number | null = row.mappedCategoryId ?? null
 
     if (categoryId === null && row.transaction.categoryName) {
       categoryId = mappedCategories.get(normalizeComparableText(row.transaction.categoryName)) ?? null
@@ -205,11 +205,13 @@ export async function POST(request: NextRequest) {
       continue
     }
 
+    const resolvedCategoryId = categoryId as number
+
     rowsToCreate.push({
       type: row.transaction.type,
       description: row.transaction.description,
       value: row.transaction.value,
-      categoryId,
+      categoryId: resolvedCategoryId,
       accountId: null,
       creditCardId: null,
       invoiceId: null,

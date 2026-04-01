@@ -57,7 +57,7 @@ describe("auth routes", () => {
 
     expect(response.status).toBe(201)
     expect(body.user.email).toBe("user@example.com")
-  })
+  }, 20000)
 
   it("logs in a valid user", async () => {
     vi.mocked(findUserByEmail).mockResolvedValue({

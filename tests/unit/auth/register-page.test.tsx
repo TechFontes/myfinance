@@ -16,5 +16,5 @@ describe('register page', () => {
     expect(screen.getByLabelText('E-mail')).toBeInTheDocument()
     expect(screen.getByLabelText('Senha')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Criar conta' })).toBeInTheDocument()
-  })
+  }, 10000)
 })

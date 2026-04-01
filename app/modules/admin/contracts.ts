@@ -1,10 +1,10 @@
-import type { UserRole } from '@prisma/client'
+export type AdminUserRole = 'USER' | 'ADMIN'
 
 export type AdminUserListItem = {
   id: string
   name: string | null
   email: string
-  role: UserRole
+  role: AdminUserRole
   blockedAt: Date | null
   blockedReason: string | null
   createdAt: Date
@@ -14,7 +14,7 @@ export type AdminUserListItem = {
 export type AdminUserUpdateInput = {
   name?: string | null
   email?: string
-  role?: UserRole
+  role?: AdminUserRole
 }
 
 export type AdminBlockUserInput = {

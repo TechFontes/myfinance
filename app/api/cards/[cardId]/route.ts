@@ -11,7 +11,7 @@ function parseCardId(cardId: string) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { cardId: string } },
+  { params }: { params: Promise<{ cardId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -19,7 +19,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const cardId = parseCardId(params.cardId)
+  const { cardId: cardIdParam } = await params
+  const cardId = parseCardId(cardIdParam)
 
   if (!cardId) {
     return NextResponse.json({ error: 'Invalid card id' }, { status: 400 })

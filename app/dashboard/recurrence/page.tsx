@@ -6,7 +6,7 @@ import { getUserFromRequest } from '@/lib/auth'
 import { listRecurringRulesByUser } from '@/modules/recurrence/service'
 import { RecurrenceList } from '@/components/recurrence/RecurrenceList'
 
-async function getRecurringRules() {
+async function getRecurringRules(): Promise<Awaited<ReturnType<typeof listRecurringRulesByUser>>> {
   const user = await getUserFromRequest()
 
   if (!user) {
@@ -18,6 +18,7 @@ async function getRecurringRules() {
 
 export default async function RecurrencePage() {
   const recurrenceRules = await getRecurringRules()
+  type RecurrenceRuleItem = Awaited<ReturnType<typeof getRecurringRules>>[number]
 
   if (recurrenceRules.length === 0) {
     return (
@@ -64,12 +65,12 @@ export default async function RecurrencePage() {
       </div>
 
       <RecurrenceList
-        rules={recurrenceRules.map((rule) => ({
+        rules={recurrenceRules.map((rule: RecurrenceRuleItem) => ({
           id: rule.id,
           description: rule.description,
           type: rule.type,
           value: rule.value.toString(),
-          frequency: rule.frequency,
+          frequency: rule.frequency as 'MONTHLY',
           status: rule.active ? 'ACTIVE' : 'INACTIVE',
           startDate: rule.startDate,
           endDate: rule.endDate,

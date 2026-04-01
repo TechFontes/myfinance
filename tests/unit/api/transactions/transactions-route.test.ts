@@ -120,7 +120,7 @@ describe('transactions api routes', () => {
           status: 'PENDING',
         }),
       }) as never,
-      { params: { transactionId: '10' } },
+      { params: Promise.resolve({ transactionId: '10' }) },
     )
     const payload = await response.json()
 
@@ -145,7 +145,7 @@ describe('transactions api routes', () => {
           description: 'Missing',
         }),
       }) as never,
-      { params: { transactionId: '999' } },
+      { params: Promise.resolve({ transactionId: '999' }) },
     )
 
     expect(response.status).toBe(404)

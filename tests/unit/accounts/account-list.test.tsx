@@ -11,6 +11,7 @@ describe('AccountsList', () => {
         accounts={[
           {
             id: 1,
+            userId: 'user-1',
             name: 'Nubank',
             type: 'BANK',
             initialBalance: '1250.50',
@@ -21,6 +22,7 @@ describe('AccountsList', () => {
           },
           {
             id: 2,
+            userId: 'user-1',
             name: 'Carteira',
             type: 'WALLET',
             initialBalance: '50.00',

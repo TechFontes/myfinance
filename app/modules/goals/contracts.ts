@@ -33,7 +33,6 @@ export type GoalCreateInput = {
 }
 
 export type GoalUpdateInput = Partial<GoalCreateInput> & {
-  id: number
   editScope?: GoalEditScope
 }
 

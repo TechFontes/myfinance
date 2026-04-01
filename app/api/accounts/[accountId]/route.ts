@@ -5,7 +5,7 @@ import { accountUpdateSchema } from '@/modules/accounts'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { accountId: string } },
+  { params }: { params: Promise<{ accountId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -13,7 +13,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const accountId = Number(params.accountId)
+  const { accountId: accountIdParam } = await params
+  const accountId = Number(accountIdParam)
   const payload = accountUpdateSchema.parse(await request.json())
   const account = await updateAccountForUser(user.id, accountId, payload)
 

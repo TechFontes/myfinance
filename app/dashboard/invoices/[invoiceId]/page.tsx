@@ -5,9 +5,9 @@ import { getUserFromRequest } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 type InvoicePageProps = {
-  params: {
+  params: Promise<{
     invoiceId: string
-  }
+  }>
 }
 
 export default async function InvoicePage({ params }: InvoicePageProps) {
@@ -17,7 +17,8 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
     notFound()
   }
 
-  const invoiceId = Number(params.invoiceId)
+  const { invoiceId: rawInvoiceId } = await params
+  const invoiceId = Number(rawInvoiceId)
 
   const invoice = await prisma.invoice.findFirst({
     where: {
@@ -38,5 +39,34 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
     notFound()
   }
 
-  return <InvoiceDetails invoice={invoice} />
+  return (
+    <InvoiceDetails
+      invoice={{
+        id: invoice.id,
+        month: invoice.month,
+        year: invoice.year,
+        status: invoice.status,
+        total: invoice.total.toString(),
+        dueDate: invoice.dueDate,
+        creditCard: {
+          id: invoice.creditCard.id,
+          name: invoice.creditCard.name,
+          closeDay: invoice.creditCard.closeDay,
+          dueDay: invoice.creditCard.dueDay,
+        },
+        transactions: invoice.transactions.map((transaction) => ({
+          id: transaction.id,
+          description: transaction.description,
+          value: transaction.value.toString(),
+          status: transaction.status,
+          competenceDate: transaction.competenceDate,
+          dueDate: transaction.dueDate,
+          paidAt: transaction.paidAt ?? null,
+          installmentGroupId: transaction.installmentGroupId ?? null,
+          installment: transaction.installment ?? null,
+          installments: transaction.installments ?? null,
+        })),
+      }}
+    />
+  )
 }

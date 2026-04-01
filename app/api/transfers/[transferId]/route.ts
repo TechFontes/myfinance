@@ -21,7 +21,7 @@ function handleTransferError(error: unknown) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { transferId: string } },
+  { params }: { params: Promise<{ transferId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -30,7 +30,8 @@ export async function PATCH(
   }
 
   try {
-    const transferId = Number(params.transferId)
+    const { transferId: transferIdParam } = await params
+    const transferId = Number(transferIdParam)
     const payload = transferUpdateSchema.parse(await request.json())
     const transfer = await updateTransferForUser(user.id, transferId, payload)
 

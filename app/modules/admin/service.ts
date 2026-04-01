@@ -10,7 +10,7 @@ import type {
   AdminUserUpdateInput,
 } from './contracts'
 
-function toMoney(value: string | number | null | undefined) {
+function toMoney(value: string | number | { toString(): string } | null | undefined) {
   return Number(value ?? 0).toFixed(2)
 }
 
@@ -234,8 +234,12 @@ export async function getAdminFinancialOverview(
   ])
 
   const transactionsByStatus = transactions.reduce(
-    (accumulator, transaction) => {
-      accumulator[transaction.status] += 1
+    (
+      accumulator: Record<AdminFinancialTransaction['status'], number>,
+      transaction: (typeof transactions)[number],
+    ) => {
+      const status = transaction.status as AdminFinancialTransaction['status']
+      accumulator[status] += 1
       return accumulator
     },
     {
@@ -246,11 +250,11 @@ export async function getAdminFinancialOverview(
     },
   )
 
-  const activeAccounts = accounts.filter((account) => account.active).length
-  const activeCards = cards.filter((card) => card.active).length
-  const activeGoals = goals.filter((goal) => goal.status === 'ACTIVE').length
-  const completedGoals = goals.filter((goal) => goal.status === 'COMPLETED').length
-  const canceledGoals = goals.filter((goal) => goal.status === 'CANCELED').length
+  const activeAccounts = accounts.filter((account: (typeof accounts)[number]) => account.active).length
+  const activeCards = cards.filter((card: (typeof cards)[number]) => card.active).length
+  const activeGoals = goals.filter((goal: (typeof goals)[number]) => goal.status === 'ACTIVE').length
+  const completedGoals = goals.filter((goal: (typeof goals)[number]) => goal.status === 'COMPLETED').length
+  const canceledGoals = goals.filter((goal: (typeof goals)[number]) => goal.status === 'CANCELED').length
 
   return {
     user,
@@ -270,7 +274,7 @@ export async function getAdminFinancialOverview(
       completedGoals,
       canceledGoals,
     },
-    accounts: accounts.map<AdminFinancialAccount>((account) => ({
+    accounts: accounts.map((account: (typeof accounts)[number]): AdminFinancialAccount => ({
       id: account.id,
       name: account.name,
       type: account.type,
@@ -280,7 +284,7 @@ export async function getAdminFinancialOverview(
       color: account.color ?? null,
       icon: account.icon ?? null,
     })),
-    cards: cards.map<AdminFinancialCard>((card) => ({
+    cards: cards.map((card: (typeof cards)[number]): AdminFinancialCard => ({
       id: card.id,
       name: card.name,
       limit: toMoney(card.limit),
@@ -290,7 +294,7 @@ export async function getAdminFinancialOverview(
     })),
     transactions: {
       total: transactions.length,
-      items: transactions.map<AdminFinancialTransaction>((transaction) => ({
+      items: transactions.map((transaction: (typeof transactions)[number]): AdminFinancialTransaction => ({
         id: transaction.id,
         type: transaction.type,
         description: transaction.description,
@@ -304,7 +308,7 @@ export async function getAdminFinancialOverview(
         creditCardName: transaction.creditCard?.name ?? null,
       })),
     },
-    invoices: invoices.map<AdminFinancialInvoice>((invoice) => ({
+    invoices: invoices.map((invoice: (typeof invoices)[number]): AdminFinancialInvoice => ({
       id: invoice.id,
       month: invoice.month,
       year: invoice.year,
@@ -313,7 +317,7 @@ export async function getAdminFinancialOverview(
       dueDate: invoice.dueDate,
       creditCardName: invoice.creditCard?.name ?? null,
     })),
-    goals: goals.map<AdminFinancialGoal>((goal) => ({
+    goals: goals.map((goal: (typeof goals)[number]): AdminFinancialGoal => ({
       id: goal.id,
       name: goal.name,
       targetAmount: toMoney(goal.targetAmount),

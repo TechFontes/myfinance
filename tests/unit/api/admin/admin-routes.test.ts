@@ -31,7 +31,9 @@ describe('admin api routes', () => {
   it('returns unauthorized without a session', async () => {
     authMock.getUserFromRequest.mockResolvedValue(null)
 
-    const response = await listUsersGET(new Request('http://localhost/api/admin/users') as never)
+    const response = await listUsersGET()
+    expect(response).toBeDefined()
+    if (!response) return
 
     expect(response.status).toBe(401)
     expect(await response.json()).toEqual({ error: 'Unauthorized' })
@@ -40,7 +42,9 @@ describe('admin api routes', () => {
   it('returns forbidden for non-admin sessions', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1', role: 'USER' })
 
-    const response = await listUsersGET(new Request('http://localhost/api/admin/users') as never)
+    const response = await listUsersGET()
+    expect(response).toBeDefined()
+    if (!response) return
 
     expect(response.status).toBe(403)
     expect(await response.json()).toEqual({ error: 'Forbidden' })
@@ -50,7 +54,9 @@ describe('admin api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'admin-1', role: 'ADMIN' })
     adminMock.listAdminUsers.mockResolvedValue([{ id: 'user-1', email: 'ana@example.com' }])
 
-    const response = await listUsersGET(new Request('http://localhost/api/admin/users') as never)
+    const response = await listUsersGET()
+    expect(response).toBeDefined()
+    if (!response) return
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual([{ id: 'user-1', email: 'ana@example.com' }])
@@ -74,8 +80,10 @@ describe('admin api routes', () => {
           password: 'should-not-be-allowed',
         }),
       }) as never,
-      { params: { userId: 'user-1' } },
+      { params: Promise.resolve({ userId: 'user-1' }) },
     )
+    expect(response).toBeDefined()
+    if (!response) return
 
     expect(response.status).toBe(200)
     expect(adminMock.updateAdminUser).toHaveBeenCalledWith('user-1', {
@@ -101,14 +109,17 @@ describe('admin api routes', () => {
         method: 'POST',
         body: JSON.stringify({ reason: 'policy violation' }),
       }) as never,
-      { params: { userId: 'user-1' } },
+      { params: Promise.resolve({ userId: 'user-1' }) },
     )
     const unblockResponse = await unblockUserDELETE(
       new Request('http://localhost/api/admin/users/user-1/block', {
         method: 'DELETE',
       }) as never,
-      { params: { userId: 'user-1' } },
+      { params: Promise.resolve({ userId: 'user-1' }) },
     )
+    expect(blockResponse).toBeDefined()
+    expect(unblockResponse).toBeDefined()
+    if (!blockResponse || !unblockResponse) return
 
     expect(blockResponse.status).toBe(200)
     expect(unblockResponse.status).toBe(200)
@@ -130,8 +141,10 @@ describe('admin api routes', () => {
 
     const response = await financialOverviewGET(
       new Request('http://localhost/api/admin/users/user-1/financial-overview') as never,
-      { params: { userId: 'user-1' } },
+      { params: Promise.resolve({ userId: 'user-1' }) },
     )
+    expect(response).toBeDefined()
+    if (!response) return
 
     expect(response.status).toBe(200)
     expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('user-1')

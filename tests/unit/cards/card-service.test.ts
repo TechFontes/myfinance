@@ -64,8 +64,6 @@ describe('cards service', () => {
         limit: '5000.00',
         closeDay: 10,
         dueDay: 15,
-        color: '#7a2cff',
-        icon: 'credit-card',
         active: true,
       },
     })
@@ -107,8 +105,6 @@ describe('cards service', () => {
         limit: '6000.00',
         closeDay: 12,
         dueDay: 18,
-        color: undefined,
-        icon: undefined,
         active: false,
       },
     })

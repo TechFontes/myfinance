@@ -34,7 +34,7 @@ type GoalWithContributions = {
   }>
 }
 
-function toCents(value: string | number | null | undefined) {
+function toCents(value: string | number | { toString(): string } | null | undefined) {
   return Math.round(Number(value ?? 0) * 100)
 }
 
@@ -43,7 +43,9 @@ function fromCents(value: number) {
 }
 
 function resolveCurrentAmount(contributions: GoalWithContributions['contributions']) {
-  const total = contributions.reduce((sum, contribution) => {
+  const safeContributions = contributions ?? []
+
+  const total = safeContributions.reduce((sum, contribution) => {
     return sum + toCents(contribution.amount)
   }, 0)
 
@@ -78,7 +80,7 @@ export async function listGoalsByUser(userId: string): Promise<GoalRecord[]> {
     },
   })
 
-  return goals.map((goal) => mapGoal(goal as GoalWithContributions))
+  return goals.map((goal: unknown) => mapGoal(goal as GoalWithContributions))
 }
 
 export async function createGoalForUser(

@@ -12,7 +12,7 @@ function parseRecurringRuleId(ruleId: string) {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { ruleId: string } },
+  { params }: { params: Promise<{ ruleId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -20,7 +20,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const recurringRuleId = parseRecurringRuleId(params.ruleId)
+  const { ruleId: ruleIdParam } = await params
+  const recurringRuleId = parseRecurringRuleId(ruleIdParam)
 
   if (!recurringRuleId) {
     return NextResponse.json({ error: 'Invalid recurring rule id' }, { status: 400 })

@@ -25,7 +25,7 @@ describe('transfers service', () => {
   })
 
   it('lists transfers by user ordered by competence date', async () => {
-    prismaMock.transfer.findMany.mockResolvedValue([{ id: 1 }] as never)
+    prismaMock.transfer.findMany.mockResolvedValue([{ id: 1, amount: '10.00' }] as never)
 
     await listTransfersByUser('user-1')
 
@@ -97,6 +97,7 @@ describe('transfers service', () => {
     })
     prismaMock.transfer.update.mockResolvedValue({
       id: 5,
+      amount: '150.00',
       status: 'PAID',
       paidAt: new Date('2026-03-31'),
     } as never)

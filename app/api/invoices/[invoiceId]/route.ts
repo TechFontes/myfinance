@@ -5,7 +5,7 @@ import { invoiceUpdateSchema } from '@/modules/invoices'
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { invoiceId: string } },
+  { params }: { params: Promise<{ invoiceId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -13,7 +13,8 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const invoiceId = Number(params.invoiceId)
+  const { invoiceId: invoiceIdParam } = await params
+  const invoiceId = Number(invoiceIdParam)
   const invoice = await prisma.invoice.findFirst({
     where: {
       id: invoiceId,
@@ -38,7 +39,7 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { invoiceId: string } },
+  { params }: { params: Promise<{ invoiceId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -46,6 +47,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  const { invoiceId: invoiceIdParam } = await params
   const body = await request.json()
 
   if ('sourceAccountId' in body) {
@@ -57,12 +59,12 @@ export async function PATCH(
 
   const payload = invoiceUpdateSchema.parse({
     ...body,
-    id: Number(params.invoiceId),
+    id: Number(invoiceIdParam),
   })
 
   const invoice = await prisma.invoice.findFirst({
     where: {
-      id: Number(params.invoiceId),
+      id: Number(invoiceIdParam),
       creditCard: {
         userId: user.id,
       },
@@ -74,7 +76,7 @@ export async function PATCH(
   }
 
   const updatedInvoice = await prisma.invoice.update({
-    where: { id: Number(params.invoiceId) },
+    where: { id: Number(invoiceIdParam) },
     data: {
       creditCardId: payload.creditCardId,
       month: payload.month,

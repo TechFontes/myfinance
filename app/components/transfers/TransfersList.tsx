@@ -5,7 +5,7 @@ type TransferListItem = {
   sourceAccountLabel: string
   destinationAccountLabel: string
   amount: string
-  description: string
+  description: string | null
   competenceDate: string | Date
   dueDate: string | Date
   paidAt: string | Date | null
@@ -56,7 +56,7 @@ export function TransfersList({ transfers }: TransfersListProps) {
               <div className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
                 Movimentação interna
               </div>
-              <div className="text-lg font-semibold">{transfer.description}</div>
+              <div className="text-lg font-semibold">{transfer.description ?? 'Transferência interna'}</div>
               <div className="text-sm text-muted-foreground">
                 {transfer.sourceAccountLabel} para {transfer.destinationAccountLabel}
               </div>

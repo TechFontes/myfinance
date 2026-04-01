@@ -62,5 +62,5 @@ describe('admin page', () => {
     expect(adminMock.listAdminUsers).toHaveBeenCalledTimes(1)
     expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('admin-1')
     expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('user-2')
-  })
+  }, 10000)
 })

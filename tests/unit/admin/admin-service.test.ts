@@ -184,6 +184,11 @@ describe('admin service', () => {
     const { getAdminFinancialOverview } = await import('@/modules/admin/service')
     const overview = await getAdminFinancialOverview('user-1')
 
+    expect(overview).not.toBeNull()
+    if (!overview) {
+      return
+    }
+
     expect(overview.user.email).toBe('ana@example.com')
     expect(overview.summary).toMatchObject({
       accounts: 1,

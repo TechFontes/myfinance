@@ -1,10 +1,10 @@
-import type { Prisma } from '@prisma/client'
 import {
   createTransactionForUser,
   listTransactionsByUser as listTransactionsByUserForUser,
 } from '@/modules/transactions/service'
+import type { TransactionCreateInput } from '@/modules/transactions'
 
-type LegacyTransactionInput = Prisma.TransactionCreateInput & {
+type LegacyTransactionInput = Partial<TransactionCreateInput> & {
   user?: {
     connect?: {
       id?: string
@@ -19,6 +19,10 @@ function normalizeLegacyTransactionInput(data: LegacyTransactionInput) {
 
   if (!userId) {
     throw new Error('Transaction user id is required')
+  }
+
+  if (!data.type || !data.description || !data.categoryId || !(data.value ?? data.amount)) {
+    throw new Error('Transaction type, description, value and category are required')
   }
 
   const competenceDate = data.competenceDate ?? data.date
@@ -37,9 +41,9 @@ function normalizeLegacyTransactionInput(data: LegacyTransactionInput) {
     accountId: data.accountId ?? null,
     creditCardId: data.creditCardId ?? null,
     invoiceId: data.invoiceId ?? null,
-    competenceDate,
-    dueDate,
-    paidAt: data.paidAt ?? null,
+    competenceDate: new Date(competenceDate),
+    dueDate: new Date(dueDate),
+    paidAt: data.paidAt ? new Date(data.paidAt) : null,
     status: data.status ?? 'PLANNED',
     fixed: data.fixed ?? false,
     installment: data.installment ?? null,
@@ -63,8 +67,7 @@ export async function listTransactionsByUser(userId: string) {
 }
 
 export async function createTransaction(data: LegacyTransactionInput) {
-  return createTransactionForUser(
-    normalizeLegacyTransactionInput(data).userId,
-    normalizeLegacyTransactionInput(data),
-  )
+  const normalized = normalizeLegacyTransactionInput(data)
+
+  return createTransactionForUser(normalized.userId, normalized)
 }

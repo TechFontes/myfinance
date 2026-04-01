@@ -1,8 +1,22 @@
-import type { Transfer } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import type { TransferCreateInput, TransferUpdateInput } from './contracts'
 
 export type TransferDomainError = Error & { code: string }
+
+type TransferRecord = {
+  id: number
+  userId: string
+  sourceAccountId: number
+  destinationAccountId: number
+  amount: string
+  description: string | null
+  competenceDate: Date
+  dueDate: Date
+  paidAt: Date | null
+  status: 'PLANNED' | 'PENDING' | 'PAID' | 'CANCELED'
+  createdAt: Date
+  updatedAt: Date
+}
 
 function createTransferError(code: string, message: string): TransferDomainError {
   const error = new Error(message) as TransferDomainError
@@ -34,20 +48,54 @@ function parseOptionalDate(value?: string | null) {
   return new Date(value)
 }
 
-export async function listTransfersByUser(userId: string): Promise<Transfer[]> {
-  return prisma.transfer.findMany({
+function parseOptionalRequiredDate(value?: string | null) {
+  if (value === undefined) {
+    return undefined
+  }
+
+  if (value === null) {
+    return undefined
+  }
+
+  return new Date(value)
+}
+
+function mapTransferRecord(transfer: {
+  id: number
+  userId: string
+  sourceAccountId: number
+  destinationAccountId: number
+  amount?: { toString(): string } | string | number
+  description: string | null
+  competenceDate: Date
+  dueDate: Date
+  paidAt: Date | null
+  status: 'PLANNED' | 'PENDING' | 'PAID' | 'CANCELED'
+  createdAt: Date
+  updatedAt: Date
+}): TransferRecord {
+  return {
+    ...transfer,
+    amount: transfer.amount?.toString() ?? '0.00',
+  }
+}
+
+export async function listTransfersByUser(userId: string): Promise<TransferRecord[]> {
+  const transfers = await prisma.transfer.findMany({
     where: { userId },
     orderBy: [{ competenceDate: 'desc' }, { createdAt: 'desc' }],
   })
+
+  return transfers.map(mapTransferRecord)
 }
 
 export async function createTransferForUser(
   userId: string,
   input: TransferCreateInput,
-): Promise<Transfer> {
+): Promise<TransferRecord> {
   assertDistinctAccounts(input.sourceAccountId, input.destinationAccountId)
 
-  return prisma.transfer.create({
+  const transfer = await prisma.transfer.create({
     data: {
       userId,
       sourceAccountId: input.sourceAccountId,
@@ -60,13 +108,15 @@ export async function createTransferForUser(
       status: 'PLANNED',
     },
   })
+
+  return mapTransferRecord(transfer)
 }
 
 export async function updateTransferForUser(
   userId: string,
   transferId: number,
   input: TransferUpdateInput,
-): Promise<Transfer | null> {
+): Promise<TransferRecord | null> {
   const transfer = await prisma.transfer.findFirst({
     where: { id: transferId, userId },
   })
@@ -81,19 +131,21 @@ export async function updateTransferForUser(
 
   assertDistinctAccounts(nextSourceAccountId, nextDestinationAccountId)
 
-  return prisma.transfer.update({
+  const updatedTransfer = await prisma.transfer.update({
     where: { id: transferId },
     data: {
       sourceAccountId: input.sourceAccountId,
       destinationAccountId: input.destinationAccountId,
       amount: input.amount,
       description: input.description,
-      competenceDate: parseOptionalDate(input.competenceDate),
-      dueDate: parseOptionalDate(input.dueDate),
+      competenceDate: parseOptionalRequiredDate(input.competenceDate),
+      dueDate: parseOptionalRequiredDate(input.dueDate),
       paidAt: parseOptionalDate(input.paidAt),
       status: input.status,
     },
   })
+
+  return mapTransferRecord(updatedTransfer)
 }
 
 export { createTransferError }

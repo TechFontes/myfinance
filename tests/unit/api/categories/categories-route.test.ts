@@ -26,7 +26,7 @@ describe('categories api routes', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     categoriesMock.listCategoriesByUser.mockResolvedValue([{ id: 1, name: 'Moradia' }])
 
-    const response = await GET(new Request('http://localhost/api/categories') as never)
+    const response = await GET()
     const payload = await response.json()
 
     expect(response.status).toBe(200)
@@ -62,7 +62,7 @@ describe('categories api routes', () => {
         method: 'PATCH',
         body: JSON.stringify({ name: 'Lazer' }),
       }) as never,
-      { params: { categoryId: '10' } },
+      { params: Promise.resolve({ categoryId: '10' }) },
     )
     const payload = await response.json()
 
@@ -79,7 +79,7 @@ describe('categories api routes', () => {
 
     const response = await DELETE(
       new Request('http://localhost/api/categories/10', { method: 'DELETE' }) as never,
-      { params: { categoryId: '10' } },
+      { params: Promise.resolve({ categoryId: '10' }) },
     )
     const payload = await response.json()
 

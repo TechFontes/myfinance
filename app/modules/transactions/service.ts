@@ -1,4 +1,3 @@
-import type { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import type {
   TransactionCreateInput,
@@ -16,12 +15,58 @@ const transactionInclude = {
 function buildTransactionWhere(
   userId: string,
   filters: TransactionFilters = {},
-): Prisma.TransactionWhereInput {
-  const where: Prisma.TransactionWhereInput = {
+): {
+  userId: string
+  type?: 'INCOME' | 'EXPENSE'
+  status?: TransactionFilters['status']
+  categoryId?: number
+  accountId?: number
+  creditCardId?: number
+  competenceDate?: {
+    gte?: Date
+    lte?: Date
+  }
+  OR?: Array<{
+    description?: {
+      contains: string
+      mode: 'insensitive'
+    }
+    category?: {
+      name: {
+        contains: string
+        mode: 'insensitive'
+      }
+    }
+  }>
+} {
+  const where: {
+    userId: string
+    type?: 'INCOME' | 'EXPENSE'
+    status?: TransactionFilters['status']
+    categoryId?: number
+    accountId?: number
+    creditCardId?: number
+    competenceDate?: {
+      gte?: Date
+      lte?: Date
+    }
+    OR?: Array<{
+      description?: {
+        contains: string
+        mode: 'insensitive'
+      }
+      category?: {
+        name: {
+          contains: string
+          mode: 'insensitive'
+        }
+      }
+    }>
+  } = {
     userId,
   }
 
-  if (filters.type) {
+  if (filters.type && filters.type !== 'ALL') {
     where.type = filters.type
   }
 
@@ -138,11 +183,14 @@ export async function listTransactionsByUser(
   userId: string,
   filters: TransactionFilters = {},
 ) {
+  const pagination = buildPagination(filters)
+
   return prisma.transaction.findMany({
     where: buildTransactionWhere(userId, filters),
     orderBy: buildOrderBy(),
     include: transactionInclude,
-    ...buildPagination(filters),
+    ...(pagination.skip !== undefined ? { skip: pagination.skip } : {}),
+    ...(pagination.take !== undefined ? { take: pagination.take } : {}),
   })
 }
 
@@ -182,4 +230,3 @@ export async function updateTransactionByUser(
     data: buildUpdateData(input),
   })
 }
-

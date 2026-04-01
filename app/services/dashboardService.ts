@@ -14,6 +14,7 @@ import type {
 type MonthlyTransaction = {
   id: number
   type: 'INCOME' | 'EXPENSE'
+  description: string
   value: string | number
   status: 'PLANNED' | 'PENDING' | 'PAID' | 'CANCELED'
   competenceDate: Date
@@ -125,7 +126,10 @@ function buildPendingItems(
   transfers: MonthlyTransfer[],
 ): DashboardPendingItem[] {
   const pendingTransactions = transactions
-    .filter((transaction) => ['PLANNED', 'PENDING'].includes(transaction.status))
+    .filter(
+      (transaction): transaction is MonthlyTransaction & { status: 'PLANNED' | 'PENDING' } =>
+        transaction.status === 'PLANNED' || transaction.status === 'PENDING',
+    )
     .map((transaction) => ({
       id: transaction.id,
       description: transaction.description,
@@ -135,7 +139,10 @@ function buildPendingItems(
     }))
 
   const pendingTransfers = transfers
-    .filter((transfer) => ['PLANNED', 'PENDING'].includes(transfer.status))
+    .filter(
+      (transfer): transfer is MonthlyTransfer & { status: 'PLANNED' | 'PENDING' } =>
+        transfer.status === 'PLANNED' || transfer.status === 'PENDING',
+    )
     .map((transfer) => ({
       id: transfer.id,
       description: transfer.description,
@@ -286,12 +293,18 @@ export async function getFinanceSummary(userId: string, month: string) {
   })
 
   const income = transactions
-    .filter((transaction) => transaction.type === 'INCOME')
-    .reduce((total, transaction) => total + Number(transaction.value), 0)
+    .filter((transaction: (typeof transactions)[number]) => transaction.type === 'INCOME')
+    .reduce(
+      (total: number, transaction: (typeof transactions)[number]) => total + Number(transaction.value),
+      0,
+    )
 
   const expense = transactions
-    .filter((transaction) => transaction.type === 'EXPENSE')
-    .reduce((total, transaction) => total + Number(transaction.value), 0)
+    .filter((transaction: (typeof transactions)[number]) => transaction.type === 'EXPENSE')
+    .reduce(
+      (total: number, transaction: (typeof transactions)[number]) => total + Number(transaction.value),
+      0,
+    )
 
   return {
     income,
@@ -423,14 +436,74 @@ export async function getDashboardReport(userId: string, month: string): Promise
     }),
   ])
 
+  const normalizedTransactions: MonthlyTransaction[] = transactions.map((transaction) => ({
+    id: transaction.id,
+    type: transaction.type,
+    description: transaction.description,
+    value: transaction.value.toString(),
+    status: transaction.status,
+    competenceDate: transaction.competenceDate,
+    dueDate: transaction.dueDate,
+    categoryId: transaction.categoryId,
+    category: transaction.category
+      ? {
+          id: transaction.category.id,
+          name: transaction.category.name,
+          type: transaction.category.type,
+        }
+      : null,
+    account: transaction.account
+      ? {
+          id: transaction.account.id,
+          name: transaction.account.name,
+          type: transaction.account.type,
+        }
+      : null,
+  }))
+
+  const normalizedTransfers: MonthlyTransfer[] = transfers.map((transfer) => ({
+    id: transfer.id,
+    description: transfer.description ?? 'Transferência interna',
+    amount: transfer.amount.toString(),
+    competenceDate: transfer.competenceDate,
+    dueDate: transfer.dueDate,
+    status: transfer.status,
+    sourceAccount: transfer.sourceAccount
+      ? { id: transfer.sourceAccount.id, name: transfer.sourceAccount.name }
+      : null,
+    destinationAccount: transfer.destinationAccount
+      ? { id: transfer.destinationAccount.id, name: transfer.destinationAccount.name }
+      : null,
+  }))
+
+  const normalizedInvoices: MonthlyInvoice[] = invoices.map((invoice) => ({
+    id: invoice.id,
+    month: invoice.month,
+    year: invoice.year,
+    status: invoice.status,
+    total: invoice.total.toString(),
+    dueDate: invoice.dueDate,
+    creditCard: invoice.creditCard
+      ? { id: invoice.creditCard.id, name: invoice.creditCard.name }
+      : null,
+  }))
+
+  const normalizedAccounts: MonthlyAccount[] = accounts.map((account) => ({
+    id: account.id,
+    name: account.name,
+    type: account.type,
+    initialBalance: account.initialBalance.toString(),
+    active: account.active,
+  }))
+
   const report: DashboardReport = {
     period: buildPeriod(month),
-    summary: aggregateSummary(transactions),
-    pending: buildPendingItems(transactions, transfers),
-    accounts: buildAccountSnapshots(accounts, transactions, transfers),
-    categories: buildCategorySnapshots(transactions),
-    cardInvoices: buildInvoiceSnapshots(invoices),
-    transfers: buildTransferSnapshots(transfers),
+    summary: aggregateSummary(normalizedTransactions),
+    pending: buildPendingItems(normalizedTransactions, normalizedTransfers),
+    accounts: buildAccountSnapshots(normalizedAccounts, normalizedTransactions, normalizedTransfers),
+    categories: buildCategorySnapshots(normalizedTransactions),
+    cardInvoices: buildInvoiceSnapshots(normalizedInvoices),
+    transfers: buildTransferSnapshots(normalizedTransfers),
   }
 
   return report

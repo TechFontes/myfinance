@@ -67,7 +67,7 @@ describe('invoices api routes', () => {
 
     const response = await GET_BY_ID(
       new Request('http://localhost/api/invoices/10') as never,
-      { params: { invoiceId: '10' } },
+      { params: Promise.resolve({ invoiceId: '10' }) },
     )
     const payload = await response.json()
 
@@ -86,7 +86,7 @@ describe('invoices api routes', () => {
 
     const response = await GET_BY_ID(
       new Request('http://localhost/api/invoices/999') as never,
-      { params: { invoiceId: '999' } },
+      { params: Promise.resolve({ invoiceId: '999' }) },
     )
 
     expect(response.status).toBe(404)
@@ -114,7 +114,7 @@ describe('invoices api routes', () => {
           status: 'PAID',
         }),
       }) as never,
-      { params: { invoiceId: '10' } },
+      { params: Promise.resolve({ invoiceId: '10' }) },
     )
     const payload = await response.json()
 
@@ -149,7 +149,7 @@ describe('invoices api routes', () => {
           sourceAccountId: 2,
         }),
       }) as never,
-      { params: { invoiceId: '10' } },
+      { params: Promise.resolve({ invoiceId: '10' }) },
     )
 
     expect(response.status).toBe(400)

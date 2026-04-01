@@ -34,7 +34,7 @@ const transactionFormSchema = z.object({
   installments: z.string().optional(),
 })
 
-type TransactionFormValues = z.infer<typeof transactionFormSchema>
+type TransactionFormValues = z.input<typeof transactionFormSchema>
 
 export function TransactionForm() {
   const router = useRouter()
@@ -78,6 +78,7 @@ export function TransactionForm() {
           competenceDate: values.competenceDate,
           dueDate: values.dueDate,
           paidAt: values.paidAt ? values.paidAt : null,
+          fixed: values.fixed ?? false,
           installment: values.installment ? Number(values.installment) : null,
           installments: values.installments ? Number(values.installments) : null,
         }),

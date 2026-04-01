@@ -52,7 +52,7 @@ describe('invoice page', () => {
     })
 
     const { default: InvoicePage } = await import('@/dashboard/invoices/[invoiceId]/page')
-    render(await InvoicePage({ params: { invoiceId: '7' } }))
+    render(await InvoicePage({ params: Promise.resolve({ invoiceId: '7' }) }))
 
     expect(screen.getByRole('heading', { name: 'Fatura #7' })).toBeInTheDocument()
     expect(screen.getByText('Cartão Nubank')).toBeInTheDocument()

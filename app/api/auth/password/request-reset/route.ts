@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   if (user) {
     await updateUserById(user.id, {
       resetToken: randomUUID(),
-      resetTokenExpires: new Date(Date.now() + 1000 * 60 * 60),
+      resetTokenExpiry: new Date(Date.now() + 1000 * 60 * 60),
     })
   }
 

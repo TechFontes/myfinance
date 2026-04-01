@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   }
 
   const user = await findUserByResetToken(token)
-  if (!user || !user.resetTokenExpires || user.resetTokenExpires.getTime() < Date.now()) {
+  if (!user || !user.resetTokenExpiry || user.resetTokenExpiry.getTime() < Date.now()) {
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })
   }
 
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   await updateUserById(user.id, {
     password: hashedPassword,
     resetToken: null,
-    resetTokenExpires: null,
+    resetTokenExpiry: null,
   })
 
   return NextResponse.json({ success: true })

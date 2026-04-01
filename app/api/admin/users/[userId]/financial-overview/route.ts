@@ -18,7 +18,7 @@ async function requireAdmin() {
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const result = await requireAdmin()
 
@@ -26,7 +26,8 @@ export async function GET(
     return result.error
   }
 
-  const overview = await getAdminFinancialOverview(params.userId)
+  const { userId } = await params
+  const overview = await getAdminFinancialOverview(userId)
 
   if (!overview) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

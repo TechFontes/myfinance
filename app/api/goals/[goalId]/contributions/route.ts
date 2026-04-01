@@ -11,7 +11,7 @@ function parseGoalId(goalId: string) {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { goalId: string } },
+  { params }: { params: Promise<{ goalId: string }> },
 ) {
   const user = await getUserFromRequest()
 
@@ -19,7 +19,8 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const goalId = parseGoalId(params.goalId)
+  const { goalId: goalIdParam } = await params
+  const goalId = parseGoalId(goalIdParam)
 
   if (!goalId) {
     return NextResponse.json({ error: 'Invalid goal id' }, { status: 400 })

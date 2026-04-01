@@ -26,7 +26,6 @@ describe('goals module types', () => {
     }>()
 
     expectTypeOf<GoalUpdateInput>().toMatchTypeOf<{
-      id: number
       name?: string
       targetAmount?: string
       reserveAccountId?: number | null

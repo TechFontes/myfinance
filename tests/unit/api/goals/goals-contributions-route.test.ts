@@ -26,7 +26,7 @@ describe('goal contributions api route', () => {
         method: 'POST',
         body: JSON.stringify({ amount: '100.00' }),
       }) as never,
-      { params: { goalId: '1' } },
+      { params: Promise.resolve({ goalId: '1' }) },
     )
 
     expect(response.status).toBe(401)
@@ -53,7 +53,7 @@ describe('goal contributions api route', () => {
           note: 'aporte mensal',
         }),
       }) as never,
-      { params: { goalId: '1' } },
+      { params: Promise.resolve({ goalId: '1' }) },
     )
     const payload = await response.json()
 
@@ -85,7 +85,7 @@ describe('goal contributions api route', () => {
           amount: '100.00',
         }),
       }) as never,
-      { params: { goalId: '999' } },
+      { params: Promise.resolve({ goalId: '999' }) },
     )
 
     expect(response.status).toBe(404)

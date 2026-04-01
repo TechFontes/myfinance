@@ -100,6 +100,11 @@ describe('categories service', () => {
       active: false,
     })
 
+    expect(result).not.toBeNull()
+    if (!result) {
+      return
+    }
+
     expect(prismaMock.category.update).toHaveBeenCalledWith({
       where: { id: 3, userId: 'user-1' },
       data: {
@@ -132,6 +137,11 @@ describe('categories service', () => {
     prismaMock.category.delete.mockResolvedValue({ id: 5 })
 
     const result = await deleteCategoryById('user-1', 5)
+
+    expect(result).not.toBeNull()
+    if (!result) {
+      return
+    }
 
     expect(prismaMock.category.delete).toHaveBeenCalledWith({
       where: { id: 5, userId: 'user-1' },

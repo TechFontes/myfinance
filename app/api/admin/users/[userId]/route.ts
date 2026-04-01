@@ -19,7 +19,7 @@ async function requireAdmin() {
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   const result = await requireAdmin()
 
@@ -41,7 +41,8 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
   }
 
-  const user = await updateAdminUser(params.userId, parsedBody.data)
+  const { userId } = await params
+  const user = await updateAdminUser(userId, parsedBody.data)
 
   if (!user) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
