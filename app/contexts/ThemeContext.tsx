@@ -21,25 +21,29 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
 
-function resolveStoredTheme(): Theme {
-  if (typeof window === 'undefined') {
-    return 'light'
-  }
-
-  return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
-}
-
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle('dark', theme === 'dark')
   window.localStorage.setItem(THEME_STORAGE_KEY, theme)
 }
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(resolveStoredTheme)
+  const [theme, setTheme] = useState<Theme>('light')
+  const [hasHydrated, setHasHydrated] = useState(false)
 
   useEffect(() => {
+    const storedTheme =
+      window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+    setTheme(storedTheme)
+    setHasHydrated(true)
+  }, [])
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return
+    }
+
     applyTheme(theme)
-  }, [theme])
+  }, [hasHydrated, theme])
 
   function toggleTheme() {
     setTheme((current) => (current === 'light' ? 'dark' : 'light'))
