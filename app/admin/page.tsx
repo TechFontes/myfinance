@@ -1,40 +1,44 @@
 import { Card } from '@/components/ui/card'
 import { AdminConsole } from '@/components/admin/AdminConsole'
+import { getUserFromRequest } from '@/lib/auth'
+import { getAdminFinancialOverview, listAdminUsers } from '@/modules/admin/service'
 
-const adminUsers = [
-  {
-    id: 'admin-1',
-    name: 'Tech Fontes',
-    email: 'tech.fontes@example.com',
-    role: 'ADMIN' as const,
-    status: 'ACTIVE' as const,
-    blockedAt: null,
-    blockedReason: null,
-    financialSummary: {
-      consolidatedBalance: '12500.00',
-      forecastBalance: '13200.00',
-      realizedBalance: '11850.00',
-      pendingCount: 2,
-    },
-  },
-  {
-    id: 'user-2',
-    name: 'Marina Lima',
-    email: 'marina@example.com',
-    role: 'USER' as const,
-    status: 'BLOCKED' as const,
-    blockedAt: '2026-03-20T00:00:00.000Z',
-    blockedReason: 'Suporte administrativo',
-    financialSummary: {
-      consolidatedBalance: '4800.00',
-      forecastBalance: '5400.00',
-      realizedBalance: '4200.00',
-      pendingCount: 5,
-    },
-  },
-]
+async function getAdminConsoleUsers() {
+  const user = await getUserFromRequest()
 
-export default function AdminPage() {
+  if (!user || user.role !== 'ADMIN') {
+    return []
+  }
+
+  const users = await listAdminUsers()
+  const overviews = await Promise.all(
+    users.map(async (adminUser) => {
+      const overview = await getAdminFinancialOverview(adminUser.id)
+
+      return {
+        id: adminUser.id,
+        name: adminUser.name ?? 'Sem nome',
+        email: adminUser.email,
+        role: adminUser.role,
+        status: adminUser.blockedAt ? ('BLOCKED' as const) : ('ACTIVE' as const),
+        blockedAt: adminUser.blockedAt?.toISOString() ?? null,
+        blockedReason: adminUser.blockedReason,
+        financialSummary: {
+          consolidatedBalance: '0.00',
+          forecastBalance: '0.00',
+          realizedBalance: '0.00',
+          pendingCount: overview?.summary.pendingTransactions ?? 0,
+        },
+      }
+    }),
+  )
+
+  return overviews
+}
+
+export default async function AdminPage() {
+  const adminUsers = await getAdminConsoleUsers()
+
   return (
     <div className="space-y-6">
       <div>

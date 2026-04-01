@@ -1,9 +1,56 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+
+const authMock = vi.hoisted(() => ({
+  getUserFromRequest: vi.fn(),
+}))
+
+const adminMock = vi.hoisted(() => ({
+  getAdminFinancialOverview: vi.fn(),
+  listAdminUsers: vi.fn(),
+}))
+
+vi.mock('@/lib/auth', () => authMock)
+vi.mock('@/modules/admin/service', () => adminMock)
 
 describe('admin page', () => {
   it('renders the administrative entry point separate from the user dashboard', async () => {
+    authMock.getUserFromRequest.mockResolvedValue({ id: 'admin-1', role: 'ADMIN' })
+    adminMock.listAdminUsers.mockResolvedValue([
+      {
+        id: 'admin-1',
+        name: 'Tech Fontes',
+        email: 'tech.fontes@example.com',
+        role: 'ADMIN',
+        blockedAt: null,
+        blockedReason: null,
+        createdAt: new Date('2026-03-31T00:00:00.000Z'),
+        updatedAt: new Date('2026-03-31T00:00:00.000Z'),
+      },
+      {
+        id: 'user-2',
+        name: 'Marina Lima',
+        email: 'marina@example.com',
+        role: 'USER',
+        blockedAt: new Date('2026-03-20T00:00:00.000Z'),
+        blockedReason: 'Suporte administrativo',
+        createdAt: new Date('2026-03-30T00:00:00.000Z'),
+        updatedAt: new Date('2026-03-31T00:00:00.000Z'),
+      },
+    ])
+    adminMock.getAdminFinancialOverview
+      .mockResolvedValueOnce({
+        summary: {
+          pendingTransactions: 2,
+        },
+      })
+      .mockResolvedValueOnce({
+        summary: {
+          pendingTransactions: 5,
+        },
+      })
+
     const { default: AdminPage } = await import('@/admin/page')
     render(await AdminPage())
 
@@ -12,5 +59,8 @@ describe('admin page', () => {
     expect(screen.getByRole('heading', { name: 'Leitura financeira' })).toBeInTheDocument()
     expect(screen.getByText('Somente leitura')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Usuários da plataforma' })).toBeInTheDocument()
+    expect(adminMock.listAdminUsers).toHaveBeenCalledTimes(1)
+    expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('admin-1')
+    expect(adminMock.getAdminFinancialOverview).toHaveBeenCalledWith('user-2')
   })
 })
