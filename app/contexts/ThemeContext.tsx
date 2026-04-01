@@ -2,16 +2,18 @@
 'use client'
 
 import {
+  useCallback,
   createContext,
   useContext,
   useEffect,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from 'react'
 
 type Theme = 'light' | 'dark'
 
 const THEME_STORAGE_KEY = 'myfinance-theme'
+let currentTheme: Theme = 'light'
 
 type ThemeContextValue = {
   theme: Theme
@@ -20,34 +22,78 @@ type ThemeContextValue = {
 }
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined)
+const themeListeners = new Set<() => void>()
+
+function readStoredTheme(): Theme {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+
+  return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
+}
 
 function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle('dark', theme === 'dark')
   window.localStorage.setItem(THEME_STORAGE_KEY, theme)
 }
 
+function emitThemeChange() {
+  for (const listener of themeListeners) {
+    listener()
+  }
+}
+
+function subscribeToTheme(listener: () => void) {
+  themeListeners.add(listener)
+
+  if (typeof window === 'undefined') {
+    return () => {
+      themeListeners.delete(listener)
+    }
+  }
+
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === THEME_STORAGE_KEY) {
+      listener()
+    }
+  }
+
+  window.addEventListener('storage', handleStorage)
+
+  return () => {
+    themeListeners.delete(listener)
+    window.removeEventListener('storage', handleStorage)
+  }
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('light')
-  const [hasHydrated, setHasHydrated] = useState(false)
+  const theme = useSyncExternalStore(subscribeToTheme, () => currentTheme, () => 'light')
 
   useEffect(() => {
-    const storedTheme =
-      window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
-    setTheme(storedTheme)
-    setHasHydrated(true)
-  }, [])
+    const storedTheme = readStoredTheme()
 
-  useEffect(() => {
-    if (!hasHydrated) {
+    if (storedTheme !== currentTheme) {
+      currentTheme = storedTheme
+      emitThemeChange()
       return
     }
 
-    applyTheme(theme)
-  }, [hasHydrated, theme])
+    applyTheme(currentTheme)
+  }, [])
 
-  function toggleTheme() {
-    setTheme((current) => (current === 'light' ? 'dark' : 'light'))
-  }
+  useEffect(() => {
+    applyTheme(theme)
+  }, [theme])
+
+  const setTheme = useCallback((nextTheme: Theme) => {
+    currentTheme = nextTheme
+    applyTheme(nextTheme)
+    emitThemeChange()
+  }, [])
+
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === 'light' ? 'dark' : 'light')
+  }, [setTheme, theme])
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
