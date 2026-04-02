@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 const authMock = vi.hoisted(() => ({
@@ -46,6 +46,24 @@ describe('category edit page', () => {
     expect(screen.getByRole('heading', { name: 'Editar categoria' })).toBeInTheDocument()
     expect(screen.getByTestId('category-edit-form')).toHaveTextContent('mode:edit')
     expect(screen.getByTestId('category-edit-form')).toHaveTextContent('category:Aluguel')
+    expect(screen.getByTestId('category-edit-form')).toHaveTextContent('options:Moradia,Aluguel')
+  }, 10000)
+
+  it('awaits async route params and loads the matching category record under runtime semantics', async () => {
+    cleanup()
+    authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+    categoriesMock.listCategoriesByUser.mockResolvedValue([
+      { id: 5, name: 'Moradia', type: 'EXPENSE', parentId: null, active: true },
+      { id: 6, name: 'Aluguel', type: 'EXPENSE', parentId: 5, active: true },
+    ])
+
+    const { default: CategoryEditPage } = await import('@/dashboard/categories/[categoryId]/page')
+    render(await CategoryEditPage({ params: Promise.resolve({ categoryId: '5' }) }))
+
+    expect(screen.getByRole('heading', { name: 'Editar categoria' })).toBeInTheDocument()
+    expect(screen.getByTestId('category-edit-form')).toBeInTheDocument()
+    expect(screen.getByTestId('category-edit-form')).toHaveTextContent('mode:edit')
+    expect(screen.getByTestId('category-edit-form')).toHaveTextContent('category:Moradia')
     expect(screen.getByTestId('category-edit-form')).toHaveTextContent('options:Moradia,Aluguel')
   }, 10000)
 })
