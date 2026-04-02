@@ -31,7 +31,7 @@ The existing test suite covered the happy-path category edit and the financial c
 - `app/api/dashboard/route.ts`
 - `app/services/dashboardService.ts`
 - `tests/unit/categories/category-edit-page.test.tsx`
-- `tests/unit/financial-consistency/financial-consistency-regression.test.ts`
+- `tests/unit/financial-consistency/dashboard-refresh-regression.test.ts`
 
 ## Recovery Note
 

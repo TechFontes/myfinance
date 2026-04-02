@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authMock = vi.hoisted(() => ({
   getUserFromRequest: vi.fn(),
@@ -9,6 +9,8 @@ const authMock = vi.hoisted(() => ({
 const categoriesMock = vi.hoisted(() => ({
   listCategoriesByUser: vi.fn(),
 }))
+
+const redirectMock = vi.hoisted(() => vi.fn())
 
 vi.mock('@/components/categories/CategoryCreateForm', () => ({
   CategoryCreateForm: vi.fn(
@@ -31,8 +33,19 @@ vi.mock('@/components/categories/CategoryCreateForm', () => ({
 }))
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/categories/service', () => categoriesMock)
+vi.mock('next/navigation', () => ({
+  redirect: redirectMock,
+}))
 
 describe('category edit page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    cleanup()
+  })
+
   it('loads the current category and renders the shared form in edit mode', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     categoriesMock.listCategoriesByUser.mockResolvedValue([
@@ -50,7 +63,6 @@ describe('category edit page', () => {
   }, 10000)
 
   it('awaits async route params and loads the matching category record under runtime semantics', async () => {
-    cleanup()
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     categoriesMock.listCategoriesByUser.mockResolvedValue([
       { id: 5, name: 'Moradia', type: 'EXPENSE', parentId: null, active: true },
@@ -65,5 +77,14 @@ describe('category edit page', () => {
     expect(screen.getByTestId('category-edit-form')).toHaveTextContent('mode:edit')
     expect(screen.getByTestId('category-edit-form')).toHaveTextContent('category:Moradia')
     expect(screen.getByTestId('category-edit-form')).toHaveTextContent('options:Moradia,Aluguel')
+  }, 10000)
+
+  it('builds the login callback from resolved async params when the session is missing', async () => {
+    authMock.getUserFromRequest.mockResolvedValue(null)
+
+    const { default: CategoryEditPage } = await import('@/dashboard/categories/[categoryId]/page')
+    await CategoryEditPage({ params: Promise.resolve({ categoryId: '5' }) })
+
+    expect(redirectMock).toHaveBeenCalledWith('/login?callbackUrl=%2Fdashboard%2Fcategories%2F5')
   }, 10000)
 })
