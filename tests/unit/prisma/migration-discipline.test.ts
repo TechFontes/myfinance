@@ -18,10 +18,8 @@ describe('prisma migration discipline', () => {
 
     expect(schema).toContain('kind                 GoalMovementKind')
     expect(goalMovementMigration).toBeDefined()
-    expect(migrationSql).toContain('ALTER TABLE `GoalContribution`')
-    expect(migrationSql).toContain('DROP COLUMN `reflectFinancially`')
     expect(migrationSql).toContain(
-      "ADD COLUMN `kind` ENUM('CONTRIBUTION', 'WITHDRAWAL', 'ADJUSTMENT') NOT NULL DEFAULT 'CONTRIBUTION'",
+      "ALTER TABLE `GoalContribution`\n    ADD COLUMN `kind` ENUM('CONTRIBUTION', 'WITHDRAWAL', 'ADJUSTMENT') NOT NULL DEFAULT 'CONTRIBUTION'",
     )
   })
 })

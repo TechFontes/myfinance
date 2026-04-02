@@ -1,4 +1,3 @@
 -- AlterTable
 ALTER TABLE `GoalContribution`
-    DROP COLUMN `reflectFinancially`,
     ADD COLUMN `kind` ENUM('CONTRIBUTION', 'WITHDRAWAL', 'ADJUSTMENT') NOT NULL DEFAULT 'CONTRIBUTION';
