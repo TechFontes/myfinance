@@ -10,6 +10,7 @@ const require = createRequire(import.meta.url)
 describe('standalone deploy configuration', () => {
   it('builds Next.js with standalone output for PM2 startup files', () => {
     expect(nextConfig.output).toBe('standalone')
+    expect(nextConfig.turbopack?.root).toBe(path.resolve(process.cwd()))
   })
 
   it('provides a PM2 ecosystem file pointing to the standalone server entrypoint', () => {
