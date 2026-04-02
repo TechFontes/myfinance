@@ -4,9 +4,9 @@ import { listCardsByUser } from '@/modules/cards/service'
 import { redirect } from 'next/navigation'
 
 type CardDetailPageProps = {
-  params: {
+  params: Promise<{
     cardId: string
-  }
+  }>
 }
 
 function formatCurrency(value: string) {
@@ -21,14 +21,21 @@ function formatDate(value: Date) {
 }
 
 export default async function CardDetailPage({ params }: CardDetailPageProps) {
+  const { cardId } = await params
+  const numericId = Number(cardId)
+
+  if (isNaN(numericId) || numericId <= 0) {
+    return redirect('/dashboard/cards')
+  }
+
   const user = await getUserFromRequest()
 
   if (!user) {
-    return redirect(`/login?callbackUrl=${encodeURIComponent(`/dashboard/cards/${params.cardId}`)}`)
+    return redirect(`/login?callbackUrl=${encodeURIComponent(`/dashboard/cards/${cardId}`)}`)
   }
 
   const cards = await listCardsByUser(user.id)
-  const card = cards.find((item) => item.id === Number(params.cardId))
+  const card = cards.find((item) => item.id === numericId)
 
   if (!card) {
     return (
