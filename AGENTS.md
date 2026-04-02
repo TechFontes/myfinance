@@ -32,3 +32,25 @@ These conventions apply to any agent or contributor working in this repository.
 - Financial calculations live in domain services.
 - Preserve PRD terminology in code and UI.
 - `app/modules` is the default home for domain responsibilities.
+
+## Non-Negotiable Verification Gates
+
+These gates apply to all agent and contributor work in addition to the TDD workflow above:
+
+### Schema Discipline
+- Every Prisma schema change must have a corresponding migration.
+- Schema drift without migration is a blocking condition.
+- Run `npx prisma migrate status` before claiming schema work is done.
+
+### Runtime-Realistic Route Tests
+- Dynamic page tests must use `params: Promise.resolve({ ... })` to match Next.js app router semantics.
+- Tests with synchronous params are insufficient for pages that receive async params at runtime.
+
+### Financial Mutation Freshness
+- Every financial mutation route handler must call `revalidatePath('/dashboard')` after successful writes.
+- Cross-domain regression tests must verify post-mutation dashboard state.
+
+### Publish Evidence
+- No feature or fix is considered complete without passing: `yarn test`, `yarn lint`, `yarn build`.
+- Migration verification required for schema-backed changes.
+- Residual risks must be documented, not silently ignored.
