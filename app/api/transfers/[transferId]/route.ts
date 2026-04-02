@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { ZodError } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import { updateTransferForUser } from '@/modules/transfers/service'
@@ -38,6 +39,8 @@ export async function PATCH(
     if (!transfer) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
+
+    try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
 
     return NextResponse.json(transfer)
   } catch (error) {

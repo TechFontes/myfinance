@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getUserFromRequest } from '@/lib/auth'
 import {
   countTransactionsByUser,
@@ -75,6 +76,8 @@ export async function POST(request: NextRequest) {
     user.id,
     normalizeTransactionCreatePayload(payload),
   )
+
+  try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
 
   return NextResponse.json(transaction, { status: 201 })
 }

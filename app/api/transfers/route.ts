@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { ZodError } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import {
@@ -44,6 +45,8 @@ export async function POST(request: NextRequest) {
   try {
     const payload = transferCreateSchema.parse(await request.json())
     const transfer = await createTransferForUser(user.id, payload)
+
+    try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
 
     return NextResponse.json(transfer, { status: 201 })
   } catch (error) {

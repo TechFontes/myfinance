@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getUserFromRequest } from '@/lib/auth'
 import { getInvoiceByIdForUser, payInvoiceForUser } from '@/modules/invoices/service'
 
@@ -64,6 +65,8 @@ export async function PATCH(
   if (!updatedInvoice) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
+
+  try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
 
   return NextResponse.json(updatedInvoice)
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { getUserFromRequest } from '@/lib/auth'
 import { updateTransactionByUser } from '@/modules/transactions/service'
 import { transactionUpdateSchema } from '@/modules/transactions'
@@ -32,6 +33,8 @@ export async function PATCH(
   if (!transaction) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
+
+  try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
 
   return NextResponse.json(transaction)
 }

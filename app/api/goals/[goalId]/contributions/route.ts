@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { ZodError } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import { recordGoalContributionForUser } from '@/modules/goals/service'
@@ -37,6 +38,8 @@ export async function POST(
     if (!contribution) {
       return NextResponse.json({ error: 'Not found' }, { status: 404 })
     }
+
+    try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
 
     return NextResponse.json(contribution, { status: 201 })
   } catch (error) {
