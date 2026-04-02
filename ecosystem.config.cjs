@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 require('dotenv').config()
 
 module.exports = {
@@ -5,7 +6,7 @@ module.exports = {
     {
       name: 'myfinance',
       cwd: __dirname,
-      script: '.next/standalone/server.js',
+      script: 'start-standalone.cjs',
       exec_mode: 'fork',
       instances: 1,
       autorestart: true,
