@@ -8,6 +8,12 @@ vi.mock('next/link', () => ({
   ),
 }))
 
+vi.mock('next/image', () => ({
+  default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
+    <img alt={alt} {...(props as React.ImgHTMLAttributes<HTMLImageElement>)} />
+  ),
+}))
+
 describe('PortfolioHero', () => {
   afterEach(() => {
     cleanup()
@@ -81,5 +87,18 @@ describe('PortfolioProcessMap', () => {
     expect(screen.getByText('RED — teste falha')).toBeInTheDocument()
     expect(screen.getByText('GREEN — código passa')).toBeInTheDocument()
     expect(screen.getByText(/4 gates antes de publicar/)).toBeInTheDocument()
+  }, 10000)
+})
+
+describe('PortfolioScreenshotCarousel', () => {
+  afterEach(() => { cleanup() })
+
+  it('renders the first screenshot with navigation dots', async () => {
+    const { PortfolioScreenshotCarousel } = await import('@/components/marketing/PortfolioScreenshotCarousel')
+    render(<PortfolioScreenshotCarousel />)
+    expect(screen.getByText('Produto em execução')).toBeInTheDocument()
+    expect(screen.getByAltText('Dashboard MyFinance')).toBeInTheDocument()
+    expect(screen.getByText('Dashboard patrimonial')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /slide/i })).toHaveLength(3)
   }, 10000)
 })
