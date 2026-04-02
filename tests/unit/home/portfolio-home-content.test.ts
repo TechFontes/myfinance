@@ -1,18 +1,20 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  portfolioContact,
   portfolioCtas,
-  portfolioHighlights,
-  portfolioSections,
+  portfolioDomainModules,
+  portfolioMetrics,
+  portfolioProcessSteps,
+  portfolioScreenshotCards,
 } from '@/components/marketing/portfolio-home-content'
 
 describe('portfolio home content contract', () => {
-  it('defines the public CTAs and the login action separately', () => {
+  it('defines the public CTAs and the login action', () => {
     expect(portfolioCtas.primary.map((item) => item.label)).toEqual([
       'GitHub',
       'LinkedIn',
-      'Demo ao vivo',
-      'WhatsApp',
+      'Demo',
     ])
     expect(portfolioCtas.login).toEqual({
       href: '/login',
@@ -20,15 +22,43 @@ describe('portfolio home content contract', () => {
     })
   })
 
-  it('exposes the core highlights and sections of the case narrative', () => {
-    expect(portfolioHighlights).toContain('Next.js 16')
-    expect(portfolioHighlights).toContain('TDD')
-    expect(portfolioHighlights).toContain('Standalone deploy')
-    expect(portfolioSections.map((section) => section.id)).toEqual([
-      'problem',
-      'architecture',
-      'quality',
-      'screenshots',
+  it('defines the auth layer and 8 domain modules', () => {
+    expect(portfolioDomainModules.auth).toMatchObject({
+      title: 'Auth & Segurança',
+    })
+    expect(portfolioDomainModules.modules).toHaveLength(8)
+    expect(portfolioDomainModules.modules.map((m) => m.name)).toEqual([
+      'Transações',
+      'Cartões',
+      'Metas',
+      'Dashboard',
+      'Contas',
+      'Transferências',
+      'Recorrência',
+      'Importação',
     ])
+  })
+
+  it('defines the 6-step engineering process', () => {
+    expect(portfolioProcessSteps).toHaveLength(6)
+    expect(portfolioProcessSteps[0].title).toContain('PRD')
+    expect(portfolioProcessSteps[2].title).toContain('Teste primeiro')
+    expect(portfolioProcessSteps[2].tag).toBe('Lei do projeto')
+    expect(portfolioProcessSteps[5].title).toContain('4 gates')
+  })
+
+  it('defines 5 project metrics', () => {
+    expect(portfolioMetrics).toHaveLength(5)
+    expect(portfolioMetrics[0]).toMatchObject({ value: '350+', label: 'testes automatizados' })
+  })
+
+  it('defines 3 screenshot cards', () => {
+    expect(portfolioScreenshotCards).toHaveLength(3)
+    expect(portfolioScreenshotCards.every((s) => s.src && s.alt && s.title)).toBe(true)
+  })
+
+  it('defines contact information', () => {
+    expect(portfolioContact.name).toBe('Daniel Fontes')
+    expect(portfolioContact.links).toBeDefined()
   })
 })
