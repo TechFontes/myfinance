@@ -1,4 +1,5 @@
 import { PlusIcon, FolderTreeIcon } from 'lucide-react'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -34,9 +35,11 @@ export default async function CategoriesPage() {
           </p>
         </div>
 
-        <Button className="flex items-center gap-2">
-          <PlusIcon size={16} />
-          Nova categoria
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/dashboard/categories/new">
+            <PlusIcon size={16} />
+            Nova categoria
+          </Link>
         </Button>
       </div>
 

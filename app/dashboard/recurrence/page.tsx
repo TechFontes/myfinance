@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
@@ -28,9 +29,11 @@ export default async function RecurrencePage() {
             </p>
           </div>
 
-          <Button className="flex items-center gap-2">
-            <PlusIcon size={16} />
-            Nova regra
+          <Button asChild className="flex items-center gap-2">
+            <Link href="/dashboard/recurrence/new">
+              <PlusIcon size={16} />
+              Nova regra
+            </Link>
           </Button>
         </div>
 
@@ -55,11 +58,17 @@ export default async function RecurrencePage() {
           </p>
         </div>
 
-        <Button className="flex items-center gap-2">
-          <PlusIcon size={16} />
-          Nova regra
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/dashboard/recurrence/new">
+            <PlusIcon size={16} />
+            Nova regra
+          </Link>
         </Button>
       </div>
+
+      <Card className="border-dashed p-6 text-sm text-muted-foreground">
+        A recorrência gera lançamentos previstos, não pagamentos automáticos.
+      </Card>
 
       <RecurrenceList
         rules={recurrenceRules.map((rule: RecurrenceRuleItem) => ({

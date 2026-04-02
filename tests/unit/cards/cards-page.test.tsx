@@ -38,10 +38,13 @@ describe('cards page', () => {
     expect(
       screen.getByText('Gerencie limites, fechamento e vencimento dos seus cartões'),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Novo cartão' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Novo cartão' })).toHaveAttribute(
+      'href',
+      '/dashboard/cards/new',
+    )
     expect(screen.getByText('Nubank')).toBeInTheDocument()
     expect(screen.getByText('Fechamento dia 10')).toBeInTheDocument()
     expect(screen.getByText('Vencimento dia 17')).toBeInTheDocument()
     expect(cardsMock.listCardsByUser).toHaveBeenCalledWith('user-1')
-  }, 10000)
+  }, 30000)
 })

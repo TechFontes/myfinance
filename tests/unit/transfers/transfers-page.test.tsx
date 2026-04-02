@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const authMock = vi.hoisted(() => ({
   getUserFromRequest: vi.fn(),
@@ -14,6 +14,10 @@ vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/transfers/service', () => transfersMock)
 
 describe('transfers page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('renders the internal movements view and uses the transfers list component', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     transfersMock.listTransfersByUser.mockResolvedValue([
@@ -35,7 +39,10 @@ describe('transfers page', () => {
 
     expect(screen.getByRole('heading', { name: 'Movimentações internas' })).toBeInTheDocument()
     expect(screen.getByText(/Transferências entre contas\./)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Nova transferência' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Nova transferência' })).toHaveAttribute(
+      'href',
+      '/dashboard/transfers/new',
+    )
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Conta #10')
     expect(transfersMock.listTransfersByUser).toHaveBeenCalledWith('user-1')
   }, 10000)

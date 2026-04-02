@@ -17,7 +17,7 @@ vi.mock('@/components/accounts/AccountsList', () => ({
 }))
 
 describe('accounts page', () => {
-  it('renders the accounts management header and uses the accounts list component', async () => {
+  it('renders the accounts management header and links the CTA to the creation page', async () => {
     const { getUserFromRequest } = await import('@/lib/auth')
     const { listAccountsByUser } = await import('@/services/accountService')
     const { default: AccountsPage } = await import('@/dashboard/accounts/page')
@@ -44,7 +44,10 @@ describe('accounts page', () => {
 
     expect(screen.getByRole('heading', { name: 'Contas' })).toBeInTheDocument()
     expect(screen.getByText('Gerencie contas bancárias, carteiras e saldos iniciais')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Nova conta' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Nova conta' })).toHaveAttribute(
+      'href',
+      '/dashboard/accounts/new',
+    )
     expect(screen.getByTestId('accounts-list')).toHaveTextContent('Nubank')
     expect(listAccountsByUser).toHaveBeenCalledWith('user-1')
   }, 10000)

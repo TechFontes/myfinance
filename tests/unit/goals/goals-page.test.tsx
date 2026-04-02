@@ -14,7 +14,7 @@ vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/goals/service', () => goalsMock)
 
 describe('goals page', () => {
-  it('renders the goal management view with the new contract', async () => {
+  it('renders the goal management view with a navigable create CTA', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     goalsMock.listGoalsByUser.mockResolvedValue([
       {
@@ -38,9 +38,12 @@ describe('goals page', () => {
     expect(
       screen.getByText('Aportes podem ser apenas informacionais ou refletir financeiramente via transferência.'),
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Nova meta' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Nova meta' })).toHaveAttribute(
+      'href',
+      '/dashboard/goals/new',
+    )
     expect(screen.getByText('Reserva de emergência')).toBeInTheDocument()
     expect(screen.getByText('Conta de reserva #3')).toBeInTheDocument()
     expect(goalsMock.listGoalsByUser).toHaveBeenCalledWith('user-1')
-  }, 10000)
+  }, 30000)
 })

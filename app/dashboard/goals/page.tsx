@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { PlusIcon } from 'lucide-react'
 import { redirect } from 'next/navigation'
 
@@ -26,9 +27,11 @@ export default async function GoalsPage() {
           </p>
         </div>
 
-        <Button className="flex items-center gap-2">
-          <PlusIcon size={16} />
-          Nova meta
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/dashboard/goals/new">
+            <PlusIcon size={16} />
+            Nova meta
+          </Link>
         </Button>
       </div>
 

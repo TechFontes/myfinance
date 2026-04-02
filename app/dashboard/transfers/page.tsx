@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card'
 import { getUserFromRequest } from '@/lib/auth'
 import { listTransfersByUser } from '@/modules/transfers/service'
 import { TransfersList } from '@/components/transfers/TransfersList'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 function buildTransferLabel(id: number) {
@@ -29,7 +30,9 @@ export default async function TransfersPage() {
           <p className="text-muted-foreground">Transferências entre contas.</p>
         </div>
 
-        <Button className="w-full md:w-auto">Nova transferência</Button>
+        <Button asChild className="w-full md:w-auto">
+          <Link href="/dashboard/transfers/new">Nova transferência</Link>
+        </Button>
       </div>
 
       <Card className="border-dashed p-4 text-sm text-muted-foreground">

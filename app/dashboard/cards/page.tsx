@@ -1,4 +1,5 @@
 import { PlusIcon } from 'lucide-react'
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { CardsList } from '@/components/cards/CardsList'
@@ -26,9 +27,11 @@ export default async function CardsPage() {
           </p>
         </div>
 
-        <Button className="flex items-center gap-2">
-          <PlusIcon size={16} />
-          Novo cartão
+        <Button asChild className="flex items-center gap-2">
+          <Link href="/dashboard/cards/new">
+            <PlusIcon size={16} />
+            Novo cartão
+          </Link>
         </Button>
       </div>
 

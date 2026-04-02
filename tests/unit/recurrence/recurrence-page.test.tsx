@@ -41,9 +41,10 @@ describe('recurrence page', () => {
 
     expect(screen.getByRole('heading', { name: 'Recorrência' })).toBeInTheDocument()
     expect(
-      screen.getByText('A recorrência gera lançamentos previstos, não pagamentos automáticos.'),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Nova regra' })).toBeInTheDocument()
+      screen.getAllByText('A recorrência gera lançamentos previstos, não pagamentos automáticos.'),
+    ).not.toHaveLength(0)
+    const createLink = screen.getByRole('link', { name: 'Nova regra' })
+    expect(createLink).toHaveAttribute('href', '/dashboard/recurrence/new')
     expect(screen.getByText('Academia')).toBeInTheDocument()
     expect(screen.getByText('Mensal')).toBeInTheDocument()
     expect(screen.getByText('Ativa')).toBeInTheDocument()
