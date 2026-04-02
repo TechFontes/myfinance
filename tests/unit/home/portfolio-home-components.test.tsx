@@ -102,3 +102,17 @@ describe('PortfolioScreenshotCarousel', () => {
     expect(screen.getAllByRole('button', { name: /slide/i })).toHaveLength(3)
   }, 10000)
 })
+
+describe('PortfolioFooter', () => {
+  afterEach(() => { cleanup() })
+
+  it('renders the contact card with name, email, whatsapp and social links', async () => {
+    const { PortfolioFooter } = await import('@/components/marketing/PortfolioFooter')
+    render(<PortfolioFooter />)
+    expect(screen.getByText('Daniel Fontes')).toBeInTheDocument()
+    expect(screen.getByText(/Engenheiro de software/)).toBeInTheDocument()
+    expect(screen.getByText('(21) 98979-9816')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'GitHub' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'LinkedIn' })).toBeInTheDocument()
+  }, 10000)
+})
