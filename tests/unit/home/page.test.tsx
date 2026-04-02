@@ -8,33 +8,37 @@ vi.mock('next/image', () => ({
 }))
 
 describe('portfolio home page', () => {
-  it('renders the project as a technical product case with explicit authorship', async () => {
+  it('renders all portfolio sections with key content', async () => {
     const { default: HomePage } = await import('@/page')
 
     render(<HomePage />)
 
-    expect(
-      screen.getByRole('heading', {
-        name: /MyFinance é um sistema de finanças pessoais construído como produto real/i,
-      }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Daniel Fontes')).toBeInTheDocument()
+    // PortfolioHero
+    expect(screen.getByText('MyFinance')).toBeInTheDocument()
+    expect(screen.getByText(/por Daniel Fontes/i)).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'GitHub' }).length).toBeGreaterThan(0)
     expect(screen.getAllByRole('link', { name: 'LinkedIn' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: 'Demo ao vivo' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('link', { name: 'WhatsApp' }).length).toBeGreaterThan(0)
-    expect(screen.getByRole('link', { name: 'Login' })).toHaveAttribute('href', '/login')
-    expect(screen.getByRole('heading', { name: 'Problema resolvido' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Arquitetura e produto' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Qualidade de execução' })).toBeInTheDocument()
-    expect(screen.getAllByText('Provas visuais').length).toBeGreaterThan(0)
-    expect(
-      screen.getByRole('heading', {
-        name: 'O produto existe, funciona e sustenta a narrativa técnica com telas reais.',
-      }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Login →' })).toHaveAttribute('href', '/login')
+
+    // PortfolioDomainMap
+    expect(screen.getByText('Mapa de domínio')).toBeInTheDocument()
+    expect(screen.getByText('Auth & Segurança')).toBeInTheDocument()
+
+    // PortfolioProcessMap
+    expect(screen.getByText('Processo de engenharia')).toBeInTheDocument()
+    expect(screen.getByText(/PRD antes de qualquer código/i)).toBeInTheDocument()
+
+    // PortfolioMetrics
+    expect(screen.getByText('350+')).toBeInTheDocument()
+    expect(screen.getByText('testes automatizados')).toBeInTheDocument()
+
+    // PortfolioScreenshotCarousel
+    expect(screen.getByText('Produto em execução')).toBeInTheDocument()
     expect(screen.getByRole('img', { name: 'Dashboard MyFinance' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Fluxo de transações MyFinance' })).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: 'Revisão de importação CSV MyFinance' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: /slide/i })).toHaveLength(3)
+
+    // PortfolioFooter
+    expect(screen.getByText('Daniel Fontes')).toBeInTheDocument()
+    expect(screen.getByText('(21) 98979-9816')).toBeInTheDocument()
   }, 10000)
 })
