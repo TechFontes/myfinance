@@ -10,7 +10,7 @@ This audit captures the current production regressions that block Wave 0 recover
 
 ### 1. Goals schema drift
 
-`GoalContribution.kind` is now part of the code-level contract, but the production database path is not aligned yet. The schema intent has moved ahead of the deployed migration state, so goal-related writes can fail even though the app code and local tests suggest support exists.
+`GoalContribution.kind` is now part of the code-level contract, but the migration history does not yet show a corresponding support step. The schema intent has moved ahead of the visible migration state, so this remains a drift risk until a dedicated migration exists.
 
 ### 2. Category edit async params mismatch
 
