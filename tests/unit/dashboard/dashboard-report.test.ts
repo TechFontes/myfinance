@@ -87,11 +87,26 @@ describe('dashboard report aggregation', () => {
         month: 3,
         year: 2026,
         status: 'OPEN',
-        total: '120.00',
+        total: '999.99',
         dueDate: new Date('2026-03-20T00:00:00.000Z'),
         creditCard: { id: 7, name: 'Visa' },
         transactions: [
-          { id: 21, description: 'Laptop installment', installment: 1, installments: 3 },
+          {
+            id: 21,
+            description: 'Laptop installment',
+            installment: 1,
+            installments: 3,
+            value: '120.00',
+            status: 'OPEN',
+          },
+          {
+            id: 22,
+            description: 'Canceled installment',
+            installment: 2,
+            installments: 3,
+            value: '50.00',
+            status: 'CANCELED',
+          },
         ],
       },
     ])

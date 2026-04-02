@@ -42,5 +42,9 @@ describe('AccountsList', () => {
     expect(screen.getByText('Inativa')).toBeInTheDocument()
     expect(screen.getByText('R$ 1.250,50')).toBeInTheDocument()
     expect(screen.getByText('R$ 50,00')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Editar Nubank' })).toHaveAttribute(
+      'href',
+      '/dashboard/accounts/1',
+    )
   })
 })

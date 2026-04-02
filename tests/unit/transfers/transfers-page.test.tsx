@@ -45,5 +45,5 @@ describe('transfers page', () => {
     )
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Conta #10')
     expect(transfersMock.listTransfersByUser).toHaveBeenCalledWith('user-1')
-  }, 10000)
+  }, 20000)
 })

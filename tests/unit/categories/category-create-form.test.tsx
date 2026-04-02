@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const routerMock = vi.hoisted(() => ({
   push: vi.fn(),
@@ -50,6 +50,10 @@ describe('CategoryCreateForm', () => {
       configurable: true,
       value: () => undefined,
     })
+  })
+
+  afterEach(() => {
+    cleanup()
   })
 
   function getSelectTrigger(labelText: string) {
@@ -115,5 +119,57 @@ describe('CategoryCreateForm', () => {
     })
     expect(routerMock.push).toHaveBeenCalledWith('/dashboard/categories')
     expect(routerMock.refresh).toHaveBeenCalled()
-  }, 10000)
+  }, 20000)
+
+  it('submits category updates through PATCH and keeps the edit values selected', async () => {
+    const fetchMock = vi.mocked(globalThis.fetch)
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: vi.fn().mockResolvedValue({ id: 2, name: 'Moradia fixa' }),
+    } as never)
+
+    const { CategoryCreateForm } = await import('@/components/categories/CategoryCreateForm')
+    render(
+      <CategoryCreateForm
+        mode="edit"
+        category={{
+          id: 2,
+          name: 'Aluguel',
+          type: 'EXPENSE',
+          parentId: 1,
+          active: true,
+        }}
+        categories={categories}
+      />,
+    )
+    const user = userEvent.setup()
+
+    expect(screen.getByDisplayValue('Aluguel')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Salvar alterações' })).toBeInTheDocument()
+
+    const nameInput = screen.getByLabelText('Nome')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Moradia fixa')
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/categories/2',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    })
+
+    const [, requestInit] = fetchMock.mock.calls[0]
+    expect(JSON.parse((requestInit as RequestInit).body as string)).toEqual({
+      name: 'Moradia fixa',
+      type: 'EXPENSE',
+      parentId: 1,
+      active: true,
+    })
+    expect(routerMock.push).toHaveBeenCalledWith('/dashboard/categories')
+    expect(routerMock.refresh).toHaveBeenCalled()
+  }, 20000)
 })

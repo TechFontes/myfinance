@@ -16,6 +16,15 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       update: vi.fn(),
     },
+    account: {
+      findFirst: vi.fn(),
+    },
+    creditCard: {
+      findFirst: vi.fn(),
+    },
+    invoice: {
+      findFirst: vi.fn(),
+    },
   },
 }))
 
@@ -142,6 +151,20 @@ describe('transactions service', () => {
     vi.mocked(prisma.transaction.findFirst).mockResolvedValue({
       id: 10,
       userId: 'user-1',
+      type: 'EXPENSE',
+      description: 'Internet',
+      value: { toString: () => '129.90' },
+      categoryId: 12,
+      accountId: null,
+      creditCardId: null,
+      invoiceId: null,
+      competenceDate: new Date('2026-03-01T00:00:00.000Z'),
+      dueDate: new Date('2026-03-10T00:00:00.000Z'),
+      paidAt: null,
+      status: 'PLANNED',
+      fixed: false,
+      installment: null,
+      installments: null,
     } as never)
     vi.mocked(prisma.transaction.update).mockResolvedValue({
       id: 10,
@@ -206,6 +229,85 @@ describe('transactions service', () => {
 
     expect(updated).toBeNull()
     expect(prisma.transaction.update).not.toHaveBeenCalled()
+  })
+
+  it('allows explicit null updates to remove card and invoice links', async () => {
+    vi.mocked(prisma.account.findFirst).mockResolvedValue({
+      id: 3,
+      userId: 'user-1',
+    } as never)
+    vi.mocked(prisma.transaction.findFirst).mockResolvedValue({
+      id: 11,
+      userId: 'user-1',
+      type: 'EXPENSE',
+      description: 'Compra no cartao',
+      value: { toString: () => '199.90' },
+      categoryId: 12,
+      accountId: null,
+      creditCardId: 8,
+      invoiceId: 21,
+      competenceDate: new Date('2026-03-01T00:00:00.000Z'),
+      dueDate: new Date('2026-03-10T00:00:00.000Z'),
+      paidAt: null,
+      status: 'PENDING',
+      fixed: false,
+      installment: null,
+      installments: null,
+    } as never)
+    vi.mocked(prisma.transaction.update).mockResolvedValue({
+      id: 11,
+      userId: 'user-1',
+      type: 'EXPENSE',
+      description: 'Compra migrada para conta',
+      value: '199.90',
+      categoryId: 12,
+      accountId: 3,
+      creditCardId: null,
+      invoiceId: null,
+      competenceDate: new Date('2026-03-01T00:00:00.000Z'),
+      dueDate: new Date('2026-03-10T00:00:00.000Z'),
+      paidAt: null,
+      status: 'PENDING',
+      fixed: false,
+      recurringRuleId: null,
+      installment: null,
+      installments: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as never)
+
+    const updated = await updateTransactionByUser('user-1', 11, {
+      accountId: 3,
+      creditCardId: null,
+      invoiceId: null,
+      description: 'Compra migrada para conta',
+    })
+
+    expect(prisma.transaction.update).toHaveBeenCalledWith({
+      where: { id: 11 },
+      data: {
+        description: 'Compra migrada para conta',
+        accountId: 3,
+        creditCardId: null,
+        invoiceId: null,
+        type: undefined,
+        value: undefined,
+        categoryId: undefined,
+        competenceDate: undefined,
+        dueDate: undefined,
+        paidAt: undefined,
+        status: undefined,
+        fixed: undefined,
+        installment: undefined,
+        installments: undefined,
+      },
+    })
+    expect(prisma.account.findFirst).toHaveBeenCalledWith({
+      where: { id: 3, userId: 'user-1' },
+      select: { id: true },
+    })
+    expect(updated?.creditCardId).toBeNull()
+    expect(updated?.invoiceId).toBeNull()
   })
 
   it('builds a count query with the same transaction filters', async () => {

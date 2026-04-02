@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 
 type InvoiceTransactionLike = {
   id: number
-  value?: string | number
+  value?: string | number | { toString(): string }
   status?: string | null
   installmentGroupId?: string | null
   installment?: number | null
@@ -20,23 +20,101 @@ export type InstallmentTransactionGroup = {
   transactions: InvoiceTransactionLike[]
 }
 
-export async function listInvoicesByCard(creditCardId: number) {
+type InvoiceRecordLike = {
+  id: number
+  month: number
+  year: number
+  status: 'OPEN' | 'PAID' | 'CANCELED'
+  total?: { toString(): string } | string | number
+  dueDate: Date
+  transactions: InvoiceTransactionLike[]
+  creditCardId?: number
+  creditCard?: unknown
+}
+
+function buildInvoiceInclude() {
+  return {
+    creditCard: true,
+    transactions: {
+      orderBy: [
+        { competenceDate: 'asc' as const },
+        { installment: 'asc' as const },
+        { id: 'asc' as const },
+      ],
+    },
+  }
+}
+
+export function reconcileInvoiceRecord<TInvoice extends InvoiceRecordLike>(invoice: TInvoice) {
+  return {
+    ...invoice,
+    total: calculateInvoiceTotal(invoice.transactions),
+  }
+}
+
+export async function listInvoicesByCard(userId: string, creditCardId: number) {
   const { prisma } = await import('@/lib/prisma')
 
-  return prisma.invoice.findMany({
-    where: { creditCardId },
-    orderBy: [{ year: 'desc' }, { month: 'desc' }],
-    include: {
-      creditCard: true,
-      transactions: {
-        orderBy: [
-          { competenceDate: 'asc' },
-          { installment: 'asc' },
-          { id: 'asc' },
-        ],
+  const invoices = await prisma.invoice.findMany({
+    where: {
+      creditCardId,
+      creditCard: {
+        userId,
       },
     },
+    orderBy: [{ year: 'desc' }, { month: 'desc' }],
+    include: buildInvoiceInclude(),
   })
+
+  return invoices.map((invoice) => reconcileInvoiceRecord(invoice as InvoiceRecordLike))
+}
+
+export async function getInvoiceByIdForUser(userId: string, invoiceId: number) {
+  const { prisma } = await import('@/lib/prisma')
+
+  const invoice = await prisma.invoice.findFirst({
+    where: {
+      id: invoiceId,
+      creditCard: {
+        userId,
+      },
+    },
+    include: buildInvoiceInclude(),
+  })
+
+  if (!invoice) {
+    return null
+  }
+
+  return reconcileInvoiceRecord(invoice as InvoiceRecordLike)
+}
+
+export async function payInvoiceForUser(userId: string, invoiceId: number) {
+  const { prisma } = await import('@/lib/prisma')
+
+  const invoice = await prisma.invoice.findFirst({
+    where: {
+      id: invoiceId,
+      creditCard: {
+        userId,
+      },
+    },
+    include: buildInvoiceInclude(),
+  })
+
+  if (!invoice) {
+    return null
+  }
+
+  const updatedInvoice = await prisma.invoice.update({
+    where: { id: invoiceId },
+    data: {
+      status: 'PAID',
+    },
+    include: buildInvoiceInclude(),
+  })
+
+  return reconcileInvoiceRecord(updatedInvoice as InvoiceRecordLike)
 }
 
 export function normalizeInvoicePeriod(month: number, year: number) {
@@ -69,7 +147,7 @@ export function resolveInvoicePeriod(
   }
 }
 
-function toCents(value: string | number | undefined) {
+function toCents(value: string | number | { toString(): string } | undefined) {
   return Math.round(Number(value ?? 0) * 100)
 }
 

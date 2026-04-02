@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Card } from '@/components/ui/card'
 
 type TransferListItem = {
@@ -81,6 +82,15 @@ export function TransfersList({ transfers }: TransfersListProps) {
               <div className="font-medium text-foreground">Pagamento</div>
               <div>{formatDate(transfer.paidAt)}</div>
             </div>
+          </div>
+
+          <div className="mt-4 flex justify-end">
+            <Link
+              className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+              href={`/dashboard/transfers/${transfer.id}`}
+            >
+              Editar
+            </Link>
           </div>
         </Card>
       ))}

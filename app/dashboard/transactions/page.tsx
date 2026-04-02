@@ -43,6 +43,7 @@ export default async function TransactionsPage() {
             competenceDate: transaction.competenceDate,
             dueDate: transaction.dueDate,
             paidAt: transaction.paidAt ?? null,
+            creditCardId: transaction.creditCardId ?? null,
             category: categoryTransaction.category
             ? {
                 name: categoryTransaction.category.name,

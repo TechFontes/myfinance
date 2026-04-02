@@ -14,26 +14,46 @@ import { cardCreateSchema } from '@/modules/cards'
 
 type CardCreateFormValues = z.input<typeof cardCreateSchema>
 
+type CardFormInitialValues = {
+  id: number
+  name: string
+  limit: string
+  closeDay: number
+  dueDay: number
+  color?: string | null
+  icon?: string | null
+  active: boolean
+}
+
+type CardCreateFormProps = {
+  mode?: 'create' | 'edit'
+  initialValues?: CardFormInitialValues
+}
+
 function normalizeOptionalText(value?: string | null) {
   const normalized = value?.trim() ?? ''
   return normalized.length > 0 ? normalized : undefined
 }
 
-export function CardCreateForm() {
+export function CardCreateForm({
+  mode = 'create',
+  initialValues,
+}: CardCreateFormProps = {}) {
   const router = useRouter()
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const isEditMode = mode === 'edit'
 
   const form = useForm<CardCreateFormValues>({
     resolver: zodResolver(cardCreateSchema),
     defaultValues: {
-      name: '',
-      limit: '',
-      closeDay: '',
-      dueDay: '',
-      color: '',
-      icon: '',
-      active: true,
+      name: initialValues?.name ?? '',
+      limit: initialValues?.limit ?? '',
+      closeDay: initialValues ? String(initialValues.closeDay) : '',
+      dueDay: initialValues ? String(initialValues.dueDay) : '',
+      color: initialValues?.color ?? '',
+      icon: initialValues?.icon ?? '',
+      active: initialValues?.active ?? true,
     },
   })
 
@@ -42,12 +62,13 @@ export function CardCreateForm() {
     setSubmitError(null)
 
     try {
-      const response = await fetch('/api/cards', {
-        method: 'POST',
+      const response = await fetch(isEditMode && initialValues ? `/api/cards/${initialValues.id}` : '/api/cards', {
+        method: isEditMode ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          ...(isEditMode && initialValues ? { id: initialValues.id } : {}),
           name: values.name,
           limit: values.limit,
           closeDay: Number(values.closeDay),
@@ -79,9 +100,13 @@ export function CardCreateForm() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Novo cartão</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {isEditMode ? 'Editar cartão' : 'Novo cartão'}
+        </h1>
         <p className="text-muted-foreground">
-          Cadastre o limite, fechamento e vencimento do cartão.
+          {isEditMode
+            ? 'Atualize limite, fechamento e vencimento do cartão.'
+            : 'Cadastre o limite, fechamento e vencimento do cartão.'}
         </p>
       </div>
 
@@ -195,7 +220,7 @@ export function CardCreateForm() {
               </Button>
 
               <Button type="submit" disabled={loading}>
-                {loading ? 'Salvando...' : 'Salvar cartão'}
+                {loading ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Salvar cartão'}
               </Button>
             </div>
           </form>

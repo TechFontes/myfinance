@@ -64,4 +64,56 @@ describe('card create form', () => {
     })
     expect(routerMock.push).toHaveBeenCalledWith('/dashboard/cards')
   })
+
+  it('supports edit mode through PATCH with prefilled values', async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 9 }),
+    })
+
+    const user = userEvent.setup()
+    render(
+      <CardCreateForm
+        initialValues={{
+          id: 9,
+          name: 'Nubank',
+          limit: '5000.00',
+          closeDay: 10,
+          dueDay: 17,
+          color: '#7a2cff',
+          icon: 'credit-card',
+          active: true,
+        }}
+        mode="edit"
+      />,
+    )
+
+    const nameInput = screen.getByLabelText('Nome')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Nubank Black')
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/cards/9',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    })
+
+    const [, request] = fetchMock.mock.calls[0]
+    expect(JSON.parse(request.body)).toEqual({
+      id: 9,
+      name: 'Nubank Black',
+      limit: '5000.00',
+      closeDay: 10,
+      dueDay: 17,
+      color: '#7a2cff',
+      icon: 'credit-card',
+      active: true,
+    })
+    expect(routerMock.push).toHaveBeenCalledWith('/dashboard/cards')
+  })
 })

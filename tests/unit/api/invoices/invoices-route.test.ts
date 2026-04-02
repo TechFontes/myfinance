@@ -6,18 +6,12 @@ const authMock = vi.hoisted(() => ({
 
 const invoicesMock = vi.hoisted(() => ({
   listInvoicesByCard: vi.fn(),
-}))
-
-const prismaMock = vi.hoisted(() => ({
-  invoice: {
-    findFirst: vi.fn(),
-    update: vi.fn(),
-  },
+  getInvoiceByIdForUser: vi.fn(),
+  payInvoiceForUser: vi.fn(),
 }))
 
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/invoices/service', () => invoicesMock)
-vi.mock('@/lib/prisma', () => ({ prisma: prismaMock }))
 
 import { GET } from '@/api/invoices/route'
 import { GET as GET_BY_ID, PATCH } from '@/api/invoices/[invoiceId]/route'
@@ -44,7 +38,7 @@ describe('invoices api routes', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(invoicesMock.listInvoicesByCard).toHaveBeenCalledWith(7)
+    expect(invoicesMock.listInvoicesByCard).toHaveBeenCalledWith('user-1', 7)
     expect(payload).toEqual([{ id: 1, total: '120.00' }])
   })
 
@@ -59,7 +53,7 @@ describe('invoices api routes', () => {
 
   it('returns the invoice detail for the authenticated user', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    prismaMock.invoice.findFirst.mockResolvedValue({
+    invoicesMock.getInvoiceByIdForUser.mockResolvedValue({
       id: 10,
       status: 'OPEN',
       creditCardId: 7,
@@ -72,7 +66,7 @@ describe('invoices api routes', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(prismaMock.invoice.findFirst).toHaveBeenCalled()
+    expect(invoicesMock.getInvoiceByIdForUser).toHaveBeenCalledWith('user-1', 10)
     expect(payload).toEqual({
       id: 10,
       status: 'OPEN',
@@ -82,7 +76,7 @@ describe('invoices api routes', () => {
 
   it('returns not found when the invoice does not belong to the authenticated user', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    prismaMock.invoice.findFirst.mockResolvedValue(null)
+    invoicesMock.getInvoiceByIdForUser.mockResolvedValue(null)
 
     const response = await GET_BY_ID(
       new Request('http://localhost/api/invoices/999') as never,
@@ -95,12 +89,7 @@ describe('invoices api routes', () => {
 
   it('updates an invoice status for the authenticated user', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    prismaMock.invoice.findFirst.mockResolvedValue({
-      id: 10,
-      status: 'OPEN',
-      creditCardId: 7,
-    })
-    prismaMock.invoice.update.mockResolvedValue({
+    invoicesMock.payInvoiceForUser.mockResolvedValue({
       id: 10,
       status: 'PAID',
       creditCardId: 7,
@@ -119,12 +108,7 @@ describe('invoices api routes', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(200)
-    expect(prismaMock.invoice.update).toHaveBeenCalledWith({
-      where: { id: 10 },
-      data: {
-        status: 'PAID',
-      },
-    })
+    expect(invoicesMock.payInvoiceForUser).toHaveBeenCalledWith('user-1', 10)
     expect(payload).toEqual({
       id: 10,
       status: 'PAID',
@@ -132,13 +116,28 @@ describe('invoices api routes', () => {
     })
   })
 
+  it('returns a validation error when trying to set invoice total manually', async () => {
+    authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+
+    const response = await PATCH(
+      new Request('http://localhost/api/invoices/10', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          id: 10,
+          total: '999.99',
+        }),
+      }) as never,
+      { params: Promise.resolve({ invoiceId: '10' }) },
+    )
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({
+      error: 'Unsupported invoice update field: total',
+    })
+  })
+
   it('returns a validation error when trying to send an unsupported source account with invoice updates', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    prismaMock.invoice.findFirst.mockResolvedValue({
-      id: 10,
-      status: 'OPEN',
-      creditCardId: 7,
-    })
 
     const response = await PATCH(
       new Request('http://localhost/api/invoices/10', {

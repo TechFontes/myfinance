@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { TransfersList } from '@/components/transfers/TransfersList'
+
+afterEach(() => {
+  cleanup()
+})
 
 describe('TransfersList', () => {
   it('renders transfer metadata using the internal movement vocabulary', () => {
@@ -42,6 +46,10 @@ describe('TransfersList', () => {
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('R$ 50,00')
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Paga')
     expect(screen.getByTestId('transfers-list')).toHaveTextContent('Prevista')
+    expect(screen.getAllByRole('link', { name: 'Editar' })[0]).toHaveAttribute(
+      'href',
+      '/dashboard/transfers/1',
+    )
   })
 
   it('renders a fallback label when the transfer description is missing', () => {

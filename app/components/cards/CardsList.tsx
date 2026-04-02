@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -83,6 +84,15 @@ export function CardsList({ cards }: CardsListProps) {
                 </Badge>
               ) : null}
               {card.icon ? <Badge variant="outline">Ícone: {card.icon}</Badge> : null}
+            </div>
+            <div className="pt-2">
+              <Link
+                aria-label={`Editar ${card.name}`}
+                className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                href={`/dashboard/cards/${card.id}/edit`}
+              >
+                Editar
+              </Link>
             </div>
           </div>
         </Card>

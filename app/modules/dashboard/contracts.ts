@@ -15,7 +15,10 @@ export type DashboardSection = (typeof dashboardSections)[number]
 export type DashboardPeriod = {
   mode: DashboardPeriodMode
   month: string
+  year: number
+  monthNumber: number
   label: string
+  shortMonthLabel: string
 }
 
 export type DashboardSummary = {

@@ -40,7 +40,7 @@ describe('goal contributions api route', () => {
       goalId: 1,
       transferId: null,
       amount: '100.00',
-      reflectFinancially: false,
+      kind: 'CONTRIBUTION',
     })
 
     const response = await POST(
@@ -49,6 +49,7 @@ describe('goal contributions api route', () => {
         body: JSON.stringify({
           goalId: 1,
           amount: '100.00',
+          kind: 'CONTRIBUTION',
           mode: 'INFORMATION_ONLY',
           note: 'aporte mensal',
         }),
@@ -61,6 +62,7 @@ describe('goal contributions api route', () => {
     expect(goalsMock.recordGoalContributionForUser).toHaveBeenCalledWith('user-1', {
       goalId: 1,
       amount: '100.00',
+      kind: 'CONTRIBUTION',
       mode: 'INFORMATION_ONLY',
       note: 'aporte mensal',
     })
@@ -69,7 +71,63 @@ describe('goal contributions api route', () => {
       goalId: 1,
       transferId: null,
       amount: '100.00',
-      reflectFinancially: false,
+      kind: 'CONTRIBUTION',
+    })
+  })
+
+  it('forwards reserve withdrawals with financial context', async () => {
+    authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+    goalsMock.recordGoalContributionForUser.mockResolvedValue({
+      id: 23,
+      goalId: 8,
+      transferId: 31,
+      amount: '90.00',
+      kind: 'WITHDRAWAL',
+    })
+
+    const response = await POST(
+      new Request('http://localhost/api/goals/8/contributions', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: '90.00',
+          kind: 'WITHDRAWAL',
+          mode: 'TRANSFER_FROM_RESERVE',
+          counterpartAccountId: 4,
+          movementDate: '2026-04-03',
+        }),
+      }) as never,
+      { params: Promise.resolve({ goalId: '8' }) },
+    )
+
+    expect(response.status).toBe(201)
+    expect(goalsMock.recordGoalContributionForUser).toHaveBeenCalledWith('user-1', {
+      goalId: 8,
+      amount: '90.00',
+      kind: 'WITHDRAWAL',
+      mode: 'TRANSFER_FROM_RESERVE',
+      counterpartAccountId: 4,
+      movementDate: '2026-04-03',
+    })
+  })
+
+  it('returns 400 for invalid financial contribution payloads', async () => {
+    authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+
+    const response = await POST(
+      new Request('http://localhost/api/goals/8/contributions', {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: '90.00',
+          kind: 'WITHDRAWAL',
+          mode: 'TRANSFER_FROM_RESERVE',
+        }),
+      }) as never,
+      { params: Promise.resolve({ goalId: '8' }) },
+    )
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({
+      error: 'Counterparty account is required for financial goal movements',
     })
   })
 

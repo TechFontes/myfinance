@@ -3,6 +3,7 @@ import type {
   GoalContributionInput,
   GoalContributionMode,
   GoalCreateInput,
+  GoalMovementKind,
   GoalRecord,
   GoalStatus,
   GoalUpdateInput,
@@ -14,7 +15,10 @@ describe('goals module types', () => {
       'ACTIVE' | 'COMPLETED' | 'CANCELED'
     >()
     expectTypeOf<GoalContributionMode>().toEqualTypeOf<
-      'INFORMATION_ONLY' | 'TRANSFER_TO_RESERVE'
+      'INFORMATION_ONLY' | 'TRANSFER_TO_RESERVE' | 'TRANSFER_FROM_RESERVE'
+    >()
+    expectTypeOf<GoalMovementKind>().toEqualTypeOf<
+      'CONTRIBUTION' | 'WITHDRAWAL' | 'ADJUSTMENT'
     >()
 
     expectTypeOf<GoalCreateInput>().toMatchTypeOf<{
@@ -37,7 +41,10 @@ describe('goals module types', () => {
     expectTypeOf<GoalContributionInput>().toMatchTypeOf<{
       goalId: number
       amount: string
+      kind?: GoalMovementKind
       mode?: GoalContributionMode
+      counterpartAccountId?: number | null
+      movementDate?: string | null
       note?: string | null
     }>()
   })

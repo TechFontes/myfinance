@@ -40,10 +40,6 @@ function isWithinRange(date: Date, start: Date, end: Date): boolean {
   return date.getTime() >= start.getTime() && date.getTime() <= end.getTime()
 }
 
-function addMonthsUtc(date: Date, amount: number): Date {
-  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + amount, date.getUTCDate()))
-}
-
 export async function listRecurringRulesByUser(userId: string) {
   return prisma.recurringRule.findMany({
     where: { userId },

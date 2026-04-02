@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { prisma } from '@/lib/prisma'
 import {
   buildInvoiceDueDate,
   calculateInvoiceTotal,
@@ -25,12 +24,29 @@ describe('invoice service helpers', () => {
   })
 
   it('lists invoices by credit card with transactions included', async () => {
-    prismaMock.invoice.findMany.mockResolvedValue([{ id: 1 }] as never)
+    prismaMock.invoice.findMany.mockResolvedValue([
+      {
+        id: 1,
+        creditCardId: 7,
+        month: 4,
+        year: 2026,
+        status: 'OPEN',
+        total: { toString: () => '0.00' },
+        dueDate: new Date('2026-04-20T00:00:00.000Z'),
+        creditCard: { id: 7 },
+        transactions: [],
+      },
+    ] as never)
 
-    await listInvoicesByCard(7)
+    await listInvoicesByCard('user-1', 7)
 
     expect(prismaMock.invoice.findMany).toHaveBeenCalledWith({
-      where: { creditCardId: 7 },
+      where: {
+        creditCardId: 7,
+        creditCard: {
+          userId: 'user-1',
+        },
+      },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
       include: {
         creditCard: true,

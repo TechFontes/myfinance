@@ -10,6 +10,8 @@ import type {
   DashboardSummary,
   DashboardTransferSnapshot,
 } from '@/modules/dashboard'
+import { createDashboardPeriod } from '@/modules/dashboard'
+import { reconcileInvoiceRecord } from '@/modules/invoices/service'
 
 type MonthlyTransaction = {
   id: number
@@ -51,6 +53,11 @@ type MonthlyInvoice = {
   total: string | number
   dueDate: Date
   creditCard?: { id: number; name: string } | null
+  transactions: Array<{
+    id: number
+    value: string | number | { toString(): string }
+    status: string | null
+  }>
 }
 
 type MonthlyAccount = {
@@ -78,16 +85,7 @@ function toMonthKey(date: Date) {
 }
 
 function buildPeriod(month: string): DashboardPeriod {
-  const { start } = getMonthWindow(month)
-
-  return {
-    mode: 'MONTHLY',
-    month,
-    label: new Intl.DateTimeFormat('pt-BR', {
-      month: 'long',
-      year: 'numeric',
-    }).format(start),
-  }
+  return createDashboardPeriod(month)
 }
 
 function aggregateSummary(transactions: MonthlyTransaction[]) {
@@ -217,16 +215,20 @@ function buildTransferSnapshots(transfers: MonthlyTransfer[]): DashboardTransfer
 function buildInvoiceSnapshots(invoices: MonthlyInvoice[]): DashboardInvoiceSnapshot[] {
   return invoices
     .filter((invoice) => invoice.status !== 'CANCELED')
-    .map<DashboardInvoiceSnapshot>((invoice) => ({
-      invoiceId: invoice.id,
-      cardId: invoice.creditCard?.id ?? 0,
-      cardName: invoice.creditCard?.name ?? '—',
-      month: invoice.month,
-      year: invoice.year,
-      status: invoice.status,
-      dueDate: invoice.dueDate,
-      total: formatAmount(invoice.total),
-    }))
+    .map<DashboardInvoiceSnapshot>((invoice) => {
+      const reconciledInvoice = reconcileInvoiceRecord(invoice)
+
+      return {
+        invoiceId: invoice.id,
+        cardId: invoice.creditCard?.id ?? 0,
+        cardName: invoice.creditCard?.name ?? '—',
+        month: invoice.month,
+        year: invoice.year,
+        status: invoice.status,
+        dueDate: invoice.dueDate,
+        total: formatAmount(reconciledInvoice.total),
+      }
+    })
 }
 
 function buildAccountSnapshots(
@@ -470,6 +472,14 @@ export async function getDashboardReport(userId: string, month: string): Promise
             name: true,
           },
         },
+        transactions: {
+          select: {
+            id: true,
+            value: true,
+            status: true,
+          },
+          orderBy: [{ competenceDate: 'asc' }, { installment: 'asc' }, { id: 'asc' }],
+        },
       },
       orderBy: { dueDate: 'asc' },
     }),
@@ -536,6 +546,11 @@ export async function getDashboardReport(userId: string, month: string): Promise
     creditCard: invoice.creditCard
       ? { id: invoice.creditCard.id, name: invoice.creditCard.name }
       : null,
+    transactions: invoice.transactions.map((transaction) => ({
+      id: transaction.id,
+      value: transaction.value.toString(),
+      status: transaction.status,
+    })),
   }))
 
   const normalizedAccounts: MonthlyAccount[] = accounts.map((account) => ({

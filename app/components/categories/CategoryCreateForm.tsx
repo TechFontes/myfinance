@@ -39,34 +39,50 @@ type CategoryCreateFormValues = z.input<typeof categoryCreateFormSchema>
 
 type CategoryCreateFormProps = {
   categories: CategoryOption[]
+  mode?: 'create' | 'edit'
+  category?: {
+    id: number
+    name: string
+    type: CategoryType
+    parentId: number | null
+    active: boolean
+  }
 }
 
 function getCategoryTypeLabel(type: CategoryType) {
   return type === 'INCOME' ? 'Receita' : 'Despesa'
 }
 
-export function CategoryCreateForm({ categories }: CategoryCreateFormProps) {
+export function CategoryCreateForm({
+  categories,
+  mode = 'create',
+  category,
+}: CategoryCreateFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   const form = useForm<CategoryCreateFormValues>({
     resolver: zodResolver(categoryCreateFormSchema),
     defaultValues: {
-      name: '',
-      type: 'EXPENSE',
-      parentId: NONE_OPTION,
+      name: category?.name ?? '',
+      type: category?.type ?? 'EXPENSE',
+      parentId: category?.parentId ? String(category.parentId) : NONE_OPTION,
     },
   })
 
+  const [active, setActive] = useState(category?.active ?? true)
   const selectedType = form.watch('type')
   const selectedParentId = form.watch('parentId')
 
   const parentOptions = useMemo(
     () =>
       categories.filter(
-        (category) => category.active && category.type === selectedType,
+        (item) =>
+          item.active &&
+          item.type === selectedType &&
+          (!category || item.id !== category.id),
       ),
-    [categories, selectedType],
+    [categories, category, selectedType],
   )
 
   useEffect(() => {
@@ -79,6 +95,15 @@ export function CategoryCreateForm({ categories }: CategoryCreateFormProps) {
     }
   }, [form, parentOptions, selectedParentId])
 
+  useEffect(() => {
+    form.reset({
+      name: category?.name ?? '',
+      type: category?.type ?? 'EXPENSE',
+      parentId: category?.parentId ? String(category.parentId) : NONE_OPTION,
+    })
+    setActive(category?.active ?? true)
+  }, [category, form, mode])
+
   async function onSubmit(values: CategoryCreateFormValues) {
     setLoading(true)
 
@@ -87,6 +112,7 @@ export function CategoryCreateForm({ categories }: CategoryCreateFormProps) {
         name: string
         type: CategoryType
         parentId?: number
+        active?: boolean
       } = {
         name: values.name.trim(),
         type: values.type,
@@ -96,13 +122,20 @@ export function CategoryCreateForm({ categories }: CategoryCreateFormProps) {
         payload.parentId = Number(values.parentId)
       }
 
-      const response = await fetch('/api/categories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      if (mode === 'edit') {
+        payload.active = active
+      }
+
+      const response = await fetch(
+        mode === 'edit' && category ? `/api/categories/${category.id}` : '/api/categories',
+        {
+          method: mode === 'edit' ? 'PATCH' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      })
+      )
 
       if (!response.ok) {
         throw new Error('Falha ao salvar categoria')
@@ -188,9 +221,24 @@ export function CategoryCreateForm({ categories }: CategoryCreateFormProps) {
               )}
             />
 
+            {mode === 'edit' ? (
+              <div className="flex items-center gap-3 md:col-span-2">
+                <input
+                  checked={active}
+                  className="h-4 w-4 rounded border-border text-primary"
+                  id="active"
+                  onChange={(event) => setActive(event.target.checked)}
+                  type="checkbox"
+                />
+                <label className="text-sm font-medium" htmlFor="active">
+                  Categoria ativa
+                </label>
+              </div>
+            ) : null}
+
             <div className="flex items-center gap-3 md:col-span-2">
               <Button type="submit" disabled={loading}>
-                Salvar categoria
+                {mode === 'edit' ? 'Salvar alterações' : 'Salvar categoria'}
               </Button>
               <Button type="button" variant="ghost" onClick={() => router.push('/dashboard/categories')}>
                 Cancelar

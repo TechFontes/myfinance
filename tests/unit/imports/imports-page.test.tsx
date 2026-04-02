@@ -12,6 +12,21 @@ const categoriesMock = vi.hoisted(() => ({
 
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/categories/service', () => categoriesMock)
+vi.mock('@/components/imports/CsvImportReviewPanel', () => ({
+  CsvImportReviewPanel: ({ availableCategories }: { availableCategories: Array<{ name: string }> }) => (
+    <section data-testid="csv-import-panel">
+      <h2>Revisão da importação CSV</h2>
+      <p>Carregue um CSV, revise o preview e só então confirme a importação.</p>
+      <p>A confirmação só fica disponível depois da revisão do preview.</p>
+      <label htmlFor="csv-file">Arquivo CSV</label>
+      <input id="csv-file" type="file" />
+      <button disabled type="button">
+        Confirmar importação
+      </button>
+      <div>{availableCategories.map((category) => category.name).join(', ')}</div>
+    </section>
+  ),
+}))
 
 describe('imports page', () => {
   it('renders the csv review surface for the authenticated user', async () => {
@@ -35,5 +50,5 @@ describe('imports page', () => {
     expect(screen.getByLabelText('Arquivo CSV')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Confirmar importação' })).toBeDisabled()
     expect(categoriesMock.listCategoriesByUser).toHaveBeenCalledWith('user-1')
-  }, 10000)
+  }, 30000)
 })

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { assertUserOwnsAccounts } from '@/modules/financial-core/invariants'
 import type { TransferCreateInput, TransferUpdateInput } from './contracts'
 
 export type TransferDomainError = Error & { code: string }
@@ -34,6 +35,19 @@ function assertDistinctAccounts(
       'Transfer source and destination accounts must be different',
     )
   }
+}
+
+async function assertTransferAccountsOwnership(
+  userId: string,
+  sourceAccountId: number,
+  destinationAccountId: number,
+) {
+  await assertUserOwnsAccounts(
+    userId,
+    [sourceAccountId, destinationAccountId],
+    'TRANSFER_ACCOUNT_OWNERSHIP',
+    'Transfer accounts must belong to the same user',
+  )
 }
 
 function parseOptionalDate(value?: string | null) {
@@ -89,11 +103,27 @@ export async function listTransfersByUser(userId: string): Promise<TransferRecor
   return transfers.map(mapTransferRecord)
 }
 
+export async function getTransferByUser(
+  userId: string,
+  transferId: number,
+): Promise<TransferRecord | null> {
+  const transfer = await prisma.transfer.findFirst({
+    where: { id: transferId, userId },
+  })
+
+  return transfer ? mapTransferRecord(transfer) : null
+}
+
 export async function createTransferForUser(
   userId: string,
   input: TransferCreateInput,
 ): Promise<TransferRecord> {
   assertDistinctAccounts(input.sourceAccountId, input.destinationAccountId)
+  await assertTransferAccountsOwnership(
+    userId,
+    input.sourceAccountId,
+    input.destinationAccountId,
+  )
 
   const transfer = await prisma.transfer.create({
     data: {
@@ -130,6 +160,11 @@ export async function updateTransferForUser(
     input.destinationAccountId ?? transfer.destinationAccountId
 
   assertDistinctAccounts(nextSourceAccountId, nextDestinationAccountId)
+  await assertTransferAccountsOwnership(
+    userId,
+    nextSourceAccountId,
+    nextDestinationAccountId,
+  )
 
   const updatedTransfer = await prisma.transfer.update({
     where: { id: transferId },

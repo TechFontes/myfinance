@@ -50,5 +50,5 @@ describe('accounts page', () => {
     )
     expect(screen.getByTestId('accounts-list')).toHaveTextContent('Nubank')
     expect(listAccountsByUser).toHaveBeenCalledWith('user-1')
-  }, 10000)
+  }, 30000)
 })

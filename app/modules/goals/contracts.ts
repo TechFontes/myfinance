@@ -3,12 +3,15 @@ export const goalStatuses = ['ACTIVE', 'COMPLETED', 'CANCELED'] as const
 export const goalContributionModes = [
   'INFORMATION_ONLY',
   'TRANSFER_TO_RESERVE',
+  'TRANSFER_FROM_RESERVE',
 ] as const
+export const goalMovementKinds = ['CONTRIBUTION', 'WITHDRAWAL', 'ADJUSTMENT'] as const
 
 export const goalsEditScopes = ['THIS_GOAL', 'THIS_AND_FUTURE'] as const
 
 export type GoalStatus = (typeof goalStatuses)[number]
 export type GoalContributionMode = (typeof goalContributionModes)[number]
+export type GoalMovementKind = (typeof goalMovementKinds)[number]
 export type GoalEditScope = (typeof goalsEditScopes)[number]
 
 export type GoalRecord = {
@@ -39,6 +42,9 @@ export type GoalUpdateInput = Partial<GoalCreateInput> & {
 export type GoalContributionInput = {
   goalId: number
   amount: string
+  kind?: GoalMovementKind
   mode?: GoalContributionMode
+  counterpartAccountId?: number | null
+  movementDate?: string | null
   note?: string | null
 }

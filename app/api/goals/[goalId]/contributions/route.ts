@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { ZodError } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import { recordGoalContributionForUser } from '@/modules/goals/service'
 import { goalContributionSchema } from '@/modules/goals'
@@ -26,15 +27,33 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid goal id' }, { status: 400 })
   }
 
-  const payload = goalContributionSchema.parse({
-    ...(await request.json()),
-    goalId,
-  })
-  const contribution = await recordGoalContributionForUser(user.id, payload)
+  try {
+    const payload = goalContributionSchema.parse({
+      ...(await request.json()),
+      goalId,
+    })
+    const contribution = await recordGoalContributionForUser(user.id, payload)
 
-  if (!contribution) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (!contribution) {
+      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(contribution, { status: 201 })
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0]?.message ?? 'Invalid goal movement payload' },
+        { status: 400 },
+      )
+    }
+
+    if (error && typeof error === 'object' && 'code' in error) {
+      return NextResponse.json(
+        { error: (error as { message?: string }).message ?? 'Invalid goal movement payload' },
+        { status: 400 },
+      )
+    }
+
+    throw error
   }
-
-  return NextResponse.json(contribution, { status: 201 })
 }

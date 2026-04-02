@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import {
   Card,
   CardContent,
@@ -23,6 +24,7 @@ export type TransactionsListItem = {
   competenceDate: Date | string
   dueDate: Date | string
   paidAt?: Date | string | null
+  creditCardId?: number | null
   category?: { name: string | null } | null
 }
 
@@ -70,6 +72,13 @@ function statusClass(status: TransactionsListItem['status']) {
 
 function typeLabel(type: TransactionsListItem['type']) {
   return type === 'INCOME' ? 'Receita' : 'Despesa'
+}
+
+function canRegisterPayment(transaction: TransactionsListItem) {
+  return (
+    (transaction.status === 'PLANNED' || transaction.status === 'PENDING') &&
+    transaction.creditCardId == null
+  )
 }
 
 export function TransactionsList({ transactions }: TransactionsListProps) {
@@ -135,12 +144,13 @@ export function TransactionsList({ transactions }: TransactionsListProps) {
                 <th className="p-3 text-left font-medium">Vencimento</th>
                 <th className="p-3 text-left font-medium">Pagamento</th>
                 <th className="p-3 text-left font-medium">Status</th>
+                <th className="p-3 text-right font-medium">Ações</th>
               </tr>
             </thead>
             <tbody>
               {transactions.length === 0 ? (
                 <tr>
-                  <td className="p-4 text-muted-foreground" colSpan={8}>
+                  <td className="p-4 text-muted-foreground" colSpan={9}>
                     Nenhuma transação encontrada.
                   </td>
                 </tr>
@@ -160,6 +170,24 @@ export function TransactionsList({ transactions }: TransactionsListProps) {
                       <Badge className={statusClass(transaction.status)}>
                         {statusLabel(transaction.status)}
                       </Badge>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex justify-end gap-2">
+                        <Link
+                          className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                          href={`/dashboard/transactions/${transaction.id}`}
+                        >
+                          Editar
+                        </Link>
+                        {canRegisterPayment(transaction) ? (
+                          <Link
+                            className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-500/15"
+                            href={`/dashboard/transactions/${transaction.id}?action=pay`}
+                          >
+                            Informar pagamento
+                          </Link>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))

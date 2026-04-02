@@ -43,6 +43,21 @@ export async function listAccountsByUser(userId: string): Promise<AccountRecord[
   return accounts.map(mapAccountRecord)
 }
 
+export async function getAccountByIdForUser(
+  userId: string,
+  accountId: number,
+): Promise<AccountRecord | null> {
+  const account = await prisma.account.findFirst({
+    where: { id: accountId, userId },
+  })
+
+  if (!account) {
+    return null
+  }
+
+  return mapAccountRecord(account)
+}
+
 export async function createAccountForUser(
   userId: string,
   input: AccountCreateInput,

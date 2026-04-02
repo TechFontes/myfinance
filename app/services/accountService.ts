@@ -1,6 +1,7 @@
 export {
   createAccountForUser,
   deactivateAccountForUser,
+  getAccountByIdForUser,
   listAccountsByUser,
   setAccountActiveState,
   updateAccountForUser,

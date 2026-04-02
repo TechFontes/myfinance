@@ -44,6 +44,17 @@ export async function listCardsByUser(userId: string): Promise<CreditCardRecord[
   return cards.map(mapCreditCardRecord)
 }
 
+export async function getCardByUser(userId: string, cardId: number): Promise<CreditCardRecord | null> {
+  const card = await prisma.creditCard.findFirst({
+    where: {
+      id: cardId,
+      userId,
+    },
+  })
+
+  return card ? mapCreditCardRecord(card) : null
+}
+
 export async function createCardForUser(
   userId: string,
   input: CreditCardCreateInput,

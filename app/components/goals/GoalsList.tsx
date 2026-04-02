@@ -1,9 +1,19 @@
+'use client'
+
+import Link from 'next/link'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import type { GoalRecord } from '@/modules/goals'
+import { GoalMovementForm } from './GoalMovementForm'
 
 type GoalsListProps = {
   goals: GoalRecord[]
+  accounts?: Array<{
+    id: number
+    name: string
+  }>
   showIntro?: boolean
 }
 
@@ -25,7 +35,9 @@ function getStatusLabel(status: GoalRecord['status']) {
   }
 }
 
-export function GoalsList({ goals, showIntro = true }: GoalsListProps) {
+export function GoalsList({ goals, accounts = [], showIntro = true }: GoalsListProps) {
+  const [activeAction, setActiveAction] = useState<Record<number, 'contribute' | 'withdraw' | 'adjust' | null>>({})
+
   if (goals.length === 0) {
     return (
       <Card className="border-dashed p-6 text-sm text-muted-foreground">
@@ -49,6 +61,8 @@ export function GoalsList({ goals, showIntro = true }: GoalsListProps) {
             Number(goal.targetAmount) === 0
               ? 0
               : Math.min(100, Math.round((Number(goal.currentAmount) / Number(goal.targetAmount)) * 100))
+          const reserveAccountLabel = accounts.find((account) => account.id === goal.reserveAccountId)?.name
+          const currentAction = activeAction[goal.id]
 
           return (
             <Card key={goal.id} className="p-4">
@@ -91,11 +105,76 @@ export function GoalsList({ goals, showIntro = true }: GoalsListProps) {
                     <div className="font-medium text-foreground">Reserva</div>
                     <div>
                       {goal.reserveAccountId
-                        ? `Conta de reserva #${goal.reserveAccountId}`
+                        ? reserveAccountLabel ?? `Conta de reserva #${goal.reserveAccountId}`
                         : 'Sem conta de reserva vinculada'}
                     </div>
                   </div>
                 </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={currentAction === 'contribute' ? 'default' : 'outline'}
+                    onClick={() =>
+                      setActiveAction((state) => ({
+                        ...state,
+                        [goal.id]: currentAction === 'contribute' ? null : 'contribute',
+                      }))
+                    }
+                  >
+                    Aportar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={currentAction === 'withdraw' ? 'default' : 'outline'}
+                    onClick={() =>
+                      setActiveAction((state) => ({
+                        ...state,
+                        [goal.id]: currentAction === 'withdraw' ? null : 'withdraw',
+                      }))
+                    }
+                  >
+                    Resgatar
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={currentAction === 'adjust' ? 'default' : 'outline'}
+                    onClick={() =>
+                      setActiveAction((state) => ({
+                        ...state,
+                        [goal.id]: currentAction === 'adjust' ? null : 'adjust',
+                      }))
+                    }
+                  >
+                    Ajustar
+                  </Button>
+                  <Link
+                    aria-label={`Editar ${goal.name}`}
+                    className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                    href={`/dashboard/goals/${goal.id}/edit`}
+                  >
+                    Editar
+                  </Link>
+                </div>
+
+                {currentAction ? (
+                  <GoalMovementForm
+                    action={currentAction}
+                    accounts={accounts}
+                    goalId={goal.id}
+                    goalName={goal.name}
+                    reserveAccountId={goal.reserveAccountId}
+                    onSuccess={() => {
+                      setActiveAction((state) => ({
+                        ...state,
+                        [goal.id]: null,
+                      }))
+                    }}
+                  />
+                ) : null}
               </div>
             </Card>
           )

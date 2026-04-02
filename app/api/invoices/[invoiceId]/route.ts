@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { invoiceUpdateSchema } from '@/modules/invoices'
+import { getInvoiceByIdForUser, payInvoiceForUser } from '@/modules/invoices/service'
 
 export async function GET(
   _request: NextRequest,
@@ -15,20 +14,7 @@ export async function GET(
 
   const { invoiceId: invoiceIdParam } = await params
   const invoiceId = Number(invoiceIdParam)
-  const invoice = await prisma.invoice.findFirst({
-    where: {
-      id: invoiceId,
-      creditCard: {
-        userId: user.id,
-      },
-    },
-    include: {
-      creditCard: true,
-      transactions: {
-        orderBy: [{ competenceDate: 'asc' }, { installment: 'asc' }, { id: 'asc' }],
-      },
-    },
-  })
+  const invoice = await getInvoiceByIdForUser(user.id, invoiceId)
 
   if (!invoice) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -57,35 +43,27 @@ export async function PATCH(
     )
   }
 
-  const payload = invoiceUpdateSchema.parse({
-    ...body,
-    id: Number(invoiceIdParam),
-  })
-
-  const invoice = await prisma.invoice.findFirst({
-    where: {
-      id: Number(invoiceIdParam),
-      creditCard: {
-        userId: user.id,
-      },
-    },
-  })
-
-  if (!invoice) {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if ('total' in body) {
+    return NextResponse.json(
+      { error: 'Unsupported invoice update field: total' },
+      { status: 400 },
+    )
   }
 
-  const updatedInvoice = await prisma.invoice.update({
-    where: { id: Number(invoiceIdParam) },
-    data: {
-      creditCardId: payload.creditCardId,
-      month: payload.month,
-      year: payload.year,
-      dueDate: payload.dueDate,
-      status: payload.status,
-      total: payload.total,
-    },
-  })
+  const invoiceId = Number(invoiceIdParam)
+
+  if (body.status !== 'PAID') {
+    return NextResponse.json(
+      { error: 'Unsupported invoice update operation' },
+      { status: 400 },
+    )
+  }
+
+  const updatedInvoice = await payInvoiceForUser(user.id, invoiceId)
+
+  if (!updatedInvoice) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
 
   return NextResponse.json(updatedInvoice)
 }

@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma'
+import { assertUserOwnsAccount } from '@/modules/financial-core/invariants'
 import type {
+  GoalContributionMode,
   GoalContributionInput,
+  GoalMovementKind,
   GoalCreateInput,
   GoalRecord,
   GoalUpdateInput,
@@ -10,12 +13,14 @@ type GoalContributionWithTransferInput = GoalContributionInput & {
   transferId?: number | null
 }
 
+export type GoalDomainError = Error & { code: string }
+
 type GoalContributionRecord = {
   id: number
   goalId: number
   transferId: number | null
   amount: { toString(): string }
-  reflectFinancially: boolean
+  kind: GoalMovementKind
   createdAt: Date
   updatedAt: Date
 }
@@ -31,6 +36,7 @@ type GoalWithContributions = {
   updatedAt: Date
   contributions?: Array<{
     amount: { toString(): string }
+    kind: GoalMovementKind
   }>
 }
 
@@ -42,11 +48,99 @@ function fromCents(value: number) {
   return (value / 100).toFixed(2)
 }
 
-function resolveCurrentAmount(contributions: GoalWithContributions['contributions']) {
+function createGoalError(code: string, message: string): GoalDomainError {
+  const error = new Error(message) as GoalDomainError
+  error.code = code
+  return error
+}
+
+async function assertReserveAccountOwnership(
+  userId: string,
+  reserveAccountId?: number | null,
+) {
+  if (reserveAccountId == null) {
+    return
+  }
+
+  await assertUserOwnsAccount(
+    userId,
+    reserveAccountId,
+    'GOAL_RESERVE_ACCOUNT_OWNERSHIP',
+    'Goal reserve account must belong to the user',
+  )
+}
+
+function resolveMovementDate(value?: string | null) {
+  if (!value) {
+    return new Date()
+  }
+
+  return new Date(`${value}T00:00:00.000Z`)
+}
+
+function buildGoalTransferDescription(goalName: string, mode: GoalContributionMode) {
+  if (mode === 'TRANSFER_FROM_RESERVE') {
+    return `Resgate da meta: ${goalName}`
+  }
+
+  return `Aporte para meta: ${goalName}`
+}
+
+function resolveGoalTransferAccounts(
+  goal: { reserveAccountId: number | null },
+  input: GoalContributionInput,
+) {
+  if (!goal.reserveAccountId) {
+    throw createGoalError(
+      'GOAL_RESERVE_ACCOUNT_REQUIRED',
+      'Goal reserve account is required for financial movements',
+    )
+  }
+
+  if (!input.counterpartAccountId) {
+    throw createGoalError(
+      'GOAL_COUNTERPART_ACCOUNT_REQUIRED',
+      'Counterparty account is required for financial goal movements',
+    )
+  }
+
+  if (input.mode === 'TRANSFER_TO_RESERVE') {
+    return {
+      sourceAccountId: input.counterpartAccountId,
+      destinationAccountId: goal.reserveAccountId,
+    }
+  }
+
+  if (input.mode === 'TRANSFER_FROM_RESERVE') {
+    return {
+      sourceAccountId: goal.reserveAccountId,
+      destinationAccountId: input.counterpartAccountId,
+    }
+  }
+
+  return null
+}
+
+export function getGoalMovementSignedAmount(movement: {
+  amount: string | number | { toString(): string }
+  kind: GoalMovementKind
+}) {
+  const normalizedAmount = fromCents(toCents(movement.amount))
+
+  if (movement.kind === 'WITHDRAWAL') {
+    return `-${normalizedAmount}`
+  }
+
+  return normalizedAmount
+}
+
+export function deriveGoalCurrentAmount(contributions: GoalWithContributions['contributions']) {
   const safeContributions = contributions ?? []
 
   const total = safeContributions.reduce((sum, contribution) => {
-    return sum + toCents(contribution.amount)
+    const signal = contribution.kind === 'WITHDRAWAL' ? -1 : 1
+
+    return sum + signal * toCents(contribution.amount)
   }, 0)
 
   return fromCents(total)
@@ -60,7 +154,7 @@ function mapGoal(goal: GoalWithContributions): GoalRecord {
     userId: goal.userId,
     name: goal.name,
     targetAmount: goal.targetAmount.toString(),
-    currentAmount: resolveCurrentAmount(contributions),
+    currentAmount: deriveGoalCurrentAmount(contributions),
     reserveAccountId: goal.reserveAccountId,
     status: goal.status,
     description: null,
@@ -75,7 +169,7 @@ export async function listGoalsByUser(userId: string): Promise<GoalRecord[]> {
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     include: {
       contributions: {
-        select: { amount: true },
+        select: { amount: true, kind: true },
       },
     },
   })
@@ -83,10 +177,28 @@ export async function listGoalsByUser(userId: string): Promise<GoalRecord[]> {
   return goals.map((goal: unknown) => mapGoal(goal as GoalWithContributions))
 }
 
+export async function getGoalByUser(userId: string, goalId: number): Promise<GoalRecord | null> {
+  const goal = await prisma.goal.findFirst({
+    where: {
+      id: goalId,
+      userId,
+    },
+    include: {
+      contributions: {
+        select: { amount: true, kind: true },
+      },
+    },
+  })
+
+  return goal ? mapGoal(goal as unknown as GoalWithContributions) : null
+}
+
 export async function createGoalForUser(
   userId: string,
   input: GoalCreateInput,
 ): Promise<GoalRecord> {
+  await assertReserveAccountOwnership(userId, input.reserveAccountId)
+
   const goal = await prisma.goal.create({
     data: {
       userId,
@@ -97,7 +209,7 @@ export async function createGoalForUser(
     },
     include: {
       contributions: {
-        select: { amount: true },
+        select: { amount: true, kind: true },
       },
     },
   })
@@ -117,6 +229,8 @@ export async function updateGoalForUser(
   if (!goal) {
     return null
   }
+
+  await assertReserveAccountOwnership(userId, input.reserveAccountId)
 
   const data: {
     name?: string
@@ -146,7 +260,7 @@ export async function updateGoalForUser(
     data,
     include: {
       contributions: {
-        select: { amount: true },
+        select: { amount: true, kind: true },
       },
     },
   })
@@ -166,12 +280,63 @@ export async function recordGoalContributionForUser(
     return null
   }
 
-  return prisma.goalContribution.create({
-    data: {
-      goalId: input.goalId,
-      amount: input.amount,
-      reflectFinancially: input.mode === 'TRANSFER_TO_RESERVE',
-      transferId: input.mode === 'TRANSFER_TO_RESERVE' ? input.transferId ?? null : null,
-    },
+  const kind = input.kind ?? 'CONTRIBUTION'
+  const mode = input.mode ?? 'INFORMATION_ONLY'
+
+  if (mode === 'INFORMATION_ONLY') {
+    return prisma.goalContribution.create({
+      data: {
+        goalId: input.goalId,
+        amount: input.amount,
+        kind,
+        transferId: null,
+      },
+    })
+  }
+
+  const transferAccounts = resolveGoalTransferAccounts(goal, input)
+
+  if (!transferAccounts) {
+    throw createGoalError('GOAL_FINANCIAL_MODE_INVALID', 'Invalid goal financial mode')
+  }
+
+  await assertUserOwnsAccount(
+    userId,
+    transferAccounts.sourceAccountId,
+    'GOAL_MOVEMENT_ACCOUNT_OWNERSHIP',
+    'Goal movement source account must belong to the user',
+  )
+  await assertUserOwnsAccount(
+    userId,
+    transferAccounts.destinationAccountId,
+    'GOAL_MOVEMENT_ACCOUNT_OWNERSHIP',
+    'Goal movement destination account must belong to the user',
+  )
+
+  const movementDate = resolveMovementDate(input.movementDate)
+
+  return prisma.$transaction(async (tx) => {
+    const transfer = await tx.transfer.create({
+      data: {
+        userId,
+        sourceAccountId: transferAccounts.sourceAccountId,
+        destinationAccountId: transferAccounts.destinationAccountId,
+        amount: input.amount,
+        description: buildGoalTransferDescription(goal.name, mode),
+        competenceDate: movementDate,
+        dueDate: movementDate,
+        paidAt: movementDate,
+        status: 'PAID',
+      },
+    })
+
+    return tx.goalContribution.create({
+      data: {
+        goalId: input.goalId,
+        amount: input.amount,
+        kind,
+        transferId: transfer.id,
+      },
+    })
   })
 }

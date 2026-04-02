@@ -1,8 +1,10 @@
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import type { AccountRecord } from '@/modules/accounts'
 import { LandmarkIcon, WalletIcon, CreditCardIcon, PaletteIcon } from 'lucide-react'
+import Link from 'next/link'
 
 type AccountsListProps = {
   accounts: AccountRecord[]
@@ -90,6 +92,13 @@ export function AccountsList({ accounts }: AccountsListProps) {
                 </Badge>
               ) : null}
               {account.icon ? <Badge variant="outline">Ícone: {account.icon}</Badge> : null}
+            </div>
+            <div className="pt-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/dashboard/accounts/${account.id}`} aria-label={`Editar ${account.name}`}>
+                  Editar
+                </Link>
+              </Button>
             </div>
           </div>
         </Card>

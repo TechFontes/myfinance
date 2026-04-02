@@ -13,7 +13,14 @@ describe('dashboard report view', () => {
       <DashboardReportView
         availableMonths={['2026-02', '2026-03']}
         report={{
-          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          period: {
+            mode: 'MONTHLY',
+            month: '2026-03',
+            year: 2026,
+            monthNumber: 3,
+            shortMonthLabel: 'mar',
+            label: 'março de 2026',
+          },
           summary: {
             forecastIncome: '1000.00',
             forecastExpense: '250.00',
@@ -39,6 +46,13 @@ describe('dashboard report view', () => {
     expect(
       screen.getByRole('link', { name: 'Nova transação' }),
     ).toHaveAttribute('href', '/dashboard/transactions/new')
+    expect(screen.getByText('Períodos disponíveis')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Geral' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'A receber' })).toHaveAttribute(
+      'href',
+      '/dashboard?view=receivable&month=2026-03',
+    )
+    expect(screen.getByText('Projetado vs realizado')).toBeInTheDocument()
   })
 
   it('renders patrimonial summary cards with stronger financial semantics', () => {
@@ -46,7 +60,14 @@ describe('dashboard report view', () => {
       <DashboardReportView
         availableMonths={['2026-03']}
         report={{
-          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          period: {
+            mode: 'MONTHLY',
+            month: '2026-03',
+            year: 2026,
+            monthNumber: 3,
+            shortMonthLabel: 'mar',
+            label: 'março de 2026',
+          },
           summary: {
             forecastIncome: '1000.00',
             forecastExpense: '250.00',
@@ -65,15 +86,21 @@ describe('dashboard report view', () => {
     )
 
     expect(screen.getByText('Projeção')).toBeInTheDocument()
-    expect(screen.getByText('Realizado')).toBeInTheDocument()
+    expect(screen.getAllByText('Realizado').length).toBeGreaterThan(0)
     expect(screen.getByText('Saldo previsto')).toBeInTheDocument()
     expect(screen.getByText('Saldo realizado')).toBeInTheDocument()
-    expect(screen.getAllByText('Receitas')).toHaveLength(2)
-    expect(screen.getAllByText('Despesas')).toHaveLength(2)
+    expect(screen.getAllByText('Receitas').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText('Despesas').length).toBeGreaterThanOrEqual(2)
     expect(screen.getAllByText('Posição patrimonial do período')).toHaveLength(2)
 
-    const incomePanels = screen.getAllByText('Receitas').map((label) => label.closest('.rounded-2xl'))
-    const expensePanels = screen.getAllByText('Despesas').map((label) => label.closest('.rounded-2xl'))
+    const incomePanels = screen
+      .getAllByText('Receitas')
+      .filter((label) => label.classList.contains('text-emerald-900'))
+      .map((label) => label.closest('.rounded-2xl'))
+    const expensePanels = screen
+      .getAllByText('Despesas')
+      .filter((label) => label.classList.contains('text-rose-900'))
+      .map((label) => label.closest('.rounded-2xl'))
 
     for (const panel of incomePanels) {
       expect(panel).toHaveClass('bg-emerald-500/12')
@@ -85,8 +112,12 @@ describe('dashboard report view', () => {
       expect(panel).toHaveClass('border-rose-500/35')
     }
 
-    const incomeLabels = screen.getAllByText('Receitas')
-    const expenseLabels = screen.getAllByText('Despesas')
+    const incomeLabels = screen
+      .getAllByText('Receitas')
+      .filter((label) => label.classList.contains('text-emerald-900'))
+    const expenseLabels = screen
+      .getAllByText('Despesas')
+      .filter((label) => label.classList.contains('text-rose-900'))
 
     for (const label of incomeLabels) {
       expect(label).toHaveClass('text-emerald-900')
@@ -102,9 +133,17 @@ describe('dashboard report view', () => {
   it('renders the consolidated monthly sections and data', () => {
     render(
       <DashboardReportView
+        selectedView="consolidated"
         availableMonths={['2026-02', '2026-03']}
         report={{
-          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          period: {
+            mode: 'MONTHLY',
+            month: '2026-03',
+            year: 2026,
+            monthNumber: 3,
+            shortMonthLabel: 'mar',
+            label: 'março de 2026',
+          },
           summary: {
             forecastIncome: '1000.00',
             forecastExpense: '250.00',
@@ -168,31 +207,39 @@ describe('dashboard report view', () => {
     )
 
     expect(screen.getByRole('heading', { name: 'Visão geral' })).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Período' })).toHaveValue('2026-03')
-    expect(screen.getByText('Saldo previsto')).toBeInTheDocument()
-    expect(screen.getByText('Saldo realizado')).toBeInTheDocument()
-    expect(screen.getByText('Pendências')).toBeInTheDocument()
-    expect(screen.getByText('Lançamentos previstos e pendentes do período.')).toBeInTheDocument()
+    expect(screen.queryByRole('combobox', { name: 'Período' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: '2026' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'mar' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Consolidados' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.queryByText('Saldo previsto')).not.toBeInTheDocument()
+    expect(screen.queryByText('Pendências')).not.toBeInTheDocument()
     expect(screen.getByText('Contas')).toBeInTheDocument()
     expect(screen.getByText('Posição consolidada de caixa no período.')).toBeInTheDocument()
     expect(screen.getByText('Categorias')).toBeInTheDocument()
     expect(screen.getByText('Categorias com maior impacto no período.')).toBeInTheDocument()
-    expect(screen.getByText('Cartões')).toBeInTheDocument()
+    expect(screen.getByText('Cartões e faturas')).toBeInTheDocument()
     expect(screen.getByText('Resumo das faturas em aberto, pagas ou canceladas.')).toBeInTheDocument()
     expect(screen.getByText('Movimentações internas')).toBeInTheDocument()
     expect(screen.getByText('Movimentos entre contas, separados de receitas e despesas.')).toBeInTheDocument()
     expect(screen.getAllByText('Nubank').length).toBeGreaterThan(0)
     expect(screen.getByText('Moradia')).toBeInTheDocument()
-    expect(screen.getByText('Cartões e faturas')).toBeInTheDocument()
     expect(screen.getAllByText('março de 2026').length).toBeGreaterThan(0)
   })
 
   it('renders richer empty states and highlighted section chrome', () => {
     render(
       <DashboardReportView
+        selectedView="consolidated"
         availableMonths={['2026-03']}
         report={{
-          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          period: {
+            mode: 'MONTHLY',
+            month: '2026-03',
+            year: 2026,
+            monthNumber: 3,
+            shortMonthLabel: 'mar',
+            label: 'março de 2026',
+          },
           summary: {
             forecastIncome: '0.00',
             forecastExpense: '0.00',
@@ -211,11 +258,6 @@ describe('dashboard report view', () => {
     )
 
     expect(screen.getByText('Nenhuma conta patrimonial registrada neste período.')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Quando houver lançamentos previstos, este painel destacará vencimentos e valores com leitura patrimonial.',
-      ),
-    ).toBeInTheDocument()
     expect(
       screen.getByText(
         'Quando houver contas patrimoniais, este painel destacará saldos, tipo e status de cada posição.',
@@ -246,7 +288,14 @@ describe('dashboard report view', () => {
       <DashboardReportView
         availableMonths={['2026-03']}
         report={{
-          period: { mode: 'MONTHLY', month: '2026-03', label: 'março de 2026' },
+          period: {
+            mode: 'MONTHLY',
+            month: '2026-03',
+            year: 2026,
+            monthNumber: 3,
+            shortMonthLabel: 'mar',
+            label: 'março de 2026',
+          },
           summary: {
             forecastIncome: '1000.00',
             forecastExpense: '250.00',

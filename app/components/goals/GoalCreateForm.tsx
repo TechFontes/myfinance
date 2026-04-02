@@ -30,25 +30,41 @@ const goalCreateFormSchema = z.object({
 
 type GoalCreateFormValues = z.input<typeof goalCreateFormSchema>
 
+type GoalFormInitialValues = {
+  id: number
+  name: string
+  targetAmount: string
+  reserveAccountId?: number | null
+  status: 'ACTIVE' | 'COMPLETED' | 'CANCELED'
+  description?: string | null
+}
+
 type GoalCreateFormProps = {
   accounts: Array<{
     id: number
     name: string
   }>
+  mode?: 'create' | 'edit'
+  initialValues?: GoalFormInitialValues
 }
 
-export function GoalCreateForm({ accounts }: GoalCreateFormProps) {
+export function GoalCreateForm({
+  accounts,
+  mode = 'create',
+  initialValues,
+}: GoalCreateFormProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const isEditMode = mode === 'edit'
 
   const form = useForm<GoalCreateFormValues>({
     resolver: zodResolver(goalCreateFormSchema),
     defaultValues: {
-      name: '',
-      targetAmount: '',
-      reserveAccountId: NONE_OPTION,
-      status: 'ACTIVE',
-      description: '',
+      name: initialValues?.name ?? '',
+      targetAmount: initialValues?.targetAmount ?? '',
+      reserveAccountId: initialValues?.reserveAccountId ? String(initialValues.reserveAccountId) : NONE_OPTION,
+      status: initialValues?.status ?? 'ACTIVE',
+      description: initialValues?.description ?? '',
     },
   })
 
@@ -56,12 +72,13 @@ export function GoalCreateForm({ accounts }: GoalCreateFormProps) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/goals', {
-        method: 'POST',
+      const response = await fetch(isEditMode && initialValues ? `/api/goals/${initialValues.id}` : '/api/goals', {
+        method: isEditMode ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          ...(isEditMode && initialValues ? { id: initialValues.id } : {}),
           name: values.name.trim(),
           targetAmount: values.targetAmount.trim(),
           reserveAccountId:
@@ -89,9 +106,13 @@ export function GoalCreateForm({ accounts }: GoalCreateFormProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight">Nova meta</h1>
+        <h1 className="text-3xl font-bold tracking-tight">
+          {isEditMode ? 'Editar meta' : 'Nova meta'}
+        </h1>
         <p className="text-muted-foreground">
-          Crie uma meta com conta de reserva opcional e status inicial ativo.
+          {isEditMode
+            ? 'Atualize valor-alvo, reserva e status da meta.'
+            : 'Crie uma meta com conta de reserva opcional e status inicial ativo.'}
         </p>
       </div>
 
@@ -200,7 +221,7 @@ export function GoalCreateForm({ accounts }: GoalCreateFormProps) {
 
               <div className="md:col-span-2 flex justify-end">
                 <Button type="submit" disabled={loading}>
-                  {loading ? 'Criando...' : 'Criar meta'}
+                  {loading ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Criar meta'}
                 </Button>
               </div>
             </form>

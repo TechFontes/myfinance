@@ -103,4 +103,69 @@ describe('account create form', () => {
     expect(routerPushMock).toHaveBeenCalledWith('/dashboard/accounts')
     expect(routerRefreshMock).toHaveBeenCalledTimes(1)
   }, 10000)
+
+  it('reuses the form for editing and submits a patch payload', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: 12 }),
+    })
+
+    const { AccountCreateForm } = await import('@/components/accounts/AccountCreateForm')
+
+    const user = userEvent.setup()
+    render(
+      <AccountCreateForm
+        mode="edit"
+        account={{
+          id: 12,
+          userId: 'user-1',
+          name: 'Carteira antiga',
+          type: 'WALLET',
+          initialBalance: '250.00',
+          institution: 'Casa',
+          color: '#123456',
+          icon: 'wallet',
+          active: true,
+        }}
+      />,
+    )
+
+    expect(screen.getByDisplayValue('Carteira antiga')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('250.00')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Salvar alterações' })).toBeInTheDocument()
+
+    await user.clear(screen.getByLabelText('Nome'))
+    await user.type(screen.getByLabelText('Nome'), 'Carteira atualizada')
+    await user.clear(screen.getByLabelText('Instituição'))
+    await user.type(screen.getByLabelText('Instituição'), 'Apartamento')
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/accounts/12',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }),
+      )
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/accounts/12',
+      expect.objectContaining({
+        body: JSON.stringify({
+          name: 'Carteira atualizada',
+          type: 'WALLET',
+          initialBalance: '250.00',
+          institution: 'Apartamento',
+          color: '#123456',
+          icon: 'wallet',
+        }),
+      }),
+    )
+    expect(routerPushMock).toHaveBeenCalledWith('/dashboard/accounts')
+    expect(routerRefreshMock).toHaveBeenCalledTimes(1)
+  }, 10000)
 })

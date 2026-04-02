@@ -178,4 +178,60 @@ describe('goal create form', () => {
       description: null,
     })
   })
+
+  it('supports edit mode through PATCH with prefilled values', async () => {
+    const user = userEvent.setup()
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: 12, name: 'Reserva ajustada' }),
+    })
+
+    render(
+      <GoalCreateForm
+        accounts={[
+          {
+            id: 7,
+            name: 'Conta principal',
+          },
+        ]}
+        initialValues={{
+          id: 12,
+          name: 'Reserva viagem',
+          targetAmount: '15000.00',
+          reserveAccountId: 7,
+          status: 'ACTIVE',
+          description: 'Meta para viagem internacional',
+        }}
+        mode="edit"
+      />,
+    )
+
+    const nameInput = screen.getByLabelText('Nome')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Reserva ajustada')
+    await user.click(screen.getByRole('button', { name: 'Salvar alterações' }))
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/goals/12',
+        expect.objectContaining({
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      )
+    })
+
+    const [, request] = fetchMock.mock.calls[0]
+    expect(JSON.parse(request.body)).toEqual({
+      id: 12,
+      name: 'Reserva ajustada',
+      targetAmount: '15000.00',
+      reserveAccountId: 7,
+      status: 'ACTIVE',
+      description: 'Meta para viagem internacional',
+    })
+    expect(routerMock.replace).toHaveBeenCalledWith('/dashboard/goals')
+    expect(routerMock.refresh).toHaveBeenCalled()
+  })
 })

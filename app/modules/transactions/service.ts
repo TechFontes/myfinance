@@ -1,4 +1,9 @@
 import { prisma } from '@/lib/prisma'
+import {
+  assertInvoiceBelongsToCreditCard,
+  assertUserOwnsAccount,
+  assertUserOwnsCreditCard,
+} from '@/modules/financial-core/invariants'
 import type {
   TransactionCreateInput,
   TransactionFilters,
@@ -11,6 +16,14 @@ const transactionInclude = {
   creditCard: true,
   invoice: true,
 } as const
+
+export type TransactionDomainError = Error & { code: string }
+
+function createTransactionError(code: string, message: string): TransactionDomainError {
+  const error = new Error(message) as TransactionDomainError
+  error.code = code
+  return error
+}
 
 function buildTransactionWhere(
   userId: string,
@@ -179,6 +192,70 @@ function buildUpdateData(input: TransactionUpdateInput) {
   }
 }
 
+function resolveNextValue<T>(nextValue: T | undefined, currentValue: T) {
+  return nextValue === undefined ? currentValue : nextValue
+}
+
+function assertTransactionInputInvariants(
+  input: Pick<
+    TransactionCreateInput,
+    'accountId' | 'creditCardId' | 'status' | 'paidAt'
+  >,
+) {
+  if (input.accountId != null && input.creditCardId != null) {
+    throw createTransactionError(
+      'TRANSACTION_ACCOUNT_CARD_CONFLICT',
+      'Transactions cannot target account and credit card at the same time',
+    )
+  }
+
+  if (input.status === 'PAID' && input.paidAt == null) {
+    throw createTransactionError(
+      'TRANSACTION_PAID_AT_REQUIRED',
+      'Paid transactions require a paidAt date',
+    )
+  }
+}
+
+async function assertTransactionRelations(
+  userId: string,
+  input: Pick<TransactionCreateInput, 'accountId' | 'creditCardId' | 'invoiceId'>,
+) {
+  if (input.accountId != null) {
+    await assertUserOwnsAccount(
+      userId,
+      input.accountId,
+      'TRANSACTION_ACCOUNT_OWNERSHIP',
+      'Transaction account must belong to the user',
+    )
+  }
+
+  if (input.creditCardId != null) {
+    await assertUserOwnsCreditCard(
+      userId,
+      input.creditCardId,
+      'TRANSACTION_CARD_OWNERSHIP',
+      'Transaction credit card must belong to the user',
+    )
+  }
+
+  if (input.invoiceId != null) {
+    if (input.creditCardId == null) {
+      throw createTransactionError(
+        'TRANSACTION_INVOICE_CARD_REQUIRED',
+        'Invoice-linked transactions require a selected credit card',
+      )
+    }
+
+    await assertInvoiceBelongsToCreditCard(
+      input.invoiceId,
+      input.creditCardId,
+      'TRANSACTION_INVOICE_CARD_MISMATCH',
+      'Transaction invoice must belong to the selected credit card',
+    )
+  }
+}
+
 export async function listTransactionsByUser(
   userId: string,
   filters: TransactionFilters = {},
@@ -203,10 +280,23 @@ export async function countTransactionsByUser(
   })
 }
 
+export async function getTransactionByUser(userId: string, transactionId: number) {
+  return prisma.transaction.findFirst({
+    where: {
+      id: transactionId,
+      userId,
+    },
+    include: transactionInclude,
+  })
+}
+
 export async function createTransactionForUser(
   userId: string,
   input: TransactionCreateInput,
 ) {
+  assertTransactionInputInvariants(input)
+  await assertTransactionRelations(userId, input)
+
   return prisma.transaction.create({
     data: buildCreateData(userId, input),
   })
@@ -224,6 +314,26 @@ export async function updateTransactionByUser(
   if (!transaction) {
     return null
   }
+
+  const nextState: TransactionCreateInput = {
+    type: resolveNextValue(input.type, transaction.type),
+    description: resolveNextValue(input.description, transaction.description),
+    value: resolveNextValue(input.value, transaction.value.toString()),
+    categoryId: resolveNextValue(input.categoryId, transaction.categoryId),
+    accountId: resolveNextValue(input.accountId, transaction.accountId),
+    creditCardId: resolveNextValue(input.creditCardId, transaction.creditCardId),
+    invoiceId: resolveNextValue(input.invoiceId, transaction.invoiceId),
+    competenceDate: resolveNextValue(input.competenceDate, transaction.competenceDate),
+    dueDate: resolveNextValue(input.dueDate, transaction.dueDate),
+    paidAt: resolveNextValue(input.paidAt, transaction.paidAt),
+    status: resolveNextValue(input.status, transaction.status),
+    fixed: resolveNextValue(input.fixed, transaction.fixed),
+    installment: resolveNextValue(input.installment, transaction.installment),
+    installments: resolveNextValue(input.installments, transaction.installments),
+  }
+
+  assertTransactionInputInvariants(nextState)
+  await assertTransactionRelations(userId, nextState)
 
   return prisma.transaction.update({
     where: { id: transactionId },

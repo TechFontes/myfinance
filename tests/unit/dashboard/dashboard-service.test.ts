@@ -195,8 +195,13 @@ describe('dashboard service alignment', () => {
         year: 2026,
         status: 'OPEN',
         dueDate: new Date('2026-03-25T00:00:00.000Z'),
-        total: '450.00',
+        total: '999.99',
         creditCard: { id: 8, name: 'Card one' },
+        transactions: [
+          { id: 1, value: '200.00', status: 'OPEN' },
+          { id: 2, value: '250.00', status: 'OPEN' },
+          { id: 3, value: '50.00', status: 'CANCELED' },
+        ],
       },
     ])
 
@@ -282,6 +287,7 @@ describe('dashboard service alignment', () => {
           total: true,
           dueDate: true,
           creditCard: expect.any(Object),
+          transactions: expect.any(Object),
         }),
       }),
     )

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'creditCardId is required' }, { status: 400 })
   }
 
-  const invoices = await listInvoicesByCard(creditCardId)
+  const invoices = await listInvoicesByCard(user.id, creditCardId)
 
   return NextResponse.json(invoices)
 }

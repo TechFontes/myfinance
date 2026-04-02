@@ -16,6 +16,7 @@ describe('goals module foundation', () => {
     expect(goalContributionModes).toEqual([
       'INFORMATION_ONLY',
       'TRANSFER_TO_RESERVE',
+      'TRANSFER_FROM_RESERVE',
     ])
     expect(goalsEditScopes).toEqual(['THIS_GOAL', 'THIS_AND_FUTURE'])
   })
@@ -56,14 +57,18 @@ describe('goals module foundation', () => {
     const payload = goalContributionSchema.parse({
       goalId: 11,
       amount: '250.00',
+      kind: 'CONTRIBUTION',
       mode: 'TRANSFER_TO_RESERVE',
+      counterpartAccountId: 7,
       note: 'aporte manual de março',
     })
 
     expect(payload).toMatchObject({
       goalId: 11,
       amount: '250.00',
+      kind: 'CONTRIBUTION',
       mode: 'TRANSFER_TO_RESERVE',
+      counterpartAccountId: 7,
       note: 'aporte manual de março',
     })
   })

@@ -45,5 +45,9 @@ describe('CardsList', () => {
     expect(screen.getByText('Inativo')).toBeInTheDocument()
     expect(screen.getByText(/R\$\s*5\.000,00/)).toBeInTheDocument()
     expect(screen.getByText(/R\$\s*12\.000,00/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Editar Nubank' })).toHaveAttribute(
+      'href',
+      '/dashboard/cards/1/edit',
+    )
   })
 })

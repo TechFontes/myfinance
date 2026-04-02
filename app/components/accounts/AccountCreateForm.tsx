@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import type { AccountRecord } from '@/modules/accounts'
 import { accountTypes } from '@/modules/accounts'
 
 const accountCreateFormSchema = z.object({
@@ -24,26 +25,35 @@ const accountCreateFormSchema = z.object({
 
 type AccountCreateFormValues = z.input<typeof accountCreateFormSchema>
 
+type AccountCreateFormProps = {
+  mode?: 'create' | 'edit'
+  account?: AccountRecord
+}
+
 const accountTypeLabels: Record<(typeof accountTypes)[number], string> = {
   BANK: 'Banco',
   WALLET: 'Carteira',
   OTHER: 'Outro',
 }
 
-export function AccountCreateForm() {
+export function AccountCreateForm({
+  mode = 'create',
+  account,
+}: AccountCreateFormProps = {}) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const isEditMode = mode === 'edit'
 
   const form = useForm<AccountCreateFormValues>({
     resolver: zodResolver(accountCreateFormSchema),
     defaultValues: {
-      name: '',
-      type: 'BANK',
-      initialBalance: '',
-      institution: '',
-      color: '',
-      icon: '',
+      name: account?.name ?? '',
+      type: account?.type ?? 'BANK',
+      initialBalance: account?.initialBalance ?? '',
+      institution: account?.institution ?? '',
+      color: account?.color ?? '',
+      icon: account?.icon ?? '',
     },
   })
 
@@ -52,8 +62,8 @@ export function AccountCreateForm() {
     setErrorMessage('')
 
     try {
-      const response = await fetch('/api/accounts', {
-        method: 'POST',
+      const response = await fetch(isEditMode ? `/api/accounts/${account?.id}` : '/api/accounts', {
+        method: isEditMode ? 'PATCH' : 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -68,7 +78,7 @@ export function AccountCreateForm() {
       })
 
       if (!response.ok) {
-        throw new Error('Falha ao criar conta')
+        throw new Error('Falha ao salvar conta')
       }
 
       router.push('/dashboard/accounts')
@@ -83,7 +93,7 @@ export function AccountCreateForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Cadastro de conta</CardTitle>
+        <CardTitle className="text-lg">{isEditMode ? 'Editar conta' : 'Cadastro de conta'}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -187,7 +197,7 @@ export function AccountCreateForm() {
 
             <div className="flex items-center gap-3 md:col-span-2">
               <Button type="submit" disabled={loading}>
-                {loading ? 'Salvando...' : 'Salvar conta'}
+                {loading ? 'Salvando...' : isEditMode ? 'Salvar alterações' : 'Salvar conta'}
               </Button>
             </div>
           </form>

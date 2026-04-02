@@ -125,12 +125,18 @@ describe('transaction form', () => {
     restoreElementShims()
   })
 
-  it('renders selection controls instead of raw ID inputs', () => {
+  it('renders selection controls instead of raw ID inputs', async () => {
+    const user = userEvent.setup()
+
     render(<TransactionForm options={options} />)
 
     expect(screen.getByRole('heading', { name: 'Nova transação' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Como deseja registrar?' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Compra no cartão/i })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /Compra no cartão/i }))
+
     expect(within(getSelectField('Categoria')).getByRole('combobox', { name: 'Categoria' })).toBeInTheDocument()
-    expect(within(getSelectField('Conta')).getByRole('combobox', { name: 'Conta' })).toBeInTheDocument()
     expect(within(getSelectField('Cartão')).getByRole('combobox', { name: 'Cartão' })).toBeInTheDocument()
     expect(within(getSelectField('Fatura')).getByRole('combobox', { name: 'Fatura' })).toBeInTheDocument()
     expect(screen.queryByLabelText('Categoria ID')).not.toBeInTheDocument()
@@ -154,8 +160,8 @@ describe('transaction form', () => {
 
     render(<TransactionForm options={options} />)
 
+    await user.click(screen.getByRole('button', { name: /Compra no cartão/i }))
     await selectOption(user, 'Categoria', 'Mercado')
-    await selectOption(user, 'Conta', 'Conta Principal')
     await selectOption(user, 'Cartão', 'Cartão Azul')
 
     await waitFor(() => {
@@ -190,7 +196,7 @@ describe('transaction form', () => {
     const [, request] = fetchMock.mock.calls[1]
     expect(JSON.parse(request.body)).toMatchObject({
       categoryId: 11,
-      accountId: 21,
+      accountId: null,
       creditCardId: 31,
       invoiceId: 41,
       paidAt: null,
@@ -211,6 +217,7 @@ describe('transaction form', () => {
 
     render(<TransactionForm options={options} />)
 
+    await user.click(screen.getByRole('button', { name: /Compra no cartão/i }))
     await selectOption(user, 'Cartão', 'Cartão Azul')
     await selectOption(user, 'Cartão', 'Cartão Verde')
 

@@ -1,13 +1,27 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { GoalsList } from '@/components/goals/GoalsList'
+
+const routerMock = vi.hoisted(() => ({
+  refresh: vi.fn(),
+}))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    refresh: routerMock.refresh,
+  }),
+}))
 
 describe('GoalsList', () => {
   it('renders goal progress, targets and reserve linkage', () => {
     render(
       <GoalsList
+        accounts={[
+          { id: 3, name: 'Conta reserva' },
+          { id: 7, name: 'Conta principal' },
+        ]}
         goals={[
           {
             id: 1,
@@ -41,11 +55,14 @@ describe('GoalsList', () => {
     expect(screen.getByText('Viagem')).toBeInTheDocument()
     expect(screen.getByText(/R\$ 2\.500,00 de R\$ 10\.000,00/)).toBeInTheDocument()
     expect(screen.getByText(/R\$ 4\.000,00 de R\$ 4\.000,00/)).toBeInTheDocument()
-    expect(screen.getByText('Conta de reserva #3')).toBeInTheDocument()
+    expect(screen.getByText('Conta reserva')).toBeInTheDocument()
     expect(screen.getByText('Meta concluída')).toBeInTheDocument()
-    expect(screen.getByText('Progresso manual')).toBeInTheDocument()
-    expect(
-      screen.getByText('Aportes podem ser apenas informacionais ou refletir financeiramente via transferência.'),
-    ).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Aportar' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: 'Resgatar' })).toHaveLength(2)
+    expect(screen.getAllByRole('button', { name: 'Ajustar' })).toHaveLength(2)
+    expect(screen.getByRole('link', { name: 'Editar Reserva de emergência' })).toHaveAttribute(
+      'href',
+      '/dashboard/goals/1/edit',
+    )
   })
 })
