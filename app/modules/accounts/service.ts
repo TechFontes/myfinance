@@ -121,3 +121,43 @@ export async function deactivateAccountForUser(
 ): Promise<AccountRecord | null> {
   return setAccountActiveState(userId, accountId, false)
 }
+
+export async function computeAccountBalance(
+  userId: string,
+  accountId: number,
+): Promise<string | null> {
+  const account = await prisma.account.findFirst({
+    where: { id: accountId, userId },
+  })
+  if (!account) return null
+
+  const initialBalance = account.initialBalance.toNumber()
+
+  const [incomeAgg, expenseAgg, transfersInAgg, transfersOutAgg] =
+    await Promise.all([
+      prisma.transaction.aggregate({
+        where: { userId, accountId, type: 'INCOME', status: 'PAID' },
+        _sum: { value: true },
+      }),
+      prisma.transaction.aggregate({
+        where: { userId, accountId, type: 'EXPENSE', status: 'PAID' },
+        _sum: { value: true },
+      }),
+      prisma.transfer.aggregate({
+        where: { userId, destinationAccountId: accountId, status: 'PAID' },
+        _sum: { amount: true },
+      }),
+      prisma.transfer.aggregate({
+        where: { userId, sourceAccountId: accountId, status: 'PAID' },
+        _sum: { amount: true },
+      }),
+    ])
+
+  const income = incomeAgg._sum.value?.toNumber() ?? 0
+  const expense = expenseAgg._sum.value?.toNumber() ?? 0
+  const transfersIn = transfersInAgg._sum.amount?.toNumber() ?? 0
+  const transfersOut = transfersOutAgg._sum.amount?.toNumber() ?? 0
+
+  const balance = initialBalance + income - expense + transfersIn - transfersOut
+  return balance.toFixed(2)
+}
