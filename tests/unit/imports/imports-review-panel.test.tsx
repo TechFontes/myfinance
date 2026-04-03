@@ -17,6 +17,16 @@ afterEach(() => {
 })
 
 describe('csv import review panel', () => {
+  it('renders the download CSV template button', () => {
+    render(
+      <CsvImportReviewPanel
+        availableCategories={[{ id: 1, name: 'Alimentação' }]}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /Baixar modelo CSV/ })).toBeInTheDocument()
+  })
+
   it('shows the preview breakdown and keeps confirmation blocked until the review is acknowledged', () => {
     render(
       <CsvImportReviewPanel

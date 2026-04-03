@@ -79,7 +79,7 @@ export function AccountsList({ accounts }: AccountsListProps) {
               </div>
             </div>
 
-            <Badge variant="outline">{account.type}</Badge>
+            <Badge variant="outline">{getTypeLabel(account.type)}</Badge>
           </div>
 
           <div className="mt-4 grid gap-2 text-sm text-muted-foreground">

@@ -22,6 +22,18 @@ function formatDate(date: Date) {
   return new Intl.DateTimeFormat('pt-BR').format(new Date(date))
 }
 
+function getCategoryTypeLabel(type: string) {
+  return type === 'INCOME' ? 'Receita' : 'Despesa'
+}
+
+function getAccountTypeLabel(type: string) {
+  switch (type) {
+    case 'BANK': return 'Banco'
+    case 'WALLET': return 'Carteira'
+    default: return 'Outro'
+  }
+}
+
 function SummaryCard({
   title,
   eyebrow,
@@ -282,7 +294,7 @@ export function DashboardReportView({
                   <div>
                     <p className="font-medium">{account.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {account.type} {account.active ? 'Ativa' : 'Inativa'}
+                      {getAccountTypeLabel(account.type)} {account.active ? 'Ativa' : 'Inativa'}
                     </p>
                   </div>
                   <p className="font-semibold">{formatCurrency(account.balance)}</p>
@@ -315,7 +327,7 @@ export function DashboardReportView({
                 >
                   <div>
                     <p className="font-medium">{category.categoryName}</p>
-                    <p className="text-sm text-muted-foreground">{category.type}</p>
+                    <p className="text-sm text-muted-foreground">{getCategoryTypeLabel(category.type)}</p>
                   </div>
                   <p className="font-semibold">{formatCurrency(category.total)}</p>
                 </div>

@@ -14,7 +14,7 @@ import {
   type CsvImportTransactionPreview,
   type TransactionImportCategory,
 } from '@/modules/imports'
-import { CheckCircle2, FileUp, LoaderCircle, RefreshCcw, Sparkles } from 'lucide-react'
+import { CheckCircle2, Download, FileUp, LoaderCircle, RefreshCcw, Sparkles } from 'lucide-react'
 
 type CsvImportReviewPanelProps = {
   availableCategories: TransactionImportCategory[]
@@ -110,6 +110,24 @@ export function CsvImportReviewPanel({
   const [commitStatus, setCommitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [commitFeedback, setCommitFeedback] = useState<string | null>(null)
   const [commitDetails, setCommitDetails] = useState<string[]>([])
+
+  function downloadCsvTemplate() {
+    const BOM = '\uFEFF'
+    const headers = 'type,description,value,competenceDate,dueDate,categoryName,paidAt,accountName,creditCardName,status,fixed,installment,installments'
+    const rows = [
+      'EXPENSE,Supermercado Rede,250.00,2026-04-01,2026-04-10,Alimentação,,,,PLANNED,false,,',
+      'INCOME,Salário abril,5000.00,2026-04-01,2026-04-05,Salário,,,,PAID,false,,',
+      'EXPENSE,Netflix,39.90,2026-04-01,2026-04-15,Streaming,,,,PENDING,false,,',
+    ]
+    const content = BOM + [headers, ...rows].join('\n')
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'modelo-importacao-myfinance.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const localPreview = useMemo(
     () => buildTransactionImportPreview(csvText, availableCategories),
@@ -300,8 +318,15 @@ export function CsvImportReviewPanel({
               </div>
             </label>
 
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Ou cole o CSV aqui</span>
+              <Button variant="outline" size="sm" type="button" onClick={downloadCsvTemplate}>
+                <Download className="h-4 w-4 mr-2" />
+                Baixar modelo CSV
+              </Button>
+            </div>
+
             <label className="block space-y-2 text-sm font-medium" htmlFor="csv-text">
-              <span>Ou cole o CSV aqui</span>
               <textarea
                 id="csv-text"
                 className="min-h-60 w-full rounded-xl border border-input bg-background p-4 text-sm outline-none ring-offset-background placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
