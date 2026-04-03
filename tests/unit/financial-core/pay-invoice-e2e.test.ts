@@ -28,7 +28,7 @@ describe('payInvoiceForUserE2E', () => {
     prismaMock.invoice.update.mockResolvedValue({ id: 10, status: 'PAID' })
     prismaMock.transaction.create.mockResolvedValue({ id: 99, type: 'EXPENSE', status: 'PAID' })
 
-    const result = await payInvoiceForUserE2E('user-1', 10, { accountId: 1, paidAt: new Date('2026-04-10') })
+    const result = await payInvoiceForUserE2E('user-1', 10, { accountId: 1, categoryId: 5, paidAt: new Date('2026-04-10') })
     expect(result).not.toBeNull()
     expect(prismaMock.invoice.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 10 }, data: expect.objectContaining({ status: 'PAID' }),
@@ -42,7 +42,7 @@ describe('payInvoiceForUserE2E', () => {
     prismaMock.invoice.findFirst.mockResolvedValue({
       id: 10, status: 'PAID', creditCard: { id: 3, userId: 'user-1' },
     })
-    await expect(payInvoiceForUserE2E('user-1', 10, { accountId: 1, paidAt: new Date() })).rejects.toThrow()
+    await expect(payInvoiceForUserE2E('user-1', 10, { accountId: 1, categoryId: 5, paidAt: new Date() })).rejects.toThrow()
   })
 
   it('rejects when user does not own account', async () => {
@@ -52,12 +52,12 @@ describe('payInvoiceForUserE2E', () => {
       transactions: [],
     })
     prismaMock.account.findFirst.mockResolvedValue(null)
-    await expect(payInvoiceForUserE2E('user-1', 10, { accountId: 999, paidAt: new Date() })).rejects.toThrow()
+    await expect(payInvoiceForUserE2E('user-1', 10, { accountId: 999, categoryId: 5, paidAt: new Date() })).rejects.toThrow()
   })
 
   it('returns null when invoice not found', async () => {
     prismaMock.invoice.findFirst.mockResolvedValue(null)
-    const result = await payInvoiceForUserE2E('user-1', 999, { accountId: 1, paidAt: new Date() })
+    const result = await payInvoiceForUserE2E('user-1', 999, { accountId: 1, categoryId: 5, paidAt: new Date() })
     expect(result).toBeNull()
   })
 })

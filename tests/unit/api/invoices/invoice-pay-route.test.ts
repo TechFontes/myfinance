@@ -31,7 +31,7 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
     serviceMock.payInvoiceForUserE2E.mockResolvedValue({ id: 10, status: 'PAID' })
 
     const response = await POST(
-      makeRequest({ accountId: 1, paidAt: '2026-04-10' }),
+      makeRequest({ accountId: 1, categoryId: 5, paidAt: '2026-04-10' }),
       { params: Promise.resolve({ invoiceId: '10' }) },
     )
     const payload = await response.json()
@@ -39,7 +39,7 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
     expect(response.status).toBe(200)
     expect(payload).toEqual({ id: 10, status: 'PAID' })
     expect(serviceMock.payInvoiceForUserE2E).toHaveBeenCalledWith(
-      'user-1', 10, { accountId: 1, paidAt: expect.any(Date) },
+      'user-1', 10, { accountId: 1, categoryId: 5, paidAt: expect.any(Date) },
     )
   })
 
@@ -47,7 +47,7 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
     authMock.getUserFromRequest.mockResolvedValue(null)
 
     const response = await POST(
-      makeRequest({ accountId: 1, paidAt: '2026-04-10' }),
+      makeRequest({ accountId: 1, categoryId: 5, paidAt: '2026-04-10' }),
       { params: Promise.resolve({ invoiceId: '10' }) },
     )
 
@@ -72,7 +72,7 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
     serviceMock.payInvoiceForUserE2E.mockResolvedValue(null)
 
     const response = await POST(
-      makeRequest({ accountId: 1, paidAt: '2026-04-10' }),
+      makeRequest({ accountId: 1, categoryId: 5, paidAt: '2026-04-10' }),
       { params: Promise.resolve({ invoiceId: '999' }) },
     )
 
@@ -85,7 +85,7 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
     serviceMock.payInvoiceForUserE2E.mockRejectedValue(new Error('Cannot pay invoice with status PAID'))
 
     const response = await POST(
-      makeRequest({ accountId: 1, paidAt: '2026-04-10' }),
+      makeRequest({ accountId: 1, categoryId: 5, paidAt: '2026-04-10' }),
       { params: Promise.resolve({ invoiceId: '10' }) },
     )
 
@@ -97,7 +97,7 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
 
     const response = await POST(
-      makeRequest({ accountId: 1, paidAt: '2026-04-10' }),
+      makeRequest({ accountId: 1, categoryId: 5, paidAt: '2026-04-10' }),
       { params: Promise.resolve({ invoiceId: 'abc' }) },
     )
 

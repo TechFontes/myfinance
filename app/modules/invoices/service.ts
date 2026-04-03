@@ -186,7 +186,7 @@ export function groupInstallmentTransactions(transactions: InvoiceTransactionLik
 export async function payInvoiceForUserE2E(
   userId: string,
   invoiceId: number,
-  input: { accountId: number; paidAt: Date }
+  input: { accountId: number; categoryId: number; paidAt: Date }
 ): Promise<object | null> {
   const { prisma } = await import('@/lib/prisma')
 
@@ -215,10 +215,10 @@ export async function payInvoiceForUserE2E(
   const cardName = invoice.creditCard.name
   const monthLabel = `${String(invoice.month).padStart(2, '0')}/${invoice.year}`
 
-  return prisma.$transaction(async (tx: typeof prisma) => {
+  return prisma.$transaction(async (tx) => {
     const updatedInvoice = await tx.invoice.update({
       where: { id: invoiceId },
-      data: { status: 'PAID', paidAt: input.paidAt },
+      data: { status: 'PAID' },
     })
     await tx.transaction.create({
       data: {
@@ -227,6 +227,7 @@ export async function payInvoiceForUserE2E(
         status: 'PAID',
         description: `Pagamento fatura ${cardName} ${monthLabel}`,
         value: invoiceTotal,
+        categoryId: input.categoryId,
         accountId: input.accountId,
         invoiceId,
         competenceDate: invoice.dueDate,

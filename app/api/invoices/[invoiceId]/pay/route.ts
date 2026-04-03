@@ -18,17 +18,21 @@ export async function POST(
 
   const body = await request.json()
   const accountId = Number(body.accountId)
+  const categoryId = Number(body.categoryId)
   const paidAt = new Date(body.paidAt)
 
   if (!Number.isInteger(accountId) || accountId <= 0) {
     return NextResponse.json({ error: 'accountId is required' }, { status: 400 })
+  }
+  if (!Number.isInteger(categoryId) || categoryId <= 0) {
+    return NextResponse.json({ error: 'categoryId is required' }, { status: 400 })
   }
   if (isNaN(paidAt.getTime())) {
     return NextResponse.json({ error: 'Invalid paidAt' }, { status: 400 })
   }
 
   try {
-    const result = await payInvoiceForUserE2E(user.id, id, { accountId, paidAt })
+    const result = await payInvoiceForUserE2E(user.id, id, { accountId, categoryId, paidAt })
     if (!result) return NextResponse.json({ error: 'Invoice not found' }, { status: 404 })
     try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }
     return NextResponse.json(result)
