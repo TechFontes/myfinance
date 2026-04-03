@@ -268,6 +268,45 @@ export async function updateGoalForUser(
   return mapGoal(updatedGoal as GoalWithContributions)
 }
 
+export async function recordGoalWithdrawalForUser(
+  userId: string,
+  goalId: number,
+  input: { amount: string; transferId?: number },
+): Promise<GoalContributionRecord | null> {
+  const goal = await prisma.goal.findFirst({
+    where: { id: goalId, userId },
+  })
+
+  if (!goal) {
+    return null
+  }
+
+  if (goal.status !== 'ACTIVE') {
+    throw createGoalError(
+      'GOAL_WITHDRAWAL_INVALID_STATUS',
+      `Cannot withdraw from goal with status ${goal.status}`,
+    )
+  }
+
+  const amountCents = toCents(input.amount)
+
+  if (amountCents <= 0) {
+    throw createGoalError(
+      'GOAL_WITHDRAWAL_INVALID_AMOUNT',
+      'Withdrawal amount must be positive',
+    )
+  }
+
+  return prisma.goalContribution.create({
+    data: {
+      goalId,
+      kind: 'WITHDRAWAL',
+      amount: -Math.abs(amountCents) / 100,
+      transferId: input.transferId ?? null,
+    },
+  })
+}
+
 export async function recordGoalContributionForUser(
   userId: string,
   input: GoalContributionWithTransferInput,
