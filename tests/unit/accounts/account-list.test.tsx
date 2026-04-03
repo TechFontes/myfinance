@@ -36,12 +36,16 @@ describe('AccountsList', () => {
     )
 
     expect(screen.getByText('Nubank')).toBeInTheDocument()
-    expect(screen.getByText('Carteira')).toBeInTheDocument()
+    // "Carteira" appears multiple times: as name, type label, and badge
+    expect(screen.getAllByText('Carteira').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Instituição: Nubank')).toBeInTheDocument()
     expect(screen.getByText('Ativa')).toBeInTheDocument()
     expect(screen.getByText('Inativa')).toBeInTheDocument()
     expect(screen.getByText('R$ 1.250,50')).toBeInTheDocument()
     expect(screen.getByText('R$ 50,00')).toBeInTheDocument()
+    // Verify translated type labels are rendered
+    expect(screen.getByText('Tipo: Banco')).toBeInTheDocument()
+    expect(screen.getByText('Tipo: Carteira')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Editar Nubank' })).toHaveAttribute(
       'href',
       '/dashboard/accounts/1',
