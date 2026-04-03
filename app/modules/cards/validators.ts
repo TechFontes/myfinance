@@ -1,10 +1,7 @@
 import { z } from 'zod'
 
 const positiveDayOfMonth = z.coerce.number().int().min(1).max(31)
-const optionalVisualField = z.preprocess(
-  (val) => (typeof val === 'string' && val.trim().length === 0 ? undefined : val),
-  z.string().trim().min(1).optional().nullable(),
-)
+const optionalVisualField = z.string().trim().min(1).optional().nullable()
 
 export const cardCreateSchema = z.object({
   name: z.string().trim().min(1),

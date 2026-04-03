@@ -28,7 +28,15 @@ const cardIconOptions = [
   { value: 'receipt', label: 'Recibo' },
 ]
 
-type CardCreateFormValues = z.input<typeof cardCreateSchema>
+type CardCreateFormValues = {
+  name: string
+  limit: string
+  closeDay: string
+  dueDay: string
+  color?: string | null
+  icon?: string | null
+  active?: boolean
+}
 
 type CardFormInitialValues = {
   id: number
@@ -61,7 +69,8 @@ export function CardCreateForm({
   const isEditMode = mode === 'edit'
 
   const form = useForm<CardCreateFormValues>({
-    resolver: zodResolver(cardCreateSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(cardCreateSchema) as any,
     defaultValues: {
       name: initialValues?.name ?? '',
       limit: initialValues?.limit ?? '',
