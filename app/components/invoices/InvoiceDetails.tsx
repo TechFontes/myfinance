@@ -1,5 +1,7 @@
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { PayInvoiceDialog } from '@/components/invoices/PayInvoiceDialog'
 
 export type InvoiceDetailsTransaction = {
   id: number
@@ -34,6 +36,8 @@ export type InvoiceDetailsData = {
 
 type InvoiceDetailsProps = {
   invoice: InvoiceDetailsData
+  accounts?: { id: number; name: string }[]
+  categories?: { id: number; name: string }[]
 }
 
 function formatCurrency(value: string) {
@@ -87,7 +91,7 @@ function statusClass(status: InvoiceDetailsData['status']) {
   return 'bg-slate-900 text-white'
 }
 
-export function InvoiceDetails({ invoice }: InvoiceDetailsProps) {
+export function InvoiceDetails({ invoice, accounts = [], categories = [] }: InvoiceDetailsProps) {
   const competenceLabel = `${String(invoice.month).padStart(2, '0')}/${invoice.year}`
 
   return (
@@ -100,7 +104,21 @@ export function InvoiceDetails({ invoice }: InvoiceDetailsProps) {
           </p>
         </div>
 
-        <Badge className={statusClass(invoice.status)}>{statusLabel(invoice.status)}</Badge>
+        <div className="flex items-center gap-2">
+          <Badge className={statusClass(invoice.status)}>{statusLabel(invoice.status)}</Badge>
+          {invoice.status === 'OPEN' && (
+            <PayInvoiceDialog
+              invoiceId={invoice.id}
+              accounts={accounts}
+              categories={categories}
+              trigger={
+                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  Pagar Fatura
+                </Button>
+              }
+            />
+          )}
+        </div>
       </div>
 
       <Card className="border-dashed">

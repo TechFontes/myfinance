@@ -39,8 +39,23 @@ export default async function InvoicePage({ params }: InvoicePageProps) {
     notFound()
   }
 
+  const [accounts, categories] = await Promise.all([
+    prisma.account.findMany({
+      where: { userId: user.id },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.category.findMany({
+      where: { userId: user.id, type: 'EXPENSE', active: true },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    }),
+  ])
+
   return (
     <InvoiceDetails
+      accounts={accounts}
+      categories={categories}
       invoice={{
         id: invoice.id,
         month: invoice.month,
