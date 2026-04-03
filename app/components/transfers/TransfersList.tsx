@@ -1,5 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import { Card } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { SettleTransferDialog } from '@/components/transfers/SettleTransferDialog'
+import { CancelConfirmDialog } from '@/components/shared/CancelConfirmDialog'
 
 type TransferListItem = {
   id: number
@@ -84,13 +89,35 @@ export function TransfersList({ transfers }: TransfersListProps) {
             </div>
           </div>
 
-          <div className="mt-4 flex justify-end">
+          <div className="mt-4 flex justify-end gap-2">
             <Link
               className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
               href={`/dashboard/transfers/${transfer.id}`}
             >
               Editar
             </Link>
+            {(transfer.status === 'PLANNED' || transfer.status === 'PENDING') && (
+              <SettleTransferDialog
+                transferId={transfer.id}
+                trigger={
+                  <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-300 hover:bg-emerald-50">
+                    Liquidar
+                  </Button>
+                }
+              />
+            )}
+            {transfer.status !== 'CANCELED' && (
+              <CancelConfirmDialog
+                entityType="transfer"
+                entityId={transfer.id}
+                entityDescription={transfer.description ?? 'Transferência interna'}
+                trigger={
+                  <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive">
+                    Cancelar
+                  </Button>
+                }
+              />
+            )}
           </div>
         </Card>
       ))}
