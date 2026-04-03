@@ -183,6 +183,61 @@ export function groupInstallmentTransactions(transactions: InvoiceTransactionLik
   }))
 }
 
+export async function payInvoiceForUserE2E(
+  userId: string,
+  invoiceId: number,
+  input: { accountId: number; paidAt: Date }
+): Promise<object | null> {
+  const { prisma } = await import('@/lib/prisma')
+
+  const invoice = await prisma.invoice.findFirst({
+    where: { id: invoiceId },
+    include: {
+      creditCard: true,
+      transactions: { where: { status: { not: 'CANCELED' } } },
+    },
+  })
+
+  if (!invoice) return null
+  if (invoice.creditCard.userId !== userId) return null
+
+  if (invoice.status !== 'OPEN') {
+    throw new Error(`Cannot pay invoice with status ${invoice.status}`)
+  }
+
+  const account = await prisma.account.findFirst({ where: { id: input.accountId, userId } })
+  if (!account) throw new Error('Account not found or not owned by user')
+
+  const invoiceTotal = invoice.transactions.reduce(
+    (sum: number, tx: { value: { toNumber(): number } }) => sum + tx.value.toNumber(),
+    0,
+  )
+  const cardName = invoice.creditCard.name
+  const monthLabel = `${String(invoice.month).padStart(2, '0')}/${invoice.year}`
+
+  return prisma.$transaction(async (tx: typeof prisma) => {
+    const updatedInvoice = await tx.invoice.update({
+      where: { id: invoiceId },
+      data: { status: 'PAID', paidAt: input.paidAt },
+    })
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: 'EXPENSE',
+        status: 'PAID',
+        description: `Pagamento fatura ${cardName} ${monthLabel}`,
+        value: invoiceTotal,
+        accountId: input.accountId,
+        invoiceId,
+        competenceDate: invoice.dueDate,
+        dueDate: invoice.dueDate,
+        paidAt: input.paidAt,
+      },
+    })
+    return updatedInvoice
+  })
+}
+
 export function createInstallmentGroupId() {
   return randomUUID()
 }

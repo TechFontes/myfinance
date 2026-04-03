@@ -340,3 +340,61 @@ export async function updateTransactionByUser(
     data: buildUpdateData(input),
   })
 }
+
+export async function settleTransactionForUser(
+  userId: string,
+  transactionId: number,
+  input: { accountId: number; paidAt: Date },
+): Promise<object | null> {
+  const transaction = await prisma.transaction.findFirst({
+    where: { id: transactionId, userId },
+  })
+
+  if (!transaction) return null
+
+  if (transaction.status === 'PAID' || transaction.status === 'CANCELED') {
+    throw createTransactionError(
+      'TRANSACTION_SETTLE_INVALID_STATUS',
+      `Cannot settle transaction with status ${transaction.status}`,
+    )
+  }
+
+  const account = await prisma.account.findFirst({
+    where: { id: input.accountId, userId },
+  })
+
+  if (!account) {
+    throw createTransactionError(
+      'TRANSACTION_ACCOUNT_OWNERSHIP',
+      'Account not found or not owned by user',
+    )
+  }
+
+  return prisma.transaction.update({
+    where: { id: transactionId },
+    data: { status: 'PAID', accountId: input.accountId, paidAt: input.paidAt },
+  })
+}
+
+export async function cancelTransactionForUser(
+  userId: string,
+  transactionId: number,
+): Promise<object | null> {
+  const transaction = await prisma.transaction.findFirst({
+    where: { id: transactionId, userId },
+  })
+
+  if (!transaction) return null
+
+  if (transaction.status === 'CANCELED') {
+    throw createTransactionError(
+      'TRANSACTION_CANCEL_INVALID_STATUS',
+      'Transaction is already canceled',
+    )
+  }
+
+  return prisma.transaction.update({
+    where: { id: transactionId },
+    data: { status: 'CANCELED' },
+  })
+}

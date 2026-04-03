@@ -183,4 +183,55 @@ export async function updateTransferForUser(
   return mapTransferRecord(updatedTransfer)
 }
 
+export async function settleTransferForUser(
+  userId: string,
+  transferId: number,
+  input: { paidAt: Date },
+): Promise<TransferRecord | null> {
+  const transfer = await prisma.transfer.findFirst({
+    where: { id: transferId, userId },
+  })
+
+  if (!transfer) return null
+
+  if (transfer.status === 'PAID' || transfer.status === 'CANCELED') {
+    throw createTransferError(
+      'TRANSFER_SETTLE_INVALID_STATUS',
+      `Cannot settle transfer with status ${transfer.status}`,
+    )
+  }
+
+  const updated = await prisma.transfer.update({
+    where: { id: transferId },
+    data: { status: 'PAID', paidAt: input.paidAt },
+  })
+
+  return mapTransferRecord(updated)
+}
+
+export async function cancelTransferForUser(
+  userId: string,
+  transferId: number,
+): Promise<TransferRecord | null> {
+  const transfer = await prisma.transfer.findFirst({
+    where: { id: transferId, userId },
+  })
+
+  if (!transfer) return null
+
+  if (transfer.status === 'CANCELED') {
+    throw createTransferError(
+      'TRANSFER_CANCEL_INVALID_STATUS',
+      'Transfer is already canceled',
+    )
+  }
+
+  const updated = await prisma.transfer.update({
+    where: { id: transferId },
+    data: { status: 'CANCELED' },
+  })
+
+  return mapTransferRecord(updated)
+}
+
 export { createTransferError }
