@@ -29,7 +29,7 @@ describe('portfolio home page', () => {
     expect(screen.getByText(/PRD antes de qualquer código/i)).toBeInTheDocument()
 
     // PortfolioMetrics
-    expect(screen.getByText('350+')).toBeInTheDocument()
+    expect(screen.getByText('540+')).toBeInTheDocument()
     expect(screen.getByText('testes automatizados')).toBeInTheDocument()
 
     // PortfolioScreenshotCarousel

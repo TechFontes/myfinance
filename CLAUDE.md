@@ -26,7 +26,7 @@ Plataforma multi-usuário de gestão financeira pessoal. Controla contas, transa
 
 ```bash
 yarn dev            # servidor de desenvolvimento
-yarn test           # suite completa (~350 testes, 134 arquivos)
+yarn test           # suite completa (~540 testes, 163 arquivos)
 yarn lint           # ESLint
 yarn build          # build standalone + prepare
 yarn start:standalone  # produção standalone
@@ -79,13 +79,24 @@ app/
 
 O módulo `financial-core` centraliza operações financeiras complexas com side-effects rastreados:
 
-- `settleTransaction` - liquidar transação (marcar paga + efeito conta)
+- `settleTransaction` - liquidar transação (marcar paga + vincular conta + paidAt)
+- `cancelTransaction` - cancelar transação (preserva paidAt para auditoria)
 - `createCardPurchase` - despesa cartão + atualizar fatura
-- `payInvoice` - pagar fatura + debitar conta
+- `payInvoice` - pagar fatura e2e (atomic: marca PAID + cria expense transaction com conta e categoria)
 - `createTransfer` - movimentar entre contas
-- `recordGoalContribution` - contribuição/retirada de meta
+- `settleTransfer` - liquidar transferência (marcar paga + paidAt)
+- `cancelTransfer` - cancelar transferência (preserva paidAt)
+- `recordGoalContribution` - contribuição de meta
+- `recordGoalWithdrawal` - resgate de meta (amount negativo, valida ACTIVE)
 
 Cada comando retorna: `{ command, writes: [...], rule: {...} }`
+
+### Saldo de Conta Derivado
+
+`computeAccountBalance(userId, accountId)` em `accounts/service.ts`:
+- Cálculo: `initialBalance + PAID incomes - PAID expenses + PAID transfers in - PAID transfers out`
+- Transações CANCELED são ignoradas (saldo se ajusta automaticamente)
+- Retorna string com 2 decimais ou null se conta não encontrada
 
 ### Dashboard como Read Model
 
@@ -104,7 +115,7 @@ Período é um objeto de domínio (`DashboardPeriod`), não string solta:
 
 | Model | Papel | Campos-chave |
 |-------|-------|-------------|
-| User | Auth + identidade | email, password, role (USER/ADMIN), blockedAt |
+| User | Auth + identidade | email, password, role (USER/ADMIN), blockedAt, tokenVersion |
 | Account | Containers de dinheiro | type (BANK/WALLET/OTHER), initialBalance, active |
 | Category | Classificação hierárquica | type (INCOME/EXPENSE), parentId, active |
 | Transaction | Movimentações | type, status (PLANNED→PENDING→PAID→CANCELED), competenceDate, dueDate, paidAt |
@@ -129,10 +140,12 @@ Prisma Decimal → string em toda camada de serviço. Funções `mapXRecord()` f
 
 ## Autenticação & Autorização
 
-- JWT em cookie httpOnly (`auth_token`), expiração 7 dias
-- Middleware protege `/dashboard/*`, `/admin/*`, `/api/*` (exceto rotas públicas de auth)
-- `getUserFromRequest()` extrai user do cookie, verifica JWT e status de bloqueio
+- JWT em cookie httpOnly (`auth_token`), expiração 7 dias, `sameSite: 'lax'`, `secure` em produção
+- Token versioning: `tokenVersion` no JWT payload, verificado contra DB, incrementado em password change
+- Middleware verifica JWT para TODAS rotas protegidas (`/dashboard/*`, `/admin/*`, `/api/*`), não apenas existência
+- `getUserFromRequest()` extrai user do cookie, verifica JWT, confere tokenVersion e status de bloqueio
 - Admin: role `ADMIN` verificado no middleware, redireciona non-admin para dashboard
+- Register: auto-login (seta cookie após registro bem-sucedido)
 - Rotas públicas: `/`, `/login`, `/register`, `/api/auth/login`, `/api/auth/register`
 
 ---
@@ -247,21 +260,34 @@ docs/superpowers/
 
 ---
 
-## Gaps Conhecidos & Riscos Residuais
+## Segurança
 
-### Comandos Financeiros Incompletos
-- `settleTransaction` - parcialmente implementado
-- `cancelTransaction` - ausente
-- `settleTransfer` - ausente
-- `payInvoice` - API marca pago, mas source-account e efeito patrimonial não end-to-end
-- `recordGoalWithdrawal` - ausente
+Deep security review realizada em 2026-04-03. Report: `docs/superpowers/reports/2026-04-03-deep-security-review.md`
 
-### Riscos de Infraestrutura
+**Mecanismos implementados:**
+- Token versioning (`tokenVersion` no User → JWT → verify → increment on password change)
+- Middleware JWT verification em TODAS rotas protegidas
+- `safeParse` em todos os 12+ API routes (nunca `.parse()` sem catch)
+- Cookie: `httpOnly`, `secure` (prod), `sameSite: 'lax'`
+- JWT secret: lazy eval, crash em production sem env var
+- Error sanitization: domain errors → message, unknown → "Internal server error"
+- ID parsing consistente (`parseId` helper) em todas rotas com params numéricos
+- Admin self-block prevention
+- Register auto-login (seta cookie)
+
+**Padrão obrigatório para novas routes:**
+1. `safeParse` sempre
+2. `parseId()` para URL params numéricos
+3. Domain errors com `code` → message; unknown → generic
+4. `sameSite: 'lax'` em cookies
+5. `tokenVersion` no JWT payload
+6. `revalidatePath('/dashboard')` após mutações financeiras
+
+### Riscos Residuais de Infraestrutura
 - Dashboard é read-model on-demand (sem snapshot persistido)
 - Arquitetura de módulos (sem ledger/event-store) - corrections históricas são caras
 - `baseline-browser-mapping` desatualizado (lint/build warnings, não blocking)
-- Timeout pré-existente em `tests/unit/recurrence/recurrence-page.test.tsx`
-- Auth registration test timeout ocasional (bcrypt overhead)
+- Timeout flaky em `tests/unit/invoices/invoice-page.test.tsx` (passa isolado, timeout na suite completa)
 
 ---
 
@@ -273,7 +299,26 @@ Página raiz `/` serve como portfolio case técnico (não landing page de market
 
 **Componentes:** `app/components/marketing/` (PortfolioHome, PortfolioHero, PortfolioDomainMap, PortfolioProcessMap, PortfolioMetrics, PortfolioScreenshotCarousel, PortfolioFooter)
 
-**Contato:** Daniel Fontes, email, WhatsApp: 21989799816, GitHub: techfontes, LinkedIn: daniel-fontes-tech
+**Dados:** `app/components/marketing/portfolio-home-content.ts` — Métricas, módulos, process steps, screenshots, contato
+
+**Contato:** Daniel Fontes, email: daniel@techfontes.com, WhatsApp: 21989799816, GitHub: techfontes, LinkedIn: daniel-fontes-tech
+
+---
+
+## Operational Flows (Quick Actions)
+
+Dialogs client-side para operações financeiras rápidas, sem navegar para páginas de edição:
+
+| Dialog | Localização | API | Visível quando |
+|--------|-------------|-----|---------------|
+| SettleTransactionDialog | TransactionsList | PATCH `/transactions/[id]/settle` | PLANNED/PENDING sem cartão |
+| CancelConfirmDialog | TransactionsList, TransfersList | PATCH `/[entity]/[id]/cancel` | Não CANCELED |
+| SettleTransferDialog | TransfersList | PATCH `/transfers/[id]/settle` | PLANNED/PENDING |
+| PayInvoiceDialog | InvoiceDetails | POST `/invoices/[id]/pay` | Invoice OPEN |
+
+**Componentes:** `app/components/transactions/SettleTransactionDialog.tsx`, `app/components/shared/CancelConfirmDialog.tsx`, `app/components/transfers/SettleTransferDialog.tsx`, `app/components/invoices/PayInvoiceDialog.tsx`
+
+**Goal withdrawal:** `GoalMovementForm` com action='withdraw' chama `/api/goals/[id]/withdraw` (endpoint dedicado)
 
 ---
 

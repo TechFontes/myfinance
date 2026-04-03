@@ -49,7 +49,7 @@ describe('portfolio home content contract', () => {
 
   it('defines 5 project metrics', () => {
     expect(portfolioMetrics).toHaveLength(5)
-    expect(portfolioMetrics[0]).toMatchObject({ value: '350+', label: 'testes automatizados' })
+    expect(portfolioMetrics[0]).toMatchObject({ value: '540+', label: 'testes automatizados' })
   })
 
   it('defines 3 screenshot cards', () => {

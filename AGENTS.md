@@ -50,6 +50,13 @@ These gates apply to all agent and contributor work in addition to the TDD workf
 - Every financial mutation route handler must call `revalidatePath('/dashboard')` after successful writes.
 - Cross-domain regression tests must verify post-mutation dashboard state.
 
+### API Route Security
+- All API routes must use `schema.safeParse()` for input validation, never `.parse()` without catch.
+- Numeric URL params must be validated with `parseId()` pattern (`Number.isInteger(id) && id > 0`).
+- Domain errors (with `code` property) return `error.message` to client. Unknown errors return generic `"Internal server error"` and log via `console.error`.
+- Cookie operations must include `sameSite: 'lax'`, `httpOnly: true`, and `secure` in production.
+- JWT payload must include `tokenVersion`. `getUserFromRequest()` verifies it against DB.
+
 ### Publish Evidence
 - No feature or fix is considered complete without passing: `yarn test`, `yarn lint`, `yarn build`.
 - Migration verification required for schema-backed changes.

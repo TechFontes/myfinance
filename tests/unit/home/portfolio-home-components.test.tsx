@@ -38,7 +38,7 @@ describe('PortfolioMetrics', () => {
   it('renders all 5 project metrics', async () => {
     const { PortfolioMetrics } = await import('@/components/marketing/PortfolioMetrics')
     render(<PortfolioMetrics />)
-    expect(screen.getByText('350+')).toBeInTheDocument()
+    expect(screen.getByText('540+')).toBeInTheDocument()
     expect(screen.getByText('testes automatizados')).toBeInTheDocument()
     expect(screen.getByText('13')).toBeInTheDocument()
     expect(screen.getByText('módulos de domínio')).toBeInTheDocument()

@@ -13,15 +13,15 @@ export const portfolioCtas = {
 export const portfolioDomainModules = {
   auth: {
     title: 'Auth & Segurança',
-    capabilities: 'JWT httpOnly · bcrypt · middleware de sessão · RBAC admin/user · bloqueio de conta',
+    capabilities: 'JWT httpOnly · bcrypt · token versioning · middleware JWT · RBAC admin/user · sameSite cookie · bloqueio de conta',
   },
   modules: [
-    { name: 'Transações', summary: 'CRUD · status · competência', tier: 'primary' },
-    { name: 'Cartões', summary: 'Faturas · parcelas · close/due', tier: 'primary' },
+    { name: 'Transações', summary: 'Liquidar · cancelar · competência', tier: 'primary' },
+    { name: 'Cartões', summary: 'Faturas · pagamento e2e · parcelas', tier: 'primary' },
     { name: 'Metas', summary: 'Aportes · resgates · reserva', tier: 'primary' },
-    { name: 'Dashboard', summary: 'Visão patrimonial mensal', tier: 'primary' },
-    { name: 'Contas', summary: 'Banco · carteira · saldo', tier: 'secondary' },
-    { name: 'Transferências', summary: 'Entre contas próprias', tier: 'secondary' },
+    { name: 'Dashboard', summary: 'Visão patrimonial · accent cards', tier: 'primary' },
+    { name: 'Contas', summary: 'Banco · carteira · saldo derivado', tier: 'secondary' },
+    { name: 'Transferências', summary: 'Liquidar · cancelar · entre contas', tier: 'secondary' },
     { name: 'Recorrência', summary: 'Regras · projeção futura', tier: 'secondary' },
     { name: 'Importação', summary: 'CSV · preview · validação', tier: 'secondary' },
   ],
@@ -80,9 +80,9 @@ export const portfolioProcessSteps = [
 ] as const
 
 export const portfolioMetrics = [
-  { value: '350+', label: 'testes automatizados' },
+  { value: '540+', label: 'testes automatizados' },
   { value: '13', label: 'módulos de domínio' },
-  { value: '12', label: 'API routes RESTful' },
+  { value: '18', label: 'API routes RESTful' },
   { value: 'TDD', label: 'test-first workflow' },
   { value: 'PM2', label: 'standalone deploy' },
 ] as const
