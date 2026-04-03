@@ -42,14 +42,23 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  if (token && isAdminRoute) {
-    try {
-      const payload = verifyAuthToken(token)
-      if (payload.role !== 'ADMIN') {
-        return NextResponse.redirect(new URL('/dashboard', req.url))
-      }
-    } catch {
-      return NextResponse.redirect(new URL('/login', req.url))
+  // Verify JWT for all protected routes (not just admin)
+  try {
+    const payload = verifyAuthToken(token!)
+    if (isAdminRoute && payload.role !== 'ADMIN') {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+  } catch {
+    if (isDashboardRoute || isAdminRoute) {
+      const loginUrl = new URL('/login', req.url)
+      loginUrl.searchParams.set('callbackUrl', pathname)
+      return NextResponse.redirect(loginUrl)
+    }
+    if (isApiRoute) {
+      return new NextResponse(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
     }
   }
 
