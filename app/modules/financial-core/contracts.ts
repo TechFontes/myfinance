@@ -4,6 +4,10 @@ export const financialCommandNames = [
   'payInvoice',
   'createTransfer',
   'recordGoalContribution',
+  'cancelTransaction',
+  'settleTransfer',
+  'cancelTransfer',
+  'recordGoalWithdrawal',
 ] as const
 
 export const financialEffectTargets = [
@@ -11,6 +15,7 @@ export const financialEffectTargets = [
   'transfer',
   'invoice',
   'goal',
+  'goal-contribution',
   'account-balance',
   'dashboard-read-model',
 ] as const
@@ -27,6 +32,7 @@ export type GoalMovementMode = (typeof goalMovementModes)[number]
 
 export type SettleTransactionInput = {
   transactionId: number
+  accountId: number
   paidAt: Date
 }
 
@@ -74,6 +80,25 @@ export type RecordGoalContributionInput =
   | RecordGoalContributionInformationInput
   | RecordGoalContributionReserveInput
   | RecordGoalWithdrawalReserveInput
+
+export type CancelTransactionInput = {
+  transactionId: number
+}
+
+export type SettleTransferInput = {
+  transferId: number
+  paidAt: Date
+}
+
+export type CancelTransferInput = {
+  transferId: number
+}
+
+export type RecordGoalWithdrawalInput = {
+  goalId: number
+  amount: string
+  transferId?: number
+}
 
 export type CashSettlementRule = {
   kind: 'cash-settlement'
@@ -127,6 +152,26 @@ export type GoalWithdrawalReserveRule = {
   transferId: number
 }
 
+export type CancellationRule = {
+  kind: 'cancellation'
+  entityType: 'transaction' | 'transfer'
+  entityId: number
+  previousStatus: string
+}
+
+export type TransferSettlementRule = {
+  kind: 'transfer-settlement'
+  transferId: number
+  paidAt: Date
+}
+
+export type GoalWithdrawalRule = {
+  kind: 'goal-withdrawal'
+  goalId: number
+  amount: string
+  hasTransfer: boolean
+}
+
 export type SettleTransactionCommandResult = {
   command: 'settleTransaction'
   writes: ['transaction', 'account-balance', 'dashboard-read-model']
@@ -174,6 +219,30 @@ export type RecordGoalContributionCommandResult =
   | RecordGoalContributionReserveCommandResult
   | RecordGoalWithdrawalReserveCommandResult
 
+export type CancelTransactionCommandResult = {
+  command: 'cancelTransaction'
+  writes: ['transaction', 'dashboard-read-model']
+  rule: CancellationRule
+}
+
+export type SettleTransferCommandResult = {
+  command: 'settleTransfer'
+  writes: ['transfer', 'account-balance', 'dashboard-read-model']
+  rule: TransferSettlementRule
+}
+
+export type CancelTransferCommandResult = {
+  command: 'cancelTransfer'
+  writes: ['transfer', 'dashboard-read-model']
+  rule: CancellationRule
+}
+
+export type RecordGoalWithdrawalCommandResult = {
+  command: 'recordGoalWithdrawal'
+  writes: ['goal-contribution', 'dashboard-read-model']
+  rule: GoalWithdrawalRule
+}
+
 export type FinancialCommandResult<TName extends FinancialCommandName> =
   TName extends 'settleTransaction'
     ? SettleTransactionCommandResult
@@ -185,7 +254,15 @@ export type FinancialCommandResult<TName extends FinancialCommandName> =
           ? CreateTransferCommandResult
           : TName extends 'recordGoalContribution'
             ? RecordGoalContributionCommandResult
-            : never
+            : TName extends 'cancelTransaction'
+              ? CancelTransactionCommandResult
+              : TName extends 'settleTransfer'
+                ? SettleTransferCommandResult
+                : TName extends 'cancelTransfer'
+                  ? CancelTransferCommandResult
+                  : TName extends 'recordGoalWithdrawal'
+                    ? RecordGoalWithdrawalCommandResult
+                    : never
 
 export type FinancialCommandPorts = {
   settleTransaction(
@@ -215,4 +292,16 @@ export type FinancialCommandPorts = {
         transferId: number
       }
   >
+  cancelTransaction(
+    input: CancelTransactionInput,
+  ): Promise<{ transactionId: number; previousStatus: string }>
+  settleTransfer(
+    input: SettleTransferInput,
+  ): Promise<{ transferId: number; paidAt: Date }>
+  cancelTransfer(
+    input: CancelTransferInput,
+  ): Promise<{ transferId: number; previousStatus: string }>
+  recordGoalWithdrawal(
+    input: RecordGoalWithdrawalInput,
+  ): Promise<{ goalId: number; amount: string; transferId?: number }>
 }
