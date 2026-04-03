@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.claude
+.superpowers
+docs
+tests
+*.md
+!README.md
+.env
+.env.*
+!.env.example
+logs
