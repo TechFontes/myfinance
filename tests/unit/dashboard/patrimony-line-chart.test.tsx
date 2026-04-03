@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { PatrimonyLineChart } from '@/components/dashboard/PatrimonyLineChart'
 
@@ -63,5 +63,44 @@ describe('PatrimonyLineChart', () => {
 
     expect(screen.getByText('Sem dados para exibir o gráfico.')).toBeInTheDocument()
     expect(screen.queryByTestId('patrimony-line-chart')).not.toBeInTheDocument()
+  })
+
+  it('shows tooltip on hover and hides on mouse leave', () => {
+    render(
+      <PatrimonyLineChart
+        data={[
+          { month: '2026-01', label: 'jan', realized: 1000, forecast: 1200 },
+          { month: '2026-02', label: 'fev', realized: 1500, forecast: 1800 },
+        ]}
+      />,
+    )
+
+    expect(screen.queryByTestId('patrimony-tooltip')).not.toBeInTheDocument()
+
+    const realizedPoint = screen.getByTestId('realized-point-0')
+    fireEvent.mouseEnter(realizedPoint)
+
+    const tooltip = screen.getByTestId('patrimony-tooltip')
+    expect(tooltip).toBeInTheDocument()
+    expect(screen.getByText('R$ 1.000,00', { exact: false })).toBeInTheDocument()
+    expect(screen.getByText('R$ 1.200,00', { exact: false })).toBeInTheDocument()
+
+    fireEvent.mouseLeave(realizedPoint)
+    expect(screen.queryByTestId('patrimony-tooltip')).not.toBeInTheDocument()
+  })
+
+  it('shows tooltip on forecast point hover', () => {
+    render(
+      <PatrimonyLineChart
+        data={[
+          { month: '2026-01', label: 'jan', realized: 1000, forecast: 1200 },
+        ]}
+      />,
+    )
+
+    const forecastPoint = screen.getByTestId('forecast-point-0')
+    fireEvent.mouseEnter(forecastPoint)
+
+    expect(screen.getByTestId('patrimony-tooltip')).toBeInTheDocument()
   })
 })
