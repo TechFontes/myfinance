@@ -13,6 +13,7 @@ describe("auth foundation", () => {
       sub: "user-1",
       email: "user@example.com",
       role: "USER",
+      tokenVersion: 0,
     })
 
     expect(typeof token).toBe("string")
@@ -29,7 +30,7 @@ describe("auth foundation", () => {
   it("validates login input", () => {
     const parsed = loginInputSchema.parse({
       email: "user@example.com",
-      password: "123456",
+      password: "12345678",
     })
 
     expect(parsed.email).toBe("user@example.com")

@@ -54,6 +54,7 @@ describe("password reset routes", () => {
       email: "user@example.com",
       resetToken: "token-123",
       resetTokenExpiry: new Date(Date.now() + 60_000),
+      tokenVersion: 0,
     } as never)
     vi.mocked(bcrypt.hash).mockResolvedValue("new-hash" as never)
     vi.mocked(updateUserById).mockResolvedValue({

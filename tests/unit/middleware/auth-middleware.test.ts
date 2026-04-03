@@ -32,6 +32,7 @@ describe("auth middleware", () => {
       sub: "user-1",
       email: "user@example.com",
       role: "USER",
+      tokenVersion: 0,
     })
 
     const request = new NextRequest("http://localhost/admin")
@@ -46,6 +47,7 @@ describe("auth middleware", () => {
       sub: "admin-1",
       email: "admin@example.com",
       role: "ADMIN",
+      tokenVersion: 0,
     })
 
     const request = new NextRequest("http://localhost/admin")

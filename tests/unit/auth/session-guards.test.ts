@@ -23,6 +23,7 @@ describe("auth session guards", () => {
       sub: "user-1",
       email: "user@example.com",
       role: "USER",
+      tokenVersion: 0,
     })
 
     vi.mocked(cookies).mockResolvedValue({
@@ -35,10 +36,11 @@ describe("auth session guards", () => {
       name: "User",
       password: "hashed",
       role: "USER",
+      tokenVersion: 0,
       blockedAt: new Date(),
       blockedReason: "manual block",
       resetToken: null,
-      resetTokenExpires: null,
+      resetTokenExpiry: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as never)

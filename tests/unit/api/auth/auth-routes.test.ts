@@ -33,10 +33,11 @@ describe("auth routes", () => {
       email: "user@example.com",
       password: "hashed",
       role: "USER",
+      tokenVersion: 0,
       blockedAt: null,
       blockedReason: null,
       resetToken: null,
-      resetTokenExpires: null,
+      resetTokenExpiry: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     } as never)
