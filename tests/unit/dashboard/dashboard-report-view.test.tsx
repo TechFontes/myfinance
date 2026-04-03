@@ -257,25 +257,25 @@ describe('dashboard report view', () => {
       />,
     )
 
-    expect(screen.getByText('Nenhuma conta patrimonial registrada neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma conta cadastrada. Cadastre suas contas para acompanhar seu patrimônio.')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Quando houver contas patrimoniais, este painel destacará saldos, tipo e status de cada posição.',
+        'Cadastre suas contas para acompanhar seu patrimônio.',
       ),
     ).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma categoria com impacto relevante neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma movimentação por categoria neste período.')).toBeInTheDocument()
     expect(
       screen.getByText(
         'Quando houver categorias movimentadas, este painel destacará seus impactos e pesos no período.',
       ),
     ).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma fatura patrimonial aberta neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma fatura de cartão neste período.')).toBeInTheDocument()
     expect(
       screen.getByText(
         'Quando houver faturas em aberto, este painel destacará cartão, vencimento e valor consolidado.',
       ),
     ).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma movimentação interna registrada neste período.')).toBeInTheDocument()
+    expect(screen.getByText('Nenhuma movimentação interna neste período.')).toBeInTheDocument()
     expect(
       screen.getByText(
         'Quando houver transferências internas, este painel destacará origem, destino e data de competência.',
@@ -329,8 +329,8 @@ describe('dashboard report view', () => {
     expect(header).toHaveClass('bg-background/95')
     expect(header).toHaveClass('border-border/80')
     expect(header).toHaveClass('ring-1')
-    expect(summaryCard).toHaveClass('bg-background/95')
     expect(summaryCard).toHaveClass('border-border/80')
+    expect(summaryCard).toHaveClass('border-l-4')
     expect(sectionPanel).toHaveClass('bg-background/95')
     expect(sectionPanel).toHaveClass('border-border/80')
     expect(pendingRow).toHaveClass('bg-muted/30')

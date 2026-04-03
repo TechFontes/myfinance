@@ -38,13 +38,13 @@ function SummaryCard({
   balance: string
 }) {
   return (
-    <Card className="overflow-hidden border-border/80 bg-background/95 p-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)]">
+    <Card className={`overflow-hidden border-border/80 bg-background/95 p-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)] border-l-4 ${accentClassName.includes('emerald') ? 'border-l-emerald-500/60 bg-emerald-500/5' : 'border-l-foreground/60 bg-foreground/5'}`}>
       <div className={accentClassName} aria-hidden="true" />
       <div className="space-y-6 p-6">
         <div className="space-y-2">
           <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{eyebrow}</p>
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <h3 className="font-serif text-4xl tracking-tight text-foreground">{formatCurrency(balance)}</h3>
+          <h3 className="font-serif text-5xl tracking-tight text-foreground">{formatCurrency(balance)}</h3>
           <p className="text-sm text-muted-foreground">Posição patrimonial do período</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -207,11 +207,12 @@ export function DashboardReportView({
       </header>
 
       {showSummaryCards ? (
-        <section className="grid gap-4 lg:grid-cols-2">
+        <section className="grid gap-4 lg:grid-cols-2" aria-label="Resumo patrimonial">
+          <p className="col-span-full text-[11px] uppercase tracking-[0.34em] text-muted-foreground">Resumo patrimonial</p>
           <SummaryCard
             title="Saldo previsto"
             eyebrow="Projeção"
-            accentClassName="h-1.5 w-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300"
+            accentClassName="h-2 rounded-t-xl w-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300"
             income={report.summary.forecastIncome}
             expense={report.summary.forecastExpense}
             balance={report.summary.forecastBalance}
@@ -219,7 +220,7 @@ export function DashboardReportView({
           <SummaryCard
             title="Saldo realizado"
             eyebrow="Realizado"
-            accentClassName="h-1.5 w-full bg-gradient-to-r from-foreground via-foreground/85 to-foreground/65"
+            accentClassName="h-2 rounded-t-xl w-full bg-gradient-to-r from-foreground via-foreground/85 to-foreground/65"
             income={report.summary.realizedIncome}
             expense={report.summary.realizedExpense}
             balance={report.summary.realizedBalance}
@@ -229,7 +230,7 @@ export function DashboardReportView({
 
       {showChart ? <DashboardSummaryChart summary={report.summary} /> : null}
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <section className="grid gap-4 xl:grid-cols-2 border-t border-border/60 pt-6">
         {showPending ? (
           <SectionPanel
             eyebrow="Pendências"
@@ -259,7 +260,7 @@ export function DashboardReportView({
                 <EmptySectionState
                   support="Quando houver lançamentos previstos, este painel destacará vencimentos e valores com leitura patrimonial."
                 >
-                  Nenhuma pendência neste período.
+                  Nenhuma pendência neste período. Todas as obrigações foram liquidadas.
                 </EmptySectionState>
               )}
             </div>
@@ -289,9 +290,9 @@ export function DashboardReportView({
               ))}
               {report.accounts.length === 0 ? (
                 <EmptySectionState
-                  support="Quando houver contas patrimoniais, este painel destacará saldos, tipo e status de cada posição."
+                  support="Cadastre suas contas para acompanhar seu patrimônio."
                 >
-                  Nenhuma conta patrimonial registrada neste período.
+                  Nenhuma conta cadastrada. Cadastre suas contas para acompanhar seu patrimônio.
                 </EmptySectionState>
               ) : null}
             </div>
@@ -299,7 +300,7 @@ export function DashboardReportView({
         ) : null}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
+      <section className="grid gap-4 xl:grid-cols-3 border-t border-border/40 pt-6 opacity-95">
         {showCategories ? (
           <SectionPanel
             eyebrow="Categorias"
@@ -323,7 +324,7 @@ export function DashboardReportView({
                 <EmptySectionState
                   support="Quando houver categorias movimentadas, este painel destacará seus impactos e pesos no período."
                 >
-                  Nenhuma categoria com impacto relevante neste período.
+                  Nenhuma movimentação por categoria neste período.
                 </EmptySectionState>
               ) : null}
             </div>
@@ -360,7 +361,7 @@ export function DashboardReportView({
                 <EmptySectionState
                   support="Quando houver faturas em aberto, este painel destacará cartão, vencimento e valor consolidado."
                 >
-                  Nenhuma fatura patrimonial aberta neste período.
+                  Nenhuma fatura de cartão neste período.
                 </EmptySectionState>
               ) : null}
             </div>
@@ -398,7 +399,7 @@ export function DashboardReportView({
                 <EmptySectionState
                   support="Quando houver transferências internas, este painel destacará origem, destino e data de competência."
                 >
-                  Nenhuma movimentação interna registrada neste período.
+                  Nenhuma movimentação interna neste período.
                 </EmptySectionState>
               ) : null}
             </div>
