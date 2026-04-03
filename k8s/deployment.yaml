@@ -23,7 +23,7 @@ spec:
       containers:
         - name: myfinance
           image: techfontes/myfinance:latest
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
           envFrom:
