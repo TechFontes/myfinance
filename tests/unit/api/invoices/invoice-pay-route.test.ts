@@ -82,7 +82,9 @@ describe('POST /api/invoices/[invoiceId]/pay', () => {
 
   it('returns 400 when service throws an error', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    serviceMock.payInvoiceForUserE2E.mockRejectedValue(new Error('Cannot pay invoice with status PAID'))
+    serviceMock.payInvoiceForUserE2E.mockRejectedValue(
+      Object.assign(new Error('Cannot pay invoice with status PAID'), { code: 'INVALID_STATUS' }),
+    )
 
     const response = await POST(
       makeRequest({ accountId: 1, categoryId: 5, paidAt: '2026-04-10' }),

@@ -92,11 +92,14 @@ function parseDateAtUTC(value: string) {
 }
 
 function getPreviewSecret() {
-  return (
-    process.env.CSV_IMPORT_PREVIEW_SECRET ??
-    process.env.AUTH_SECRET ??
-    'myfinance-import-preview-secret'
-  )
+  const secret = process.env.CSV_IMPORT_PREVIEW_SECRET ?? process.env.AUTH_SECRET
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('CSV_IMPORT_PREVIEW_SECRET or AUTH_SECRET environment variable is required in production')
+    }
+    return 'dev-import-preview-secret-not-for-production'
+  }
+  return secret
 }
 
 function verifyPreviewToken(token: string): PreviewTokenPayload | null {

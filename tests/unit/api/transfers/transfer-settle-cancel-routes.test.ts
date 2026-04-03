@@ -72,7 +72,7 @@ describe('settle transfer route', () => {
   it('returns 400 for invalid status', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     transfersMock.settleTransferForUser.mockRejectedValue(
-      new Error('Cannot settle transfer with status PAID'),
+      Object.assign(new Error('Cannot settle transfer with status PAID'), { code: 'INVALID_STATUS' }),
     )
 
     const response = await settlePATCH(
@@ -135,7 +135,7 @@ describe('cancel transfer route', () => {
   it('returns 400 when transfer already canceled', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
     transfersMock.cancelTransferForUser.mockRejectedValue(
-      new Error('Transfer is already canceled'),
+      Object.assign(new Error('Transfer is already canceled'), { code: 'INVALID_STATUS' }),
     )
 
     const response = await cancelPATCH(

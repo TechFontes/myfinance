@@ -9,6 +9,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid reset payload' }, { status: 400 })
   }
 
+  if (typeof password !== 'string' || password.length < 8) {
+    return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 })
+  }
+
   const user = await findUserByResetToken(token)
   if (!user || !user.resetTokenExpiry || user.resetTokenExpiry.getTime() < Date.now()) {
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 })

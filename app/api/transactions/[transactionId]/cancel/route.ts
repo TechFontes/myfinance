@@ -37,7 +37,10 @@ export async function PATCH(
 
     return NextResponse.json(result)
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Internal error'
-    return NextResponse.json({ error: message }, { status: 400 })
+    if (error instanceof Error && 'code' in error) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+    console.error('Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

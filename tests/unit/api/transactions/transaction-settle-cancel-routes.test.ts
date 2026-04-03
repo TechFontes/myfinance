@@ -86,7 +86,8 @@ describe('settle route', () => {
 
   it('returns 400 when service throws domain error', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    transactionsMock.settleTransactionForUser.mockRejectedValue(new Error('Cannot settle'))
+    const domainError = Object.assign(new Error('Cannot settle'), { code: 'INVALID_STATUS' })
+    transactionsMock.settleTransactionForUser.mockRejectedValue(domainError)
 
     const response = await SettlePATCH(
       new Request('http://localhost/api/transactions/10/settle', {
@@ -155,7 +156,8 @@ describe('cancel route', () => {
 
   it('returns 400 when service throws domain error', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
-    transactionsMock.cancelTransactionForUser.mockRejectedValue(new Error('Already canceled'))
+    const domainError = Object.assign(new Error('Already canceled'), { code: 'INVALID_STATUS' })
+    transactionsMock.cancelTransactionForUser.mockRejectedValue(domainError)
 
     const response = await CancelPATCH(
       new Request('http://localhost/api/transactions/10/cancel', { method: 'PATCH' }) as never,
