@@ -4,11 +4,20 @@ import { Card } from '@/components/ui/card'
 import type { DashboardReport } from '@/modules/dashboard'
 import { DashboardPeriodNavigator } from '@/components/dashboard/DashboardPeriodNavigator'
 import { DashboardSummaryChart } from '@/components/dashboard/DashboardSummaryChart'
+import { AccumulatedView } from '@/components/dashboard/AccumulatedView'
+import type { PatrimonyDataPoint } from '@/components/dashboard/PatrimonyLineChart'
+
+type AccumulatedData = {
+  patrimonyData: PatrimonyDataPoint[]
+  accounts: { name: string; balance: string }[]
+  totalBalance: string
+}
 
 type DashboardReportViewProps = {
   report: DashboardReport
   availableMonths: string[]
-  selectedView?: 'general' | 'receivable' | 'payable' | 'consolidated'
+  selectedView?: 'general' | 'receivable' | 'payable' | 'consolidated' | 'accumulated'
+  accumulatedData?: AccumulatedData
 }
 
 function formatCurrency(value: string) {
@@ -127,6 +136,7 @@ const dashboardViews = [
   { key: 'receivable', label: 'A receber' },
   { key: 'payable', label: 'A pagar' },
   { key: 'consolidated', label: 'Consolidados' },
+  { key: 'accumulated', label: 'Acumulado' },
 ] as const
 
 function buildViewHref(view: (typeof dashboardViews)[number]['key'], month: string) {
@@ -137,6 +147,7 @@ export function DashboardReportView({
   report,
   availableMonths,
   selectedView = 'general',
+  accumulatedData,
 }: DashboardReportViewProps) {
   const incomeCategories = report.categories.filter((category) => category.type === 'INCOME')
   const expenseCategories = report.categories.filter((category) => category.type === 'EXPENSE')
@@ -218,7 +229,15 @@ export function DashboardReportView({
         </div>
       </header>
 
-      {showSummaryCards ? (
+      {selectedView === 'accumulated' && accumulatedData ? (
+        <AccumulatedView
+          accounts={accumulatedData.accounts}
+          patrimonyData={accumulatedData.patrimonyData}
+          totalBalance={accumulatedData.totalBalance}
+        />
+      ) : null}
+
+      {selectedView !== 'accumulated' && showSummaryCards ? (
         <section className="grid gap-4 lg:grid-cols-2" aria-label="Resumo patrimonial">
           <p className="col-span-full text-[11px] uppercase tracking-[0.34em] text-muted-foreground">Resumo patrimonial</p>
           <SummaryCard
@@ -240,9 +259,9 @@ export function DashboardReportView({
         </section>
       ) : null}
 
-      {showChart ? <DashboardSummaryChart summary={report.summary} /> : null}
+      {selectedView !== 'accumulated' && showChart ? <DashboardSummaryChart summary={report.summary} /> : null}
 
-      <section className="grid gap-4 xl:grid-cols-2 border-t border-border/60 pt-6">
+      {selectedView !== 'accumulated' ? <section className="grid gap-4 xl:grid-cols-2 border-t border-border/60 pt-6">
         {showPending ? (
           <SectionPanel
             eyebrow="Pendências"
@@ -310,9 +329,9 @@ export function DashboardReportView({
             </div>
           </SectionPanel>
         ) : null}
-      </section>
+      </section> : null}
 
-      <section className="grid gap-4 xl:grid-cols-3 border-t border-border/40 pt-6 opacity-95">
+      {selectedView !== 'accumulated' ? <section className="grid gap-4 xl:grid-cols-3 border-t border-border/40 pt-6 opacity-95">
         {showCategories ? (
           <SectionPanel
             eyebrow="Categorias"
@@ -417,7 +436,7 @@ export function DashboardReportView({
             </div>
           </SectionPanel>
         ) : null}
-      </section>
+      </section> : null}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import {
+  getAccumulatedReport,
   getAvailableMonths,
   getDashboardReport,
 } from '@/services/dashboardService'
@@ -19,7 +20,7 @@ type DashboardPageProps = {
       }
 }
 
-const dashboardViews = new Set(['general', 'receivable', 'payable', 'consolidated'])
+const dashboardViews = new Set(['general', 'receivable', 'payable', 'consolidated', 'accumulated'])
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const resolvedSearchParams = searchParams ? await Promise.resolve(searchParams) : undefined
@@ -35,16 +36,20 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     availableMonths,
   })
   const selectedView = dashboardViews.has(resolvedSearchParams?.view ?? '')
-    ? (resolvedSearchParams?.view as 'general' | 'receivable' | 'payable' | 'consolidated')
+    ? (resolvedSearchParams?.view as 'general' | 'receivable' | 'payable' | 'consolidated' | 'accumulated')
     : 'general'
 
   const report = await getDashboardReport(user.id, selectedPeriod.month)
+  const accumulatedData = selectedView === 'accumulated'
+    ? await getAccumulatedReport(user.id)
+    : undefined
 
   return (
     <DashboardReportView
       availableMonths={availableMonths}
       report={report}
       selectedView={selectedView}
+      accumulatedData={accumulatedData}
     />
   )
 }

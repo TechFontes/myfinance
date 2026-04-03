@@ -375,6 +375,146 @@ export async function getAvailableMonths(userId: string) {
   return [...months].sort()
 }
 
+export type AccumulatedReportData = {
+  patrimonyData: {
+    month: string
+    label: string
+    realized: number
+    forecast: number
+  }[]
+  accounts: { name: string; balance: string }[]
+  totalBalance: string
+}
+
+export async function getAccumulatedReport(userId: string): Promise<AccumulatedReportData> {
+  const availableMonths = await getAvailableMonths(userId)
+
+  const accounts = await prisma.account.findMany({
+    where: { userId },
+    orderBy: { name: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      type: true,
+      initialBalance: true,
+      active: true,
+    },
+  })
+
+  const shortMonthFormatter = new Intl.DateTimeFormat('pt-BR', {
+    month: 'short',
+    timeZone: 'UTC',
+  })
+
+  const patrimonyData: AccumulatedReportData['patrimonyData'] = []
+
+  for (const month of availableMonths) {
+    const { start, end } = getMonthWindow(month)
+
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        status: { not: 'CANCELED' },
+        competenceDate: { gte: start, lte: end },
+      },
+      select: {
+        type: true,
+        value: true,
+        status: true,
+      },
+    })
+
+    let realizedBalance = 0
+    let forecastBalance = 0
+
+    for (const transaction of transactions) {
+      const amount = Number(transaction.value)
+      const sign = transaction.type === 'INCOME' ? 1 : -1
+
+      if (transaction.status === 'PAID') {
+        realizedBalance += sign * amount
+      }
+
+      forecastBalance += sign * amount
+    }
+
+    const [year, m] = month.split('-')
+    const date = new Date(Date.UTC(Number(year), Number(m) - 1, 1))
+    const label = shortMonthFormatter.format(date).replace('.', '').toLowerCase()
+
+    patrimonyData.push({
+      month,
+      label,
+      realized: realizedBalance,
+      forecast: forecastBalance,
+    })
+  }
+
+  // Compute current account balances using all PAID transactions across all time
+  const allTransactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      status: 'PAID',
+    },
+    select: {
+      type: true,
+      value: true,
+      accountId: true,
+    },
+  })
+
+  const allTransfers = await prisma.transfer.findMany({
+    where: {
+      userId,
+      status: 'PAID',
+    },
+    select: {
+      amount: true,
+      sourceAccountId: true,
+      destinationAccountId: true,
+    },
+  })
+
+  const accountBalances = new Map<number, number>()
+
+  for (const account of accounts) {
+    accountBalances.set(account.id, Number(account.initialBalance))
+  }
+
+  for (const transaction of allTransactions) {
+    if (!transaction.accountId) continue
+    const current = accountBalances.get(transaction.accountId) ?? 0
+    const delta = transaction.type === 'INCOME' ? Number(transaction.value) : -Number(transaction.value)
+    accountBalances.set(transaction.accountId, current + delta)
+  }
+
+  for (const transfer of allTransfers) {
+    if (transfer.sourceAccountId) {
+      const current = accountBalances.get(transfer.sourceAccountId) ?? 0
+      accountBalances.set(transfer.sourceAccountId, current - Number(transfer.amount))
+    }
+    if (transfer.destinationAccountId) {
+      const current = accountBalances.get(transfer.destinationAccountId) ?? 0
+      accountBalances.set(transfer.destinationAccountId, current + Number(transfer.amount))
+    }
+  }
+
+  const accountSnapshots = accounts.map((account) => ({
+    name: account.name,
+    balance: formatAmount(accountBalances.get(account.id) ?? 0),
+  }))
+
+  const totalBalance = formatAmount(
+    accounts.reduce((sum, account) => sum + (accountBalances.get(account.id) ?? 0), 0),
+  )
+
+  return {
+    patrimonyData,
+    accounts: accountSnapshots,
+    totalBalance,
+  }
+}
+
 export async function getDashboardReport(userId: string, month: string): Promise<DashboardReport> {
   const { start, end } = getMonthWindow(month)
 
