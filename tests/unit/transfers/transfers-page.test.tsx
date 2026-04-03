@@ -12,6 +12,18 @@ const transfersMock = vi.hoisted(() => ({
 
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/transfers/service', () => transfersMock)
+vi.mock('next/navigation', async () => {
+  const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation')
+
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+      back: vi.fn(),
+      refresh: vi.fn(),
+    }),
+  }
+})
 
 describe('transfers page', () => {
   beforeEach(() => {

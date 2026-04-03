@@ -10,16 +10,40 @@ const prismaMock = vi.hoisted(() => ({
   invoice: {
     findFirst: vi.fn(),
   },
+  account: {
+    findMany: vi.fn(),
+  },
+  category: {
+    findMany: vi.fn(),
+  },
 }))
 
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/lib/prisma', () => ({
   prisma: prismaMock,
 }))
+vi.mock('next/navigation', async () => {
+  const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation')
+
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+      back: vi.fn(),
+      refresh: vi.fn(),
+    }),
+  }
+})
 
 describe('invoice page', () => {
   it('renders the invoice detail view for the current user', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+    prismaMock.account.findMany.mockResolvedValue([
+      { id: 1, name: 'Conta Principal' },
+    ])
+    prismaMock.category.findMany.mockResolvedValue([
+      { id: 1, name: 'Alimentação' },
+    ])
     prismaMock.invoice.findFirst.mockResolvedValue({
       id: 7,
       month: 3,

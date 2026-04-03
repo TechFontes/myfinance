@@ -53,6 +53,7 @@ describe('transaction edit flow', () => {
             category: { name: 'Moradia' },
           },
         ]}
+        accounts={[{ id: 1, name: 'Conta Principal' }]}
       />,
     )
 

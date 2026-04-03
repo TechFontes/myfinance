@@ -66,16 +66,14 @@ describe('transaction payment flow', () => {
             creditCardId: 31,
           },
         ]}
+        accounts={[{ id: 1, name: 'Conta Principal' }]}
       />,
     )
 
-    const paymentLinks = screen.getAllByRole('link', { name: 'Informar pagamento' })
+    const settleButtons = screen.getAllByRole('button', { name: 'Liquidar' })
 
-    expect(paymentLinks).toHaveLength(1)
-    expect(paymentLinks[0]).toHaveAttribute(
-      'href',
-      '/dashboard/transactions/10?action=pay',
-    )
+    // Only the first transaction (account-based, no creditCardId) should show the settle button
+    expect(settleButtons).toHaveLength(1)
   })
 
   it('opens the transaction page in payment mode with payment date visible', async () => {
