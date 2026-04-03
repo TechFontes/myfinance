@@ -1,4 +1,8 @@
 import type {
+  CancelTransactionInput,
+  CancelTransactionCommandResult,
+  CancelTransferInput,
+  CancelTransferCommandResult,
   CreateCardPurchaseInput,
   CreateCardPurchaseCommandResult,
   CreateTransferInput,
@@ -8,8 +12,12 @@ import type {
   PayInvoiceInput,
   RecordGoalContributionCommandResult,
   RecordGoalContributionInput,
+  RecordGoalWithdrawalInput,
+  RecordGoalWithdrawalCommandResult,
   SettleTransactionCommandResult,
   SettleTransactionInput,
+  SettleTransferInput,
+  SettleTransferCommandResult,
 } from './contracts'
 
 function buildSettleTransactionResult(
@@ -145,6 +153,65 @@ function buildRecordGoalContributionResult(
   }
 }
 
+function buildCancelTransactionResult(
+  portResult: { transactionId: number; previousStatus: string },
+): CancelTransactionCommandResult {
+  return {
+    command: 'cancelTransaction',
+    writes: ['transaction', 'dashboard-read-model'],
+    rule: {
+      kind: 'cancellation',
+      entityType: 'transaction',
+      entityId: portResult.transactionId,
+      previousStatus: portResult.previousStatus,
+    },
+  }
+}
+
+function buildSettleTransferResult(
+  portResult: { transferId: number; paidAt: Date },
+): SettleTransferCommandResult {
+  return {
+    command: 'settleTransfer',
+    writes: ['transfer', 'account-balance', 'dashboard-read-model'],
+    rule: {
+      kind: 'transfer-settlement',
+      transferId: portResult.transferId,
+      paidAt: portResult.paidAt,
+    },
+  }
+}
+
+function buildCancelTransferResult(
+  portResult: { transferId: number; previousStatus: string },
+): CancelTransferCommandResult {
+  return {
+    command: 'cancelTransfer',
+    writes: ['transfer', 'dashboard-read-model'],
+    rule: {
+      kind: 'cancellation',
+      entityType: 'transfer',
+      entityId: portResult.transferId,
+      previousStatus: portResult.previousStatus,
+    },
+  }
+}
+
+function buildRecordGoalWithdrawalResult(
+  portResult: { goalId: number; amount: string; transferId?: number },
+): RecordGoalWithdrawalCommandResult {
+  return {
+    command: 'recordGoalWithdrawal',
+    writes: ['goal-contribution', 'dashboard-read-model'],
+    rule: {
+      kind: 'goal-withdrawal',
+      goalId: portResult.goalId,
+      amount: portResult.amount,
+      hasTransfer: !!portResult.transferId,
+    },
+  }
+}
+
 export function createFinancialCommandService(ports: FinancialCommandPorts) {
   return {
     async settleTransactionCommand(
@@ -178,6 +245,30 @@ export function createFinancialCommandService(ports: FinancialCommandPorts) {
 
       const persisted = await ports.recordGoalContribution(input)
       return buildRecordGoalContributionResult(input, persisted)
+    },
+    async cancelTransactionCommand(
+      input: CancelTransactionInput,
+    ): Promise<CancelTransactionCommandResult> {
+      const portResult = await ports.cancelTransaction(input)
+      return buildCancelTransactionResult(portResult)
+    },
+    async settleTransferCommand(
+      input: SettleTransferInput,
+    ): Promise<SettleTransferCommandResult> {
+      const portResult = await ports.settleTransfer(input)
+      return buildSettleTransferResult(portResult)
+    },
+    async cancelTransferCommand(
+      input: CancelTransferInput,
+    ): Promise<CancelTransferCommandResult> {
+      const portResult = await ports.cancelTransfer(input)
+      return buildCancelTransferResult(portResult)
+    },
+    async recordGoalWithdrawalCommand(
+      input: RecordGoalWithdrawalInput,
+    ): Promise<RecordGoalWithdrawalCommandResult> {
+      const portResult = await ports.recordGoalWithdrawal(input)
+      return buildRecordGoalWithdrawalResult(portResult)
     },
   }
 }

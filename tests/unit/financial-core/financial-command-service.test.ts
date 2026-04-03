@@ -16,6 +16,18 @@ describe('financial command service', () => {
       recordGoalContribution: vi
         .fn()
         .mockResolvedValue({ contributionId: 3, goalId: 7, transferId: 19 }),
+      cancelTransaction: vi
+        .fn()
+        .mockResolvedValue({ transactionId: 10, previousStatus: 'PAID' }),
+      settleTransfer: vi
+        .fn()
+        .mockResolvedValue({ transferId: 5, paidAt: new Date('2026-04-02T00:00:00.000Z') }),
+      cancelTransfer: vi
+        .fn()
+        .mockResolvedValue({ transferId: 5, previousStatus: 'PENDING' }),
+      recordGoalWithdrawal: vi
+        .fn()
+        .mockResolvedValue({ goalId: 5, amount: '200.00' }),
     }
   }
 
@@ -281,5 +293,100 @@ describe('financial command service', () => {
     ).rejects.toThrow(
       'Reserve-backed goal contributions require reserveAccountId and transferId',
     )
+  })
+
+  it('cancels a transaction through one command boundary', async () => {
+    const ports = createPorts()
+    const service = createFinancialCommandService(ports)
+
+    const result = await service.cancelTransactionCommand({
+      transactionId: 10,
+    })
+
+    expect(ports.cancelTransaction).toHaveBeenCalledWith({
+      transactionId: 10,
+    })
+    expect(result).toMatchObject({
+      command: 'cancelTransaction',
+      writes: ['transaction', 'dashboard-read-model'],
+      rule: {
+        kind: 'cancellation',
+        entityType: 'transaction',
+        entityId: 10,
+        previousStatus: 'PAID',
+      },
+    })
+  })
+
+  it('settles a transfer through one command boundary', async () => {
+    const ports = createPorts()
+    const service = createFinancialCommandService(ports)
+
+    const result = await service.settleTransferCommand({
+      transferId: 5,
+      paidAt: new Date('2026-04-02T00:00:00.000Z'),
+    })
+
+    expect(ports.settleTransfer).toHaveBeenCalledWith({
+      transferId: 5,
+      paidAt: new Date('2026-04-02T00:00:00.000Z'),
+    })
+    expect(result).toMatchObject({
+      command: 'settleTransfer',
+      writes: ['transfer', 'account-balance', 'dashboard-read-model'],
+      rule: {
+        kind: 'transfer-settlement',
+        transferId: 5,
+        paidAt: new Date('2026-04-02T00:00:00.000Z'),
+      },
+    })
+  })
+
+  it('cancels a transfer through one command boundary', async () => {
+    const ports = createPorts()
+    const service = createFinancialCommandService(ports)
+
+    const result = await service.cancelTransferCommand({
+      transferId: 5,
+    })
+
+    expect(ports.cancelTransfer).toHaveBeenCalledWith({
+      transferId: 5,
+    })
+    expect(result).toMatchObject({
+      command: 'cancelTransfer',
+      writes: ['transfer', 'dashboard-read-model'],
+      rule: {
+        kind: 'cancellation',
+        entityType: 'transfer',
+        entityId: 5,
+        previousStatus: 'PENDING',
+      },
+    })
+  })
+
+  it('records a goal withdrawal through one command boundary', async () => {
+    const ports = createPorts()
+    const service = createFinancialCommandService(ports)
+
+    const result = await service.recordGoalWithdrawalCommand({
+      goalId: 5,
+      amount: '200.00',
+    })
+
+    expect(ports.recordGoalWithdrawal).toHaveBeenCalledWith({
+      goalId: 5,
+      amount: '200.00',
+    })
+    expect(result).toMatchObject({
+      command: 'recordGoalWithdrawal',
+      writes: ['goal-contribution', 'dashboard-read-model'],
+      rule: {
+        kind: 'goal-withdrawal',
+        goalId: 5,
+        amount: '200.00',
+        hasTransfer: false,
+      },
+    })
   })
 })
