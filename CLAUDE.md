@@ -17,7 +17,7 @@ Plataforma multi-usuário de gestão financeira pessoal. Controla contas, transa
 | Validação | Zod 4 + React Hook Form |
 | Auth | JWT (httpOnly cookie, 7 dias) + bcryptjs |
 | Testes | Vitest 3 + React Testing Library |
-| Deploy | PM2 (fork, porta 3000, standalone) |
+| Deploy | Docker multi-stage + K3s (Kubernetes) |
 | Fontes | Inter (sans) + Sora (serif) |
 
 ---

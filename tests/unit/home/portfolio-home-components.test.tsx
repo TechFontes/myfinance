@@ -43,7 +43,7 @@ describe('PortfolioMetrics', () => {
     expect(screen.getByText('13')).toBeInTheDocument()
     expect(screen.getByText('módulos de domínio')).toBeInTheDocument()
     expect(screen.getByText('TDD')).toBeInTheDocument()
-    expect(screen.getByText('PM2')).toBeInTheDocument()
+    expect(screen.getByText('K3s')).toBeInTheDocument()
   }, 10000)
 })
 
@@ -86,7 +86,7 @@ describe('PortfolioProcessMap', () => {
     expect(screen.getByText('Lei do projeto')).toBeInTheDocument()
     expect(screen.getByText('RED — teste falha')).toBeInTheDocument()
     expect(screen.getByText('GREEN — código passa')).toBeInTheDocument()
-    expect(screen.getByText(/4 gates antes de publicar/)).toBeInTheDocument()
+    expect(screen.getByText(/Build containerizado e deploy em Kubernetes/)).toBeInTheDocument()
   }, 10000)
 })
 

@@ -66,15 +66,11 @@ export const portfolioProcessSteps = [
     accent: 'green' as const,
   },
   {
-    title: '4 gates antes de publicar',
-    tag: 'Publish',
+    title: 'Build containerizado e deploy em Kubernetes',
+    tag: 'Deploy',
     tagColor: 'blue' as const,
-    gates: [
-      { label: 'Design', color: 'green' },
-      { label: 'Red test', color: 'red' },
-      { label: 'Integration', color: 'purple' },
-      { label: 'Publish', color: 'blue' },
-    ],
+    description: 'Imagem Docker multi-stage (deps → build → runner). Deploy via K3s com rolling update, health probes, auto-heal e rollback nativo.',
+    deploySteps: ['docker build', 'ctr import', 'kubectl apply', 'rollout restart'],
     accent: 'green' as const,
   },
 ] as const
@@ -84,7 +80,7 @@ export const portfolioMetrics = [
   { value: '13', label: 'módulos de domínio' },
   { value: '18', label: 'API routes RESTful' },
   { value: 'TDD', label: 'test-first workflow' },
-  { value: 'PM2', label: 'standalone deploy' },
+  { value: 'K3s', label: 'Kubernetes deploy' },
 ] as const
 
 export const portfolioScreenshotCards = [
@@ -116,7 +112,7 @@ export const portfolioScreenshotCards = [
 
 export const portfolioContact = {
   name: 'Daniel Fontes',
-  role: 'Engenheiro de software · Rio de Janeiro',
+  role: 'Engenheiro de software · Brasília',
   email: 'daniel@techfontes.com',
   whatsapp: {
     display: '(21) 98979-9816',

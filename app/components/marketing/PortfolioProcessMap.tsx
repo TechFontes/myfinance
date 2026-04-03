@@ -30,15 +30,21 @@ export function PortfolioProcessMap() {
       </p>
 
       <div className="relative pl-7">
-        <div className="absolute bottom-1 left-[7px] top-1 w-0.5 bg-gradient-to-b from-emerald-500 to-emerald-200" />
+        {/* Vertical line — centered at left 6.5px (center of 13px dot) */}
+        <div className="absolute bottom-1 left-[6.5px] top-1 w-0.5 bg-gradient-to-b from-emerald-500 to-emerald-200" />
 
         {portfolioProcessSteps.map((step, index) => (
           <div key={step.title} className={`relative ${index < portfolioProcessSteps.length - 1 ? 'mb-4' : ''}`}>
+            {/* Dot — centered on the vertical line */}
             <div
-              className={`absolute -left-[21px] top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                step.accent === 'red' ? 'bg-red-500' : 'bg-emerald-500'
-              }`}
-            />
+              className={`absolute -left-7 top-3 flex h-[14px] w-[14px] items-center justify-center`}
+            >
+              <div
+                className={`h-3 w-3 rounded-full border-2 border-white ${
+                  step.accent === 'red' ? 'bg-red-500' : 'bg-emerald-500'
+                }`}
+              />
+            </div>
 
             <div
               className={`rounded-xl border p-3 ${
@@ -72,7 +78,7 @@ export function PortfolioProcessMap() {
               )}
 
               {'flow' in step && step.flow && (
-                <div className="mt-2 flex items-center gap-1.5">
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {step.flow.map((item, i) => (
                     <div key={item} className="flex items-center gap-1.5">
                       <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${flowColors[i]}`}>
@@ -86,14 +92,29 @@ export function PortfolioProcessMap() {
                 </div>
               )}
 
-              {'gates' in step && step.gates && (
-                <div className="mt-2 flex items-center gap-1.5">
-                  {step.gates.map((gate, i) => (
+              {'gates' in step && (step as { gates: readonly { label: string; color: keyof typeof gateColors }[] }).gates && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {(step as { gates: readonly { label: string; color: keyof typeof gateColors }[] }).gates.map((gate, i, arr) => (
                     <div key={gate.label} className="flex items-center gap-1.5">
                       <span className={`rounded-md border px-2 py-0.5 text-[10px] font-bold ${gateColors[gate.color]}`}>
                         {gate.label}
                       </span>
-                      {i < step.gates!.length - 1 && (
+                      {i < arr.length - 1 && (
+                        <span className="text-xs text-muted-foreground/50">→</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {'deploySteps' in step && (step as { deploySteps: readonly string[] }).deploySteps && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {(step as { deploySteps: readonly string[] }).deploySteps.map((ds, i, arr) => (
+                    <div key={ds} className="flex items-center gap-1.5">
+                      <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                        {ds}
+                      </span>
+                      {i < arr.length - 1 && (
                         <span className="text-xs text-muted-foreground/50">→</span>
                       )}
                     </div>

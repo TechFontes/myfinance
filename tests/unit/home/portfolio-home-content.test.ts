@@ -44,7 +44,7 @@ describe('portfolio home content contract', () => {
     expect(portfolioProcessSteps[0].title).toContain('PRD')
     expect(portfolioProcessSteps[2].title).toContain('Teste primeiro')
     expect(portfolioProcessSteps[2].tag).toBe('Lei do projeto')
-    expect(portfolioProcessSteps[5].title).toContain('4 gates')
+    expect(portfolioProcessSteps[5].title).toContain('Kubernetes')
   })
 
   it('defines 5 project metrics', () => {
