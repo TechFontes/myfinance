@@ -147,6 +147,8 @@ model CreditCard {
   limit          Decimal         @db.Decimal(10, 2)
   closeDay       Int
   dueDay         Int
+  color          String?
+  icon           String?
   active         Boolean         @default(true)
   createdAt      DateTime        @default(now())
 

@@ -57,6 +57,30 @@ describe('account create form', () => {
     expect(screen.getByRole('button', { name: 'Salvar conta' })).toBeInTheDocument()
   }, 30000)
 
+  it('renders a color picker with preset swatches', async () => {
+    const { AccountCreateForm } = await import('@/components/accounts/AccountCreateForm')
+
+    render(<AccountCreateForm />)
+
+    const colorInput = screen.getByLabelText('Cor')
+    expect(colorInput).toBeInTheDocument()
+    expect(colorInput).toHaveAttribute('type', 'color')
+
+    const swatches = screen.getAllByRole('button').filter(
+      (btn) => btn.style.backgroundColor !== '',
+    )
+    expect(swatches.length).toBe(8)
+  })
+
+  it('renders an icon select with account icon options', async () => {
+    const { AccountCreateForm } = await import('@/components/accounts/AccountCreateForm')
+
+    render(<AccountCreateForm />)
+
+    expect(screen.getByLabelText('Ícone')).toBeInTheDocument()
+    expect(screen.getByText('Selecione um ícone')).toBeInTheDocument()
+  })
+
   it('submits the account payload and redirects back to the list', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
@@ -71,8 +95,6 @@ describe('account create form', () => {
     await user.type(screen.getByLabelText('Nome'), 'Nubank')
     await user.type(screen.getByPlaceholderText('0,00'), '1200.50')
     await user.type(screen.getByLabelText('Instituição'), 'Nubank')
-    await user.type(screen.getByPlaceholderText('#7a2cff'), '#7a2cff')
-    await user.type(screen.getByPlaceholderText('wallet'), 'wallet')
     await user.click(screen.getByRole('button', { name: 'Salvar conta' }))
 
     await waitFor(() => {
@@ -95,8 +117,6 @@ describe('account create form', () => {
           type: 'BANK',
           initialBalance: '1200.50',
           institution: 'Nubank',
-          color: '#7a2cff',
-          icon: 'wallet',
         }),
       }),
     )

@@ -65,6 +65,26 @@ describe('card create form', () => {
     expect(routerMock.push).toHaveBeenCalledWith('/dashboard/cards')
   })
 
+  it('renders a color picker with preset swatches', () => {
+    render(<CardCreateForm />)
+
+    const colorInput = screen.getByLabelText('Cor')
+    expect(colorInput).toBeInTheDocument()
+    expect(colorInput).toHaveAttribute('type', 'color')
+
+    const swatches = screen.getAllByRole('button').filter(
+      (btn) => btn.style.backgroundColor !== '',
+    )
+    expect(swatches.length).toBe(8)
+  })
+
+  it('renders an icon select with card icon options', () => {
+    render(<CardCreateForm />)
+
+    expect(screen.getByLabelText('Ícone')).toBeInTheDocument()
+    expect(screen.getByText('Selecione um ícone')).toBeInTheDocument()
+  })
+
   it('supports edit mode through PATCH with prefilled values', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,

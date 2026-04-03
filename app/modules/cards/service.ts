@@ -22,6 +22,8 @@ function mapCreditCardRecord(card: {
   limit: { toString(): string }
   closeDay: number
   dueDay: number
+  color?: string | null
+  icon?: string | null
   active: boolean
   createdAt: Date
   updatedAt?: Date
@@ -29,8 +31,8 @@ function mapCreditCardRecord(card: {
   return {
     ...card,
     limit: card.limit.toString(),
-    color: null,
-    icon: null,
+    color: card.color ?? null,
+    icon: card.icon ?? null,
     updatedAt: card.updatedAt ?? card.createdAt,
   }
 }
@@ -66,6 +68,8 @@ export async function createCardForUser(
       limit: input.limit,
       closeDay: input.closeDay,
       dueDay: input.dueDay,
+      color: input.color ?? null,
+      icon: input.icon ?? null,
       active: input.active ?? true,
     },
   })
@@ -93,6 +97,8 @@ export async function updateCardForUser(
       limit: input.limit,
       closeDay: input.closeDay,
       dueDay: input.dueDay,
+      color: input.color,
+      icon: input.icon,
       active: input.active,
     },
   })

@@ -14,6 +14,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import type { AccountRecord } from '@/modules/accounts'
 import { accountTypes } from '@/modules/accounts'
 
+const accountIconOptions = [
+  { value: 'wallet', label: 'Carteira' },
+  { value: 'landmark', label: 'Banco' },
+  { value: 'piggy-bank', label: 'Cofre' },
+  { value: 'building-2', label: 'Instituição' },
+  { value: 'coins', label: 'Moedas' },
+  { value: 'banknote', label: 'Dinheiro' },
+  { value: 'credit-card', label: 'Cartão' },
+  { value: 'briefcase', label: 'Negócios' },
+  { value: 'trending-up', label: 'Investimento' },
+  { value: 'shield', label: 'Reserva' },
+]
+
 const accountCreateFormSchema = z.object({
   name: z.string().trim().min(1, 'Informe o nome'),
   type: z.enum(accountTypes),
@@ -172,7 +185,19 @@ export function AccountCreateForm({
                 <FormItem>
                   <FormLabel>Cor</FormLabel>
                   <FormControl>
-                    <Input placeholder="#7a2cff" {...field} />
+                    <div className="flex items-center gap-3">
+                      <input type="color" value={field.value || '#7a2cff'}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        className="h-9 w-12 cursor-pointer rounded-md border border-border"
+                        aria-label="Cor" />
+                      <div className="flex gap-1.5">
+                        {['#7a2cff','#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4'].map(c => (
+                          <button key={c} type="button" onClick={() => field.onChange(c)}
+                            className="h-7 w-7 rounded-full border-2 border-transparent hover:border-foreground/30 transition-colors"
+                            style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -185,9 +210,20 @@ export function AccountCreateForm({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ícone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="wallet" {...field} />
-                  </FormControl>
+                  <Select onValueChange={field.onChange} value={field.value || ''}>
+                    <FormControl>
+                      <SelectTrigger aria-label="Ícone">
+                        <SelectValue placeholder="Selecione um ícone" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {accountIconOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

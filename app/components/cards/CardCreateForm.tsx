@@ -6,11 +6,27 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { Controller } from 'react-hook-form'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cardCreateSchema } from '@/modules/cards'
+
+const cardIconOptions = [
+  { value: 'credit-card', label: 'Cartão' },
+  { value: 'wallet', label: 'Carteira' },
+  { value: 'landmark', label: 'Banco' },
+  { value: 'banknote', label: 'Dinheiro' },
+  { value: 'shopping-cart', label: 'Compras' },
+  { value: 'car', label: 'Veículo' },
+  { value: 'home', label: 'Casa' },
+  { value: 'utensils', label: 'Alimentação' },
+  { value: 'plane', label: 'Viagem' },
+  { value: 'receipt', label: 'Recibo' },
+]
 
 type CardCreateFormValues = z.input<typeof cardCreateSchema>
 
@@ -171,12 +187,24 @@ export function CardCreateForm({
 
               <div className="space-y-2">
                 <Label htmlFor="color">Cor</Label>
-                <Input
-                  id="color"
-                  placeholder="#7a2cff"
-                  {...register('color', {
-                    setValueAs: normalizeOptionalText,
-                  })}
+                <Controller
+                  control={form.control}
+                  name="color"
+                  render={({ field }) => (
+                    <div className="flex items-center gap-3">
+                      <input type="color" value={field.value || '#7a2cff'}
+                        onChange={(e) => field.onChange(e.target.value)}
+                        className="h-9 w-12 cursor-pointer rounded-md border border-border"
+                        aria-label="Cor" />
+                      <div className="flex gap-1.5">
+                        {['#7a2cff','#10b981','#3b82f6','#f59e0b','#ef4444','#8b5cf6','#ec4899','#06b6d4'].map(c => (
+                          <button key={c} type="button" onClick={() => field.onChange(c)}
+                            className="h-7 w-7 rounded-full border-2 border-transparent hover:border-foreground/30 transition-colors"
+                            style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 />
                 {errors.color ? (
                   <p className="text-sm text-destructive">{errors.color.message}</p>
@@ -185,12 +213,23 @@ export function CardCreateForm({
 
               <div className="space-y-2">
                 <Label htmlFor="icon">Ícone</Label>
-                <Input
-                  id="icon"
-                  placeholder="credit-card"
-                  {...register('icon', {
-                    setValueAs: normalizeOptionalText,
-                  })}
+                <Controller
+                  control={form.control}
+                  name="icon"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
+                      <SelectTrigger aria-label="Ícone">
+                        <SelectValue placeholder="Selecione um ícone" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cardIconOptions.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
                 {errors.icon ? (
                   <p className="text-sm text-destructive">{errors.icon.message}</p>
