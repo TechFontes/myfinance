@@ -20,6 +20,19 @@ function loadStandaloneRuntime(rootDir = __dirname) {
 if (require.main === module) {
   const runtime = loadStandaloneRuntime()
   require(runtime.serverPath)
+
+  // Graceful shutdown: allow in-flight requests to complete before exiting
+  function shutdown(signal) {
+    console.log(`Received ${signal}, shutting down gracefully...`)
+    // Give active connections time to drain before forcing exit
+    setTimeout(() => {
+      console.log('Shutdown timeout reached, forcing exit')
+      process.exit(0)
+    }, 4000)
+  }
+
+  process.on('SIGINT', () => shutdown('SIGINT'))
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
 }
 
 module.exports = {
