@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = accountCreateSchema.parse(await request.json())
-  const account = await createAccountForUser(user.id, payload)
+  const parsed = accountCreateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const account = await createAccountForUser(user.id, parsed.data)
 
   return NextResponse.json(account, { status: 201 })
 }

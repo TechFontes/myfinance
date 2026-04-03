@@ -15,8 +15,11 @@ export async function PATCH(
 
   const { accountId: accountIdParam } = await params
   const accountId = Number(accountIdParam)
-  const payload = accountUpdateSchema.parse(await request.json())
-  const account = await updateAccountForUser(user.id, accountId, payload)
+  const parsed = accountUpdateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const account = await updateAccountForUser(user.id, accountId, parsed.data)
 
   if (!account) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

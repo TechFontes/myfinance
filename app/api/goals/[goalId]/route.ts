@@ -26,11 +26,14 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid goal id' }, { status: 400 })
   }
 
-  const payload = goalsUpdateSchema.parse({
+  const parsed = goalsUpdateSchema.safeParse({
     ...(await request.json()),
     id: goalId,
   })
-  const goal = await updateGoalForUser(user.id, goalId, payload)
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const goal = await updateGoalForUser(user.id, goalId, parsed.data)
 
   if (!goal) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

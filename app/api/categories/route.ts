@@ -25,8 +25,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = categoryCreateSchema.parse(await request.json())
-  const category = await createCategory(user.id, payload)
+  const parsed = categoryCreateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const category = await createCategory(user.id, parsed.data)
 
   return NextResponse.json(category, { status: 201 })
 }

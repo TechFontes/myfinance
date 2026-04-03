@@ -18,8 +18,11 @@ export async function PATCH(
 
   const { categoryId: categoryIdParam } = await params
   const categoryId = Number(categoryIdParam)
-  const payload = categoryUpdateSchema.parse(await request.json())
-  const category = await updateCategoryById(user.id, categoryId, payload)
+  const parsed = categoryUpdateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const category = await updateCategoryById(user.id, categoryId, parsed.data)
 
   if (!category) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

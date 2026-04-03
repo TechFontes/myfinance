@@ -22,8 +22,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = cardCreateSchema.parse(await request.json())
-  const card = await createCardForUser(user.id, payload)
+  const parsed = cardCreateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const card = await createCardForUser(user.id, parsed.data)
 
   return NextResponse.json(card, { status: 201 })
 }

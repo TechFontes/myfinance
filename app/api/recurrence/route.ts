@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ZodError } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import {
   createRecurringRuleForUser,
@@ -26,25 +25,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  try {
-    const payload = recurrenceCreateSchema.parse(await request.json())
-    const rule = await createRecurringRuleForUser(user.id, {
-      ...payload,
-      accountId: payload.accountId ?? null,
-      creditCardId: payload.creditCardId ?? null,
-      endDate: payload.endDate ?? null,
-      active: payload.active ?? true,
-    })
-
-    return NextResponse.json(rule, { status: 201 })
-  } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        { error: error.issues[0]?.message ?? 'Invalid recurrence payload' },
-        { status: 400 },
-      )
-    }
-
-    throw error
+  const parsed = recurrenceCreateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
   }
+  const rule = await createRecurringRuleForUser(user.id, {
+    ...parsed.data,
+    accountId: parsed.data.accountId ?? null,
+    creditCardId: parsed.data.creditCardId ?? null,
+    endDate: parsed.data.endDate ?? null,
+    active: parsed.data.active ?? true,
+  })
+
+  return NextResponse.json(rule, { status: 201 })
 }
