@@ -106,12 +106,22 @@ export function GoalMovementForm({
     }
 
     try {
-      const response = await fetch(`/api/goals/${goalId}/contributions`, {
+      const url =
+        action === 'withdraw'
+          ? `/api/goals/${goalId}/withdraw`
+          : `/api/goals/${goalId}/contributions`
+
+      const body =
+        action === 'withdraw'
+          ? { amount, transferId: undefined }
+          : payload
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       })
 
       if (!response.ok) {
