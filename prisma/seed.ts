@@ -323,7 +323,7 @@ async function ensureRecurringRule({
 async function main() {
   console.log('🌱 Seeding...')
 
-  const passwordHash = await bcrypt.hash('123456', 10)
+  const passwordHash = await bcrypt.hash('12345678', 10)
 
   const user = await prisma.user.upsert({
     where: { email: SEEDED_USER_EMAIL },
