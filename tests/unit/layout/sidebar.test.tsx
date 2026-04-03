@@ -60,7 +60,7 @@ describe('sidebar', () => {
 
     expect(activeLink).toHaveAttribute('aria-current', 'page')
     expect(activeLink).toHaveClass('bg-background/95')
-    expect(activeLink).toHaveClass('ring-1')
+    expect(activeLink).toHaveClass('border-primary')
     expect(activeLink).not.toHaveClass('bg-foreground')
     expect(screen.getAllByRole('link', { name: 'Visão geral' })[0]).not.toHaveAttribute(
       'aria-current',

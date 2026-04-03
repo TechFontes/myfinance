@@ -26,7 +26,9 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-border/70 bg-card/90 px-4 py-5 backdrop-blur md:flex">
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-border/70 bg-gradient-to-b from-card to-card/95 px-4 py-5 backdrop-blur md:flex">
+      <div className="h-0.5 -mx-4 -mt-5 mb-5 bg-gradient-to-r from-primary/60 via-primary to-primary/60" />
+
       <div className="rounded-[1.5rem] border border-border/70 bg-background/80 p-4 shadow-[0_20px_60px_-50px_rgba(15,23,42,0.28)]">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-[1rem] border border-border/70 bg-card text-sm font-semibold text-foreground">
@@ -35,7 +37,7 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
               .toUpperCase()}
           </div>
           <div className="min-w-0">
-            <h2 className="font-serif text-lg tracking-tight text-foreground">
+            <h2 className="font-serif text-xl tracking-wide text-foreground">
               MyFinance
             </h2>
             <p className="text-sm text-muted-foreground">Finanças pessoais</p>
@@ -55,9 +57,9 @@ export function Sidebar({ user }: { user?: SidebarUser }) {
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               className={twMerge(
-                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-border/60 hover:bg-card hover:text-foreground',
+                'block rounded-2xl border border-transparent px-3 py-3 text-sm font-medium text-muted-foreground transition-all duration-200 hover:border-border/60 hover:bg-card hover:text-foreground',
                 isActive &&
-                  'border-border/70 bg-background/95 text-foreground shadow-[0_12px_30px_-32px_rgba(15,23,42,0.3)] ring-1 ring-border/40 hover:bg-background/95 hover:text-foreground'
+                  'border-l-3 border-primary bg-background/95 text-foreground shadow-[0_12px_30px_-32px_rgba(15,23,42,0.3)] ring-1 ring-border/40 hover:bg-background/95 hover:text-foreground'
               )}
             >
               {item.label}

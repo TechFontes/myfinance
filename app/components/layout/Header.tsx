@@ -59,7 +59,7 @@ export function Header({ user: userOverride }: { user?: HeaderUser }) {
             Workspace financeiro
           </p>
           <div className="flex items-center gap-2">
-            <span className="font-serif text-2xl tracking-tight text-foreground">
+            <span className="font-serif text-2xl font-semibold tracking-tight text-foreground">
               MyFinance
             </span>
             <span
@@ -135,7 +135,7 @@ export function Header({ user: userOverride }: { user?: HeaderUser }) {
           <Link
             key={item.href}
             href={item.href}
-            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-card/90 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-card/90 px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-foreground"
           >
             {item.label}
           </Link>
