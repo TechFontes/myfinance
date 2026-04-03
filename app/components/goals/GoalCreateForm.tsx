@@ -209,7 +209,7 @@ export function GoalCreateForm({
                     <FormLabel>Descrição</FormLabel>
                     <FormControl>
                       <textarea
-                        className="min-h-32 w-full rounded-md border border-border bg-background px-3 py-2 text-sm shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20"
+                        className="min-h-32 w-full rounded-md border border-border bg-input px-3 py-2 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground/80 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted/60"
                         placeholder="Contexto opcional da meta"
                         {...field}
                       />
