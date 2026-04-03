@@ -1,5 +1,6 @@
 import { NewTransactionButton } from '@/components/newTransactionButton'
 import { getUserFromRequest } from '@/lib/auth'
+import { listAccountsByUser } from '@/modules/accounts/service'
 import { listTransactionsByUser } from '@/modules/transactions/service'
 import { TransactionsList } from '@/components/transactions/TransactionsList'
 import { redirect } from 'next/navigation'
@@ -11,7 +12,10 @@ export default async function TransactionsPage() {
     return redirect('/login?callbackUrl=%2Fdashboard%2Ftransactions')
   }
 
-  const transactions = await listTransactionsByUser(user.id)
+  const [transactions, accounts] = await Promise.all([
+    listTransactionsByUser(user.id),
+    listAccountsByUser(user.id),
+  ])
 
   return (
     <div className="space-y-6">
@@ -27,6 +31,7 @@ export default async function TransactionsPage() {
       </div>
 
       <TransactionsList
+        accounts={accounts.map((a) => ({ id: a.id, name: a.name }))}
         transactions={transactions.map((transaction) => {
           const categoryTransaction = transaction as typeof transaction & {
             category?: {

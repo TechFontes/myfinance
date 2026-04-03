@@ -10,8 +10,23 @@ const transactionsMock = vi.hoisted(() => ({
   listTransactionsByUser: vi.fn(),
 }))
 
+const accountsMock = vi.hoisted(() => ({
+  listAccountsByUser: vi.fn(),
+}))
+
 vi.mock('@/lib/auth', () => authMock)
 vi.mock('@/modules/transactions/service', () => transactionsMock)
+vi.mock('@/modules/accounts/service', () => accountsMock)
+vi.mock('next/navigation', () => ({
+  redirect: vi.fn(),
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+}))
+vi.mock('@/components/transactions/SettleTransactionDialog', () => ({
+  SettleTransactionDialog: ({ trigger }: { trigger: React.ReactNode }) => <>{trigger}</>,
+}))
+vi.mock('@/components/shared/CancelConfirmDialog', () => ({
+  CancelConfirmDialog: ({ trigger }: { trigger: React.ReactNode }) => <>{trigger}</>,
+}))
 vi.mock('@/components/newTransactionButton', () => ({
   NewTransactionButton: () => <button>Nova transação</button>,
 }))
@@ -25,6 +40,7 @@ describe('transactions page', () => {
 
   it('renders the new transaction contract fields in the list', async () => {
     authMock.getUserFromRequest.mockResolvedValue({ id: 'user-1' })
+    accountsMock.listAccountsByUser.mockResolvedValue([])
     transactionsMock.listTransactionsByUser.mockResolvedValue([
       {
         id: 1,

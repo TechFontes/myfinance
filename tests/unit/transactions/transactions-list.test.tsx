@@ -1,12 +1,25 @@
 // @vitest-environment jsdom
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { TransactionsList } from '@/components/transactions/TransactionsList'
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+}))
+
+vi.mock('@/components/transactions/SettleTransactionDialog', () => ({
+  SettleTransactionDialog: ({ trigger }: { trigger: React.ReactNode }) => <>{trigger}</>,
+}))
+
+vi.mock('@/components/shared/CancelConfirmDialog', () => ({
+  CancelConfirmDialog: ({ trigger }: { trigger: React.ReactNode }) => <>{trigger}</>,
+}))
 
 describe('transactions list', () => {
   it('renders the new transaction contract fields and status labels', () => {
     render(
       <TransactionsList
+        accounts={[]}
         transactions={[
           {
             id: 1,

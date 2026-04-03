@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import {
   Card,
@@ -6,6 +8,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -14,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { SettleTransactionDialog } from '@/components/transactions/SettleTransactionDialog'
+import { CancelConfirmDialog } from '@/components/shared/CancelConfirmDialog'
 
 export type TransactionsListItem = {
   id: number
@@ -30,6 +35,7 @@ export type TransactionsListItem = {
 
 type TransactionsListProps = {
   transactions: TransactionsListItem[]
+  accounts: { id: number; name: string }[]
 }
 
 function formatDate(value: Date | string | null | undefined) {
@@ -81,7 +87,7 @@ function canRegisterPayment(transaction: TransactionsListItem) {
   )
 }
 
-export function TransactionsList({ transactions }: TransactionsListProps) {
+export function TransactionsList({ transactions, accounts }: TransactionsListProps) {
   return (
     <div className="space-y-4">
       <Card className="border-dashed">
@@ -180,12 +186,27 @@ export function TransactionsList({ transactions }: TransactionsListProps) {
                           Editar
                         </Link>
                         {canRegisterPayment(transaction) ? (
-                          <Link
-                            className="inline-flex items-center rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-800 transition-colors hover:bg-emerald-500/15"
-                            href={`/dashboard/transactions/${transaction.id}?action=pay`}
-                          >
-                            Informar pagamento
-                          </Link>
+                          <SettleTransactionDialog
+                            transactionId={transaction.id}
+                            accounts={accounts}
+                            trigger={
+                              <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-300 hover:bg-emerald-50">
+                                Liquidar
+                              </Button>
+                            }
+                          />
+                        ) : null}
+                        {transaction.status !== 'CANCELED' ? (
+                          <CancelConfirmDialog
+                            entityType="transaction"
+                            entityId={transaction.id}
+                            entityDescription={transaction.description}
+                            trigger={
+                              <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive">
+                                Cancelar
+                              </Button>
+                            }
+                          />
                         ) : null}
                       </div>
                     </td>
