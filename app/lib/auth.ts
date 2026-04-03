@@ -24,6 +24,10 @@ export async function getUserFromRequest() {
       return null
     }
 
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return null
+    }
+
     return user
   } catch {
     return null

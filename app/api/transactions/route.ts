@@ -71,10 +71,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = transactionCreateSchema.parse(await request.json())
+  const parsed = transactionCreateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
   const transaction = await createTransactionForUser(
     user.id,
-    normalizeTransactionCreatePayload(payload),
+    normalizeTransactionCreatePayload(parsed.data),
   )
 
   try { revalidatePath('/dashboard') } catch { /* best-effort cache invalidation */ }

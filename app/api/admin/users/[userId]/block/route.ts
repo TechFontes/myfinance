@@ -45,6 +45,11 @@ export async function POST(
   }
 
   const { userId } = await params
+
+  if (userId === result.user.id) {
+    return NextResponse.json({ error: 'Cannot block your own account' }, { status: 400 })
+  }
+
   const user = await blockUserForAdmin(userId, parsedBody.data.reason)
 
   if (!user) {

@@ -27,8 +27,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid transaction id' }, { status: 400 })
   }
 
-  const payload = transactionUpdateSchema.parse(await request.json())
-  const transaction = await updateTransactionByUser(user.id, transactionId, payload)
+  const parsed = transactionUpdateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const transaction = await updateTransactionByUser(user.id, transactionId, parsed.data)
 
   if (!transaction) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })

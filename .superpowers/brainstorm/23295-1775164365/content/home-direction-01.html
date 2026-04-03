@@ -1,0 +1,150 @@
+<h2>Direção da Home: Atual vs Proposta</h2>
+<p class="subtitle">Menos narrativa, mais evidência técnica. Qual direção funciona melhor?</p>
+
+<div class="cards">
+  <div class="card" data-choice="current" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>A — Atual (narrativa longa)</h3>
+      <div class="mockup">
+        <div class="mockup-header">Home atual</div>
+        <div class="mockup-body" style="font-size:12px; line-height:1.5; color:#666;">
+          <div style="background:#f0faf2; border-radius:16px; padding:20px; margin-bottom:12px;">
+            <p style="font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#999;">Case técnico premium</p>
+            <p style="font-size:22px; font-weight:700; color:#111; margin:8px 0;">MyFinance</p>
+            <p style="font-size:13px; color:#111; line-height:1.6; margin:8px 0;">MyFinance é um sistema de finanças pessoais construído como produto real, com foco em clareza patrimonial, arquitetura modular e execução técnica rigorosa.</p>
+            <p style="font-size:12px; color:#666; line-height:1.6;">Um case técnico que organiza previsto e realizado, posição de caixa, cartões, recorrência, metas e importação CSV em uma base coesa, visualmente consistente e pronta para evoluir.</p>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:12px;">
+              <span style="background:white; border:1px solid #e0e0e0; border-radius:20px; padding:3px 10px; font-size:10px;">Next.js 16</span>
+              <span style="background:white; border:1px solid #e0e0e0; border-radius:20px; padding:3px 10px; font-size:10px;">React 19</span>
+              <span style="background:white; border:1px solid #e0e0e0; border-radius:20px; padding:3px 10px; font-size:10px;">Prisma + MySQL</span>
+              <span style="background:white; border:1px solid #e0e0e0; border-radius:20px; padding:3px 10px; font-size:10px;">TDD</span>
+            </div>
+            <div style="background:#eef7ef; border-radius:12px; padding:14px; margin-top:14px;">
+              <p style="font-size:9px; text-transform:uppercase; color:#2e7d4a;">Daniel Fontes</p>
+              <p style="font-size:13px; color:#111; margin:6px 0;">Arquitetura, produto e qualidade técnica apresentados como evidência.</p>
+              <p style="font-size:11px; color:#666; line-height:1.5;">Esta home posiciona o projeto como portfólio de engenharia real: problema claro, decisões técnicas explícitas, interface refinada...</p>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+            <div style="background:white; border:1px solid #e5e5e5; border-radius:12px; padding:14px;">
+              <p style="font-size:9px; text-transform:uppercase; color:#2e7d4a;">Stack</p>
+              <p style="font-size:12px; font-weight:600; color:#111;">Next.js 16, React 19 e Prisma...</p>
+              <p style="font-size:11px; color:#888;">O produto foi montado como aplicação real de App Router...</p>
+            </div>
+            <div style="background:white; border:1px solid #e5e5e5; border-radius:12px; padding:14px;">
+              <p style="font-size:9px; text-transform:uppercase; color:#2e7d4a;">Hardening</p>
+              <p style="font-size:12px; font-weight:600; color:#111;">Autenticação, dashboard e tema...</p>
+              <p style="font-size:11px; color:#888;">Os fluxos principais foram endurecidos com regressões...</p>
+            </div>
+          </div>
+          <p style="text-align:center; color:#bbb; font-size:10px;">↓ mais seções de texto abaixo ↓</p>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="cons"><h4>Problemas</h4><ul>
+          <li>Hero ocupa tela inteira com texto</li>
+          <li>Evidence cards repetem o hero</li>
+          <li>Nenhum dado técnico concreto</li>
+          <li>Tech lead precisa scrollar muito</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="proposed" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>B — Proposta (compacto + mapa de domínio)</h3>
+      <div class="mockup">
+        <div class="mockup-header">Home proposta</div>
+        <div class="mockup-body" style="font-size:12px; line-height:1.5; color:#666;">
+          <!-- Compact hero -->
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:#f8fbf9; border-radius:14px; margin-bottom:12px; border:1px solid #e8f0ea;">
+            <div>
+              <p style="font-size:18px; font-weight:700; color:#111; margin:0;">MyFinance <span style="font-size:11px; color:#888; font-weight:400;">por Daniel Fontes</span></p>
+              <p style="font-size:12px; color:#666; margin:4px 0 0 0;">Sistema de finanças pessoais · Next.js 16 · App Router · Prisma/MySQL · TDD</p>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:4px 12px; font-size:10px;">GitHub</span>
+              <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:4px 12px; font-size:10px;">LinkedIn</span>
+              <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:4px 12px; font-size:10px;">Login</span>
+            </div>
+          </div>
+
+          <!-- Domain map -->
+          <div style="background:white; border:1px solid #e5e5e5; border-radius:14px; padding:16px; margin-bottom:10px;">
+            <p style="font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#2e7d4a; margin-bottom:10px;">Mapa de domínio</p>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
+              <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Transações</p>
+                <p style="font-size:9px; color:#888;">CRUD + status + competência</p>
+              </div>
+              <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Cartões</p>
+                <p style="font-size:9px; color:#888;">Faturas + parcelas</p>
+              </div>
+              <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Metas</p>
+                <p style="font-size:9px; color:#888;">Aportes + resgates + reserva</p>
+              </div>
+              <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Dashboard</p>
+                <p style="font-size:9px; color:#888;">Visão patrimonial mensal</p>
+              </div>
+              <div style="background:#f5f5f5; border:1px solid #e0e0e0; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Contas</p>
+                <p style="font-size:9px; color:#888;">Banco + carteira + saldo</p>
+              </div>
+              <div style="background:#f5f5f5; border:1px solid #e0e0e0; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Transferências</p>
+                <p style="font-size:9px; color:#888;">Entre contas próprias</p>
+              </div>
+              <div style="background:#f5f5f5; border:1px solid #e0e0e0; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Recorrência</p>
+                <p style="font-size:9px; color:#888;">Regras + projeção futura</p>
+              </div>
+              <div style="background:#f5f5f5; border:1px solid #e0e0e0; border-radius:8px; padding:8px; text-align:center;">
+                <p style="font-size:11px; font-weight:600; color:#111;">Importação</p>
+                <p style="font-size:9px; color:#888;">CSV + preview + validação</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compact stats row -->
+          <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:10px;">
+            <div style="background:white; border:1px solid #e5e5e5; border-radius:10px; padding:10px; text-align:center;">
+              <p style="font-size:16px; font-weight:700; color:#111;">350+</p>
+              <p style="font-size:9px; color:#888;">testes</p>
+            </div>
+            <div style="background:white; border:1px solid #e5e5e5; border-radius:10px; padding:10px; text-align:center;">
+              <p style="font-size:16px; font-weight:700; color:#111;">13</p>
+              <p style="font-size:9px; color:#888;">módulos</p>
+            </div>
+            <div style="background:white; border:1px solid #e5e5e5; border-radius:10px; padding:10px; text-align:center;">
+              <p style="font-size:16px; font-weight:700; color:#111;">12</p>
+              <p style="font-size:9px; color:#888;">API routes</p>
+            </div>
+            <div style="background:white; border:1px solid #e5e5e5; border-radius:10px; padding:10px; text-align:center;">
+              <p style="font-size:16px; font-weight:700; color:#111;">standalone</p>
+              <p style="font-size:9px; color:#888;">deploy PM2</p>
+            </div>
+          </div>
+
+          <!-- Screenshots compact -->
+          <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px;">
+            <div style="background:#f0f0f0; border-radius:8px; height:50px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#999;">Dashboard</div>
+            <div style="background:#f0f0f0; border-radius:8px; height:50px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#999;">Transações</div>
+            <div style="background:#f0f0f0; border-radius:8px; height:50px; display:flex; align-items:center; justify-content:center; font-size:9px; color:#999;">Import CSV</div>
+          </div>
+        </div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><h4>Vantagens</h4><ul>
+          <li>Hero em 2 linhas, direto ao ponto</li>
+          <li>Mapa de domínio mostra a arquitetura real</li>
+          <li>Números concretos do projeto</li>
+          <li>Tudo visível sem scroll</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+</div>

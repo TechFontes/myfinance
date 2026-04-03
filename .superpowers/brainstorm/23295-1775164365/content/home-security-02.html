@@ -1,0 +1,123 @@
+<h2>Onde encaixar segurança na home?</h2>
+<p class="subtitle">3 opções de como apresentar as práticas de segurança. Clique na que preferir.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>A — Módulo no mapa de domínio</h3>
+      <p>Segurança aparece como um módulo cross-cutting no grid, junto dos outros 8.</p>
+      <div class="mockup">
+        <div class="mockup-header">Mapa de domínio com Auth</div>
+        <div class="mockup-body" style="font-size:11px;">
+          <!-- Auth banner -->
+          <div style="background:#fefce8; border:1px solid #e5d98c; border-radius:8px; padding:10px 14px; margin-bottom:8px; display:flex; align-items:center; gap:12px;">
+            <span style="font-size:18px;">🔒</span>
+            <div>
+              <p style="font-weight:600; color:#111; margin:0;">Auth & Segurança</p>
+              <p style="font-size:9px; color:#666; margin:2px 0 0 0;">JWT + bcrypt · middleware de sessão · bloqueio de conta · role-based access</p>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:5px;">
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:6px; padding:6px; text-align:center;">
+              <p style="font-size:10px; font-weight:600;">Transações</p>
+            </div>
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:6px; padding:6px; text-align:center;">
+              <p style="font-size:10px; font-weight:600;">Cartões</p>
+            </div>
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:6px; padding:6px; text-align:center;">
+              <p style="font-size:10px; font-weight:600;">Metas</p>
+            </div>
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:6px; padding:6px; text-align:center;">
+              <p style="font-size:10px; font-weight:600;">Dashboard</p>
+            </div>
+          </div>
+          <p style="font-size:9px; color:#999; text-align:center; margin-top:6px;">Auth como camada transversal que protege todos os módulos</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>B — Linha de métricas dedicada</h3>
+      <p>Uma row de stats focada em segurança, abaixo das métricas gerais.</p>
+      <div class="mockup">
+        <div class="mockup-header">Stats de segurança</div>
+        <div class="mockup-body" style="font-size:11px;">
+          <p style="font-size:9px; text-transform:uppercase; letter-spacing:2px; color:#92400e; margin-bottom:8px;">Segurança</p>
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:8px; padding:10px; text-align:center;">
+              <p style="font-size:14px; font-weight:700; color:#111;">JWT</p>
+              <p style="font-size:9px; color:#888;">httpOnly cookies</p>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:8px; padding:10px; text-align:center;">
+              <p style="font-size:14px; font-weight:700; color:#111;">bcrypt</p>
+              <p style="font-size:9px; color:#888;">hash + salt</p>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:8px; padding:10px; text-align:center;">
+              <p style="font-size:14px; font-weight:700; color:#111;">middleware</p>
+              <p style="font-size:9px; color:#888;">guard em toda rota</p>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:8px; padding:10px; text-align:center;">
+              <p style="font-size:14px; font-weight:700; color:#111;">RBAC</p>
+              <p style="font-size:9px; color:#888;">admin + user roles</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>C — Ambos combinados</h3>
+      <p>Auth como banner cross-cutting no mapa + stats de segurança separados.</p>
+      <div class="mockup">
+        <div class="mockup-header">Visão combinada</div>
+        <div class="mockup-body" style="font-size:11px;">
+          <!-- Auth banner in domain map -->
+          <div style="background:#fefce8; border:1px solid #e5d98c; border-radius:8px; padding:8px 12px; margin-bottom:6px; display:flex; align-items:center; gap:10px;">
+            <span style="font-size:14px;">🔒</span>
+            <div>
+              <p style="font-weight:600; color:#111; margin:0; font-size:11px;">Auth & Segurança</p>
+              <p style="font-size:8px; color:#666; margin:1px 0 0 0;">Camada transversal · protege todos os módulos abaixo</p>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px; margin-bottom:10px;">
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:5px; padding:5px; text-align:center;">
+              <p style="font-size:9px; font-weight:600;">Transações</p>
+            </div>
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:5px; padding:5px; text-align:center;">
+              <p style="font-size:9px; font-weight:600;">Cartões</p>
+            </div>
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:5px; padding:5px; text-align:center;">
+              <p style="font-size:9px; font-weight:600;">Metas</p>
+            </div>
+            <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:5px; padding:5px; text-align:center;">
+              <p style="font-size:9px; font-weight:600;">Dashboard</p>
+            </div>
+          </div>
+          <!-- Security stats -->
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:4px;">
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:6px; padding:7px; text-align:center;">
+              <p style="font-size:12px; font-weight:700; color:#111;">JWT</p>
+              <p style="font-size:8px; color:#888;">httpOnly cookies</p>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:6px; padding:7px; text-align:center;">
+              <p style="font-size:12px; font-weight:700; color:#111;">bcrypt</p>
+              <p style="font-size:8px; color:#888;">hash + salt</p>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:6px; padding:7px; text-align:center;">
+              <p style="font-size:12px; font-weight:700; color:#111;">middleware</p>
+              <p style="font-size:8px; color:#888;">guard em toda rota</p>
+            </div>
+            <div style="background:#fffbeb; border:1px solid #e5d98c; border-radius:6px; padding:7px; text-align:center;">
+              <p style="font-size:12px; font-weight:700; color:#111;">RBAC</p>
+              <p style="font-size:8px; color:#888;">admin + user roles</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { ZodError } from 'zod'
 import { getUserFromRequest } from '@/lib/auth'
 import { updateRecurringRuleForUser } from '@/modules/recurrence/service'
 import { recurrenceUpdateSchema } from '@/modules/recurrence'
@@ -27,23 +26,15 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid recurring rule id' }, { status: 400 })
   }
 
-  try {
-    const payload = recurrenceUpdateSchema.parse(await request.json())
-    const rule = await updateRecurringRuleForUser(user.id, recurringRuleId, payload)
-
-    if (!rule) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    }
-
-    return NextResponse.json(rule)
-  } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json(
-        { error: error.issues[0]?.message ?? 'Invalid recurrence payload' },
-        { status: 400 },
-      )
-    }
-
-    throw error
+  const parsed = recurrenceUpdateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
   }
+  const rule = await updateRecurringRuleForUser(user.id, recurringRuleId, parsed.data)
+
+  if (!rule) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
+  return NextResponse.json(rule)
 }

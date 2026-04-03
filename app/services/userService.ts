@@ -4,6 +4,7 @@ type UserRecord = {
   name: string | null
   email: string
   password: string
+  tokenVersion: number
   resetToken: string | null
   resetTokenExpiry: Date | null
   role: 'USER' | 'ADMIN'
@@ -17,6 +18,7 @@ type UserCreateInput = {
   name?: string | null
   email: string
   password: string
+  tokenVersion?: number
   resetToken?: string | null
   resetTokenExpiry?: Date | null
   role?: 'USER' | 'ADMIN'
@@ -31,6 +33,7 @@ function mapUserRecord(user: {
   name: string | null
   email: string
   password: string
+  tokenVersion: number
   resetToken: string | null
   resetTokenExpires: Date | null
   role: 'USER' | 'ADMIN'

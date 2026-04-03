@@ -1,0 +1,102 @@
+<h2>Seção de Processo: como encaixar?</h2>
+<p class="subtitle">Mostra como o projeto foi conduzido — do problema à entrega, com decisões estruturadas. Onde posicionar?</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>A — Entre métricas e screenshot</h3>
+      <p>Processo aparece depois dos números, antes da prova visual. Fluxo: "o que é → como foi feito → como ficou".</p>
+    </div>
+  </div>
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-body">
+      <h3>B — Após screenshot, antes do footer</h3>
+      <p>Screenshot prova que funciona, processo prova como chegou lá. Encerra com profundidade antes do contato.</p>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top:24px;">Preview da seção de processo</h3>
+
+<div class="mockup">
+  <div class="mockup-header">Mapa de Processo — Como o projeto foi conduzido</div>
+  <div class="mockup-body" style="font-family: system-ui, -apple-system, sans-serif; background: linear-gradient(180deg, #fafbfc 0%, #f5f7f5 100%); padding: 24px;">
+
+    <p style="font-size:9px; text-transform:uppercase; letter-spacing:2.5px; color:#38a86b; margin:0 0 16px 0; font-weight:600;">Processo de engenharia</p>
+
+    <!-- Timeline -->
+    <div style="position:relative; padding-left:28px;">
+      <!-- Vertical line -->
+      <div style="position:absolute; left:8px; top:4px; bottom:4px; width:2px; background:linear-gradient(180deg, #38a86b, #d4ead8);"></div>
+
+      <!-- Step 1 -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Spec → Plano → Execução</p>
+            <span style="font-size:9px; color:#888; background:#f5f5f5; padding:2px 8px; border-radius:10px;">Metodologia</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">Cada feature começa com design spec, vira plano de implementação com tasks numeradas, e executa com TDD obrigatório. Nenhum código sem teste primeiro.</p>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Bugs de produção → Recovery Program</p>
+            <span style="font-size:9px; color:#888; background:#fef3c7; padding:2px 8px; border-radius:10px;">Estabilização</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">Schema drift, dashboard stale, edit flows quebrados. Em vez de hotfix, criou-se um programa de recuperação com auditoria, 8 tasks priorizadas por wave e gates de verificação.</p>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Execução paralela com agentes isolados</p>
+            <span style="font-size:9px; color:#888; background:#ede9fe; padding:2px 8px; border-radius:10px;">Coordenação</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">Tasks independentes rodaram em worktrees isolados. Category edit + dashboard freshness em paralelo. Seed + governance em paralelo. Integração com verificação cruzada.</p>
+        </div>
+      </div>
+
+      <!-- Step 4 -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Schema discipline como gate obrigatório</p>
+            <span style="font-size:9px; color:#888; background:#fce7f3; padding:2px 8px; border-radius:10px;">Governança</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">Migrations são lei. Testes verificam que toda mudança no schema tem migration correspondente. Deploy sem migration é bloqueante.</p>
+        </div>
+      </div>
+
+      <!-- Step 5 -->
+      <div style="position:relative;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">4 gates antes de publicar</p>
+            <span style="font-size:9px; color:#888; background:#dbeafe; padding:2px 8px; border-radius:10px;">Publish</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <span style="background:#f0faf2; border:1px solid #d4ead8; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#38a86b;">Design</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#fef3c7; border:1px solid #e5d98c; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#92400e;">Red test</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#ede9fe; border:1px solid #c4b5fd; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#6d28d9;">Integration</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#dbeafe; border:1px solid #93c5fd; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#1d4ed8;">Publish</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

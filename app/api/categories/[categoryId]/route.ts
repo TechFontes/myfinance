@@ -6,6 +6,11 @@ import {
 } from '@/modules/categories/service'
 import { categoryUpdateSchema } from '@/modules/categories'
 
+function parseCategoryId(raw: string): number | null {
+  const id = Number(raw)
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ categoryId: string }> },
@@ -17,9 +22,17 @@ export async function PATCH(
   }
 
   const { categoryId: categoryIdParam } = await params
-  const categoryId = Number(categoryIdParam)
-  const payload = categoryUpdateSchema.parse(await request.json())
-  const category = await updateCategoryById(user.id, categoryId, payload)
+  const categoryId = parseCategoryId(categoryIdParam)
+
+  if (!categoryId) {
+    return NextResponse.json({ error: 'Invalid category id' }, { status: 400 })
+  }
+
+  const parsed = categoryUpdateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const category = await updateCategoryById(user.id, categoryId, parsed.data)
 
   if (!category) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -39,7 +52,12 @@ export async function DELETE(
   }
 
   const { categoryId: categoryIdParam } = await params
-  const categoryId = Number(categoryIdParam)
+  const categoryId = parseCategoryId(categoryIdParam)
+
+  if (!categoryId) {
+    return NextResponse.json({ error: 'Invalid category id' }, { status: 400 })
+  }
+
   const category = await deleteCategoryById(user.id, categoryId)
 
   if (!category) {

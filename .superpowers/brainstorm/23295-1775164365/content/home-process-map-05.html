@@ -1,0 +1,121 @@
+<h2>Mapa de Processo — versão revisada</h2>
+<p class="subtitle">PRD como primeiro passo + TDD red-first explícito. Posicionado logo abaixo do mapa de domínio.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Mapa de Processo (abaixo do mapa de domínio)</div>
+  <div class="mockup-body" style="font-family: system-ui, -apple-system, sans-serif; background: linear-gradient(180deg, #fafbfc 0%, #f5f7f5 100%); padding: 24px;">
+
+    <p style="font-size:9px; text-transform:uppercase; letter-spacing:2.5px; color:#38a86b; margin:0 0 16px 0; font-weight:600;">Processo de engenharia</p>
+
+    <!-- Timeline -->
+    <div style="position:relative; padding-left:28px;">
+      <div style="position:absolute; left:8px; top:4px; bottom:4px; width:2px; background:linear-gradient(180deg, #38a86b, #d4ead8);"></div>
+
+      <!-- Step 1: PRD -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">PRD antes de qualquer código</p>
+            <span style="font-size:9px; color:#888; background:#f0faf2; padding:2px 8px; border-radius:10px;">Requisitos</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0 0 8px 0; line-height:1.5;">Cada feature nasce como documento de produto com escopo fechado, não como ideia solta.</p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <span style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:6px; padding:3px 8px; font-size:9px; color:#555;">Escopo definido</span>
+            <span style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:6px; padding:3px 8px; font-size:9px; color:#555;">Requisitos funcionais</span>
+            <span style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:6px; padding:3px 8px; font-size:9px; color:#555;">Requisitos não-funcionais</span>
+            <span style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:6px; padding:3px 8px; font-size:9px; color:#555;">Critérios de aceitação</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Design spec + Plan -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Design spec → Plano de implementação</p>
+            <span style="font-size:9px; color:#888; background:#f5f5f5; padding:2px 8px; border-radius:10px;">Arquitetura</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">PRD vira spec técnica com decisões de arquitetura. Spec vira plano com tasks numeradas, arquivos mapeados e checkpoints de commit.</p>
+        </div>
+      </div>
+
+      <!-- Step 3: TDD Red-first -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#dc2626; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #fecaca; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Teste primeiro, código depois</p>
+            <span style="font-size:9px; color:#991b1b; background:#fef2f2; padding:2px 8px; border-radius:10px; font-weight:600;">Lei do projeto</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0 0 8px 0; line-height:1.5;">Nenhuma linha de produção existe antes de um teste que falha. O teste prova o bug ou a feature ausente antes do fix.</p>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:700; color:#dc2626;">RED — teste falha</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:700; color:#16a34a;">GREEN — código passa</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#f5f5f5; border:1px solid #e5e5e5; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:700; color:#555;">REFACTOR — limpa</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Parallel execution -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Execução paralela em worktrees isolados</p>
+            <span style="font-size:9px; color:#888; background:#ede9fe; padding:2px 8px; border-radius:10px;">Coordenação</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">Tasks independentes rodam em paralelo com git worktrees. Integração apenas após verificação cruzada de cada agente.</p>
+        </div>
+      </div>
+
+      <!-- Step 5: Schema discipline -->
+      <div style="position:relative; margin-bottom:16px;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">Schema discipline como gate obrigatório</p>
+            <span style="font-size:9px; color:#888; background:#fce7f3; padding:2px 8px; border-radius:10px;">Governança</span>
+          </div>
+          <p style="font-size:10px; color:#666; margin:0; line-height:1.5;">Toda mudança no Prisma schema exige migration. Testes automatizados verificam que a migration existe. Deploy sem migration é bloqueante.</p>
+        </div>
+      </div>
+
+      <!-- Step 6: Publish gates -->
+      <div style="position:relative;">
+        <div style="position:absolute; left:-24px; top:2px; width:14px; height:14px; background:#38a86b; border-radius:50%; border:2px solid #f5f7f5;"></div>
+        <div style="background:white; border:1px solid #e2ebe4; border-radius:12px; padding:12px 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <p style="font-size:12px; font-weight:700; color:#111; margin:0;">4 gates antes de publicar</p>
+            <span style="font-size:9px; color:#888; background:#dbeafe; padding:2px 8px; border-radius:10px;">Publish</span>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:6px;">
+            <span style="background:#f0faf2; border:1px solid #d4ead8; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#38a86b;">Design</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#fef2f2; border:1px solid #fecaca; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#dc2626;">Red test</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#ede9fe; border:1px solid #c4b5fd; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#6d28d9;">Integration</span>
+            <span style="font-size:12px; color:#ccc;">→</span>
+            <span style="background:#dbeafe; border:1px solid #93c5fd; border-radius:6px; padding:4px 10px; font-size:9px; font-weight:600; color:#1d4ed8;">Publish</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;">
+  <h3>Ordem final das seções da home</h3>
+  <div style="font-size:13px; line-height:2;">
+    <p>1. Hero compacto</p>
+    <p>2. Mapa de domínio (com Auth cross-cutting)</p>
+    <p>3. <strong>Mapa de processo</strong> (logo abaixo do domínio)</p>
+    <p>4. Métricas</p>
+    <p>5. Screenshot destaque (carousel)</p>
+    <p>6. Footer cartão de visita</p>
+  </div>
+</div>

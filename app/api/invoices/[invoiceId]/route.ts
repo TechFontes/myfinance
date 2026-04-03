@@ -3,6 +3,11 @@ import { revalidatePath } from 'next/cache'
 import { getUserFromRequest } from '@/lib/auth'
 import { getInvoiceByIdForUser, payInvoiceForUser } from '@/modules/invoices/service'
 
+function parseInvoiceId(raw: string): number | null {
+  const id = Number(raw)
+  return Number.isInteger(id) && id > 0 ? id : null
+}
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ invoiceId: string }> },
@@ -14,7 +19,12 @@ export async function GET(
   }
 
   const { invoiceId: invoiceIdParam } = await params
-  const invoiceId = Number(invoiceIdParam)
+  const invoiceId = parseInvoiceId(invoiceIdParam)
+
+  if (!invoiceId) {
+    return NextResponse.json({ error: 'Invalid invoice id' }, { status: 400 })
+  }
+
   const invoice = await getInvoiceByIdForUser(user.id, invoiceId)
 
   if (!invoice) {
@@ -51,7 +61,11 @@ export async function PATCH(
     )
   }
 
-  const invoiceId = Number(invoiceIdParam)
+  const invoiceId = parseInvoiceId(invoiceIdParam)
+
+  if (!invoiceId) {
+    return NextResponse.json({ error: 'Invalid invoice id' }, { status: 400 })
+  }
 
   if (body.status !== 'PAID') {
     return NextResponse.json(

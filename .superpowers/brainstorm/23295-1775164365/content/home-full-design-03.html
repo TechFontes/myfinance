@@ -1,0 +1,157 @@
+<h2>Design completo da nova Home</h2>
+<p class="subtitle">Todas as decisões aplicadas em um mockup único. Revise cada seção.</p>
+
+<div class="mockup">
+  <div class="mockup-header">MyFinance — Portfolio Home (proposta final)</div>
+  <div class="mockup-body" style="font-family: system-ui, -apple-system, sans-serif; background: linear-gradient(180deg, #fbfdfb 0%, #f5f9f4 50%, #edf5ee 100%); padding: 24px; border-radius: 0 0 8px 8px;">
+
+    <!-- HERO COMPACTO -->
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 20px; background:rgba(255,255,255,0.85); border-radius:16px; border:1px solid #e2ebe4; margin-bottom:16px; backdrop-filter:blur(8px);">
+      <div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:22px; font-weight:700; color:#111; letter-spacing:-0.5px;">MyFinance</span>
+          <span style="height:4px; width:4px; border-radius:50%; background:#38a86b;"></span>
+          <span style="font-size:12px; color:#666;">por Daniel Fontes</span>
+        </div>
+        <p style="font-size:12px; color:#888; margin:4px 0 0 0;">Sistema de finanças pessoais · Next.js 16 · App Router · Prisma/MySQL · TDD</p>
+      </div>
+      <div style="display:flex; gap:6px; flex-shrink:0;">
+        <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:5px 14px; font-size:11px; color:#333; cursor:pointer;">GitHub</span>
+        <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:5px 14px; font-size:11px; color:#333; cursor:pointer;">LinkedIn</span>
+        <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:5px 14px; font-size:11px; color:#333; cursor:pointer;">Demo</span>
+        <span style="background:white; border:1px solid #c8dcc8; border-radius:20px; padding:5px 14px; font-size:11px; color:#38a86b; cursor:pointer;">Login →</span>
+      </div>
+    </div>
+
+    <!-- MAPA DE DOMÍNIO COM AUTH -->
+    <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:16px; padding:18px; margin-bottom:12px;">
+      <p style="font-size:9px; text-transform:uppercase; letter-spacing:2.5px; color:#38a86b; margin:0 0 12px 0; font-weight:600;">Mapa de domínio</p>
+
+      <!-- Auth cross-cutting banner -->
+      <div style="background:#fefce8; border:1px solid #e5d98c; border-radius:10px; padding:10px 14px; margin-bottom:10px; display:flex; align-items:center; gap:12px;">
+        <div style="width:28px; height:28px; background:#fef3c7; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">🔒</div>
+        <div>
+          <p style="font-weight:600; color:#111; margin:0; font-size:12px;">Auth & Segurança</p>
+          <p style="font-size:10px; color:#78716c; margin:2px 0 0 0;">JWT httpOnly · bcrypt · middleware de sessão · RBAC admin/user · bloqueio de conta</p>
+        </div>
+      </div>
+
+      <!-- Domain modules grid -->
+      <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+        <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Transações</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">CRUD · status · competência</p>
+        </div>
+        <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Cartões</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">Faturas · parcelas · close/due</p>
+        </div>
+        <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Metas</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">Aportes · resgates · reserva</p>
+        </div>
+        <div style="background:#f0faf2; border:1px solid #d4ead8; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Dashboard</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">Visão patrimonial mensal</p>
+        </div>
+        <div style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Contas</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">Banco · carteira · saldo</p>
+        </div>
+        <div style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Transferências</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">Entre contas próprias</p>
+        </div>
+        <div style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Recorrência</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">Regras · projeção futura</p>
+        </div>
+        <div style="background:#f8f8f8; border:1px solid #e5e5e5; border-radius:10px; padding:10px 8px; text-align:center;">
+          <p style="font-size:12px; font-weight:600; color:#111; margin:0;">Importação</p>
+          <p style="font-size:9px; color:#888; margin:3px 0 0 0;">CSV · preview · validação</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MÉTRICAS -->
+    <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:12px; padding:12px 8px; text-align:center;">
+        <p style="font-size:20px; font-weight:700; color:#111; margin:0;">350+</p>
+        <p style="font-size:9px; color:#888; margin:3px 0 0 0;">testes automatizados</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:12px; padding:12px 8px; text-align:center;">
+        <p style="font-size:20px; font-weight:700; color:#111; margin:0;">13</p>
+        <p style="font-size:9px; color:#888; margin:3px 0 0 0;">módulos de domínio</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:12px; padding:12px 8px; text-align:center;">
+        <p style="font-size:20px; font-weight:700; color:#111; margin:0;">12</p>
+        <p style="font-size:9px; color:#888; margin:3px 0 0 0;">API routes RESTful</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:12px; padding:12px 8px; text-align:center;">
+        <p style="font-size:20px; font-weight:700; color:#111; margin:0;">TDD</p>
+        <p style="font-size:9px; color:#888; margin:3px 0 0 0;">test-first workflow</p>
+      </div>
+      <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:12px; padding:12px 8px; text-align:center;">
+        <p style="font-size:20px; font-weight:700; color:#111; margin:0;">PM2</p>
+        <p style="font-size:9px; color:#888; margin:3px 0 0 0;">standalone deploy</p>
+      </div>
+    </div>
+
+    <!-- SCREENSHOT DESTAQUE -->
+    <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:16px; padding:18px; margin-bottom:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <p style="font-size:9px; text-transform:uppercase; letter-spacing:2.5px; color:#38a86b; margin:0; font-weight:600;">Produto em execução</p>
+        <div style="display:flex; gap:6px;">
+          <span style="width:8px; height:8px; border-radius:50%; background:#38a86b;"></span>
+          <span style="width:8px; height:8px; border-radius:50%; background:#e0e0e0;"></span>
+          <span style="width:8px; height:8px; border-radius:50%; background:#e0e0e0;"></span>
+        </div>
+      </div>
+      <div style="background:#e8efe9; border-radius:12px; height:180px; display:flex; align-items:center; justify-content:center; border:1px solid #d4ead8;">
+        <div style="text-align:center;">
+          <p style="font-size:14px; color:#555; margin:0;">📊 Dashboard patrimonial</p>
+          <p style="font-size:10px; color:#999; margin:4px 0 0 0;">Imagem real do sistema em execução</p>
+        </div>
+      </div>
+      <p style="font-size:10px; color:#888; text-align:center; margin:8px 0 0 0;">Posição financeira consolidada com cards de saldo, pendências e visão mensal</p>
+    </div>
+
+    <!-- FOOTER CARTÃO DE VISITA -->
+    <div style="background:rgba(255,255,255,0.8); border:1px solid #e2ebe4; border-radius:16px; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <p style="font-size:14px; font-weight:600; color:#111; margin:0;">Daniel Fontes</p>
+        <p style="font-size:11px; color:#888; margin:2px 0 0 0;">Engenheiro de software · Rio de Janeiro</p>
+      </div>
+      <div style="display:flex; gap:16px; align-items:center;">
+        <div style="text-align:center;">
+          <p style="font-size:10px; color:#888; margin:0;">Email</p>
+          <p style="font-size:11px; color:#333; margin:2px 0 0 0; font-weight:500;">daniel@example.com</p>
+        </div>
+        <div style="text-align:center;">
+          <p style="font-size:10px; color:#888; margin:0;">WhatsApp</p>
+          <p style="font-size:11px; color:#333; margin:2px 0 0 0; font-weight:500;">(21) 98979-9816</p>
+        </div>
+        <div style="display:flex; gap:6px;">
+          <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:4px 12px; font-size:10px; color:#333;">GitHub</span>
+          <span style="background:white; border:1px solid #ddd; border-radius:20px; padding:4px 12px; font-size:10px; color:#333;">LinkedIn</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div style="margin-top:20px;">
+  <h3>Resumo das seções</h3>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; font-size:13px;">
+    <div>
+      <p><strong>1. Hero compacto</strong> — Nome + stack em 2 linhas + CTAs</p>
+      <p><strong>2. Mapa de domínio</strong> — Auth cross-cutting + 8 módulos em grid</p>
+      <p><strong>3. Métricas</strong> — 5 números concretos do projeto</p>
+    </div>
+    <div>
+      <p><strong>4. Screenshot destaque</strong> — Carousel com dots, 1 imagem grande por vez</p>
+      <p><strong>5. Footer cartão de visita</strong> — Nome, contato direto, links sociais</p>
+    </div>
+  </div>
+</div>

@@ -2,14 +2,7 @@ import bcrypt from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromRequest } from '@/lib/auth'
 import { updateUserById } from '@/services/userService'
-
-type ProfilePayload = {
-  name?: string
-  email?: string
-  currentPassword?: string
-  newPassword?: string
-  confirmPassword?: string
-}
+import { profileUpdateSchema } from '@/modules/auth/validators'
 
 export async function PATCH(req: NextRequest) {
   const user = await getUserFromRequest()
@@ -17,7 +10,16 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const payload = (await req.json()) as ProfilePayload
+  const parsed = profileUpdateSchema.safeParse(await req.json())
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Validation failed', details: parsed.error.flatten() },
+      { status: 400 },
+    )
+  }
+
+  const payload = parsed.data
 
   if (payload.email) {
     if (!payload.currentPassword) {
@@ -52,7 +54,7 @@ export async function PATCH(req: NextRequest) {
   const updatedUser = await updateUserById(user.id, {
     ...(payload.name ? { name: payload.name } : {}),
     ...(payload.email ? { email: payload.email } : {}),
-    ...(password ? { password } : {}),
+    ...(password ? { password, tokenVersion: (user.tokenVersion ?? 0) + 1 } : {}),
   })
 
   return NextResponse.json({

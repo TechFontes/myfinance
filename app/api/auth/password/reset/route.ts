@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
     password: hashedPassword,
     resetToken: null,
     resetTokenExpiry: null,
+    tokenVersion: (user.tokenVersion ?? 0) + 1,
   })
 
   return NextResponse.json({ success: true })

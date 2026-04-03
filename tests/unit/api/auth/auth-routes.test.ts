@@ -75,7 +75,7 @@ describe("auth routes", () => {
       method: "POST",
       body: JSON.stringify({
         email: "user@example.com",
-        password: "123456",
+        password: "12345678",
       }),
     })
 

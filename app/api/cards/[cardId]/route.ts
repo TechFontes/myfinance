@@ -26,8 +26,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid card id' }, { status: 400 })
   }
 
-  const payload = cardUpdateSchema.parse(await request.json())
-  const card = await updateCardForUser(user.id, cardId, payload)
+  const parsed = cardUpdateSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0]?.message ?? 'Invalid input' }, { status: 400 })
+  }
+  const card = await updateCardForUser(user.id, cardId, parsed.data)
 
   if (!card) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
