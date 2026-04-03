@@ -61,27 +61,27 @@ function SummaryCard({
   return (
     <Card className={`overflow-hidden border-border/80 bg-background/95 p-0 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.45)] border-l-4 ${accentClassName.includes('emerald') ? 'border-l-emerald-500/60 bg-emerald-500/5' : 'border-l-foreground/60 bg-foreground/5'}`}>
       <div className={accentClassName} aria-hidden="true" />
-      <div className="space-y-6 p-6">
-        <div className="space-y-2">
+      <div className="max-h-[450px] space-y-3 p-4">
+        <div className="space-y-1.5">
           <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{eyebrow}</p>
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <h3 className="font-serif text-5xl tracking-tight text-foreground">{formatCurrency(balance)}</h3>
+          <h3 className="font-serif text-3xl tracking-tight text-foreground">{formatCurrency(balance)}</h3>
           <p className="text-sm text-muted-foreground">Posição patrimonial do período</p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-emerald-500/35 bg-emerald-500/12 p-4">
+        <div className="grid gap-2.5 sm:grid-cols-2">
+          <div className="rounded-2xl border border-emerald-500/35 bg-emerald-500/12 p-3">
             <p className="text-xs uppercase tracking-[0.24em] text-emerald-900 dark:text-emerald-300">
               Receitas
             </p>
-            <p className="mt-2 text-xl font-semibold text-emerald-950 dark:text-emerald-200">
+            <p className="mt-1.5 text-lg font-semibold text-emerald-950 dark:text-emerald-200">
               {formatCurrency(income)}
             </p>
           </div>
-          <div className="rounded-2xl border border-rose-500/35 bg-rose-500/12 p-4">
+          <div className="rounded-2xl border border-rose-500/35 bg-rose-500/12 p-3">
             <p className="text-xs uppercase tracking-[0.24em] text-rose-900 dark:text-rose-300">
               Despesas
             </p>
-            <p className="mt-2 text-xl font-semibold text-rose-950 dark:text-rose-200">
+            <p className="mt-1.5 text-lg font-semibold text-rose-950 dark:text-rose-200">
               {formatCurrency(expense)}
             </p>
           </div>
@@ -103,9 +103,9 @@ function SectionPanel({
   children: React.ReactNode
   }) {
   return (
-    <Card className="border-border/80 bg-background/95 p-5 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.45)]">
-      <div className="space-y-5">
-        <div className="space-y-2 border-b border-border/80 pb-4">
+    <Card className="border-border/80 bg-background/95 p-4 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.45)]">
+      <div className="space-y-3">
+        <div className="space-y-1.5 border-b border-border/80 pb-3">
           <p className="text-[11px] uppercase tracking-[0.34em] text-muted-foreground">{eyebrow}</p>
           <h2 className="font-serif text-2xl tracking-tight text-foreground">{title}</h2>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground">{subtitle}</p>
@@ -167,7 +167,7 @@ export function DashboardReportView({
   const showTransfers = selectedView === 'general' || selectedView === 'consolidated'
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <header className="overflow-hidden rounded-[2rem] border border-border/80 bg-background/95 shadow-[0_24px_80px_-48px_rgba(15,23,42,0.35)] ring-1 ring-border/40">
         <div className="grid gap-4 px-6 py-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end lg:px-8 lg:py-6">
           <div className="space-y-3">
@@ -238,12 +238,12 @@ export function DashboardReportView({
       ) : null}
 
       {selectedView !== 'accumulated' && showSummaryCards ? (
-        <section className="grid gap-4 lg:grid-cols-2" aria-label="Resumo patrimonial">
+        <section className="grid gap-3 lg:grid-cols-2" aria-label="Resumo patrimonial">
           <p className="col-span-full text-[11px] uppercase tracking-[0.34em] text-muted-foreground">Resumo patrimonial</p>
           <SummaryCard
             title="Saldo previsto"
             eyebrow="Projeção"
-            accentClassName="h-2 rounded-t-xl w-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300"
+            accentClassName="h-1.5 rounded-t-xl w-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-300"
             income={report.summary.forecastIncome}
             expense={report.summary.forecastExpense}
             balance={report.summary.forecastBalance}
@@ -251,7 +251,7 @@ export function DashboardReportView({
           <SummaryCard
             title="Saldo realizado"
             eyebrow="Realizado"
-            accentClassName="h-2 rounded-t-xl w-full bg-gradient-to-r from-foreground via-foreground/85 to-foreground/65"
+            accentClassName="h-1.5 rounded-t-xl w-full bg-gradient-to-r from-foreground via-foreground/85 to-foreground/65"
             income={report.summary.realizedIncome}
             expense={report.summary.realizedExpense}
             balance={report.summary.realizedBalance}
@@ -261,19 +261,19 @@ export function DashboardReportView({
 
       {selectedView !== 'accumulated' && showChart ? <DashboardSummaryChart summary={report.summary} /> : null}
 
-      {selectedView !== 'accumulated' ? <section className="grid gap-4 xl:grid-cols-2 border-t border-border/60 pt-6">
+      {selectedView !== 'accumulated' ? <section className="grid gap-3 xl:grid-cols-2 border-t border-border/60 pt-4">
         {showPending ? (
           <SectionPanel
             eyebrow="Pendências"
             title={selectedView === 'payable' ? 'Saídas e obrigações' : 'Itens a vencer'}
             subtitle="Lançamentos previstos e pendentes do período."
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {visiblePending.length > 0 ? (
                 visiblePending.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
+                    className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-2.5 shadow-sm"
                   >
                     <div>
                       <p className="font-medium">{item.description}</p>
@@ -304,11 +304,11 @@ export function DashboardReportView({
             title="Saldos por conta"
             subtitle="Posição consolidada de caixa no período."
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {report.accounts.map((account) => (
                 <div
                   key={account.id}
-                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-2.5 shadow-sm"
                 >
                   <div>
                     <p className="font-medium">{account.name}</p>
@@ -331,18 +331,18 @@ export function DashboardReportView({
         ) : null}
       </section> : null}
 
-      {selectedView !== 'accumulated' ? <section className="grid gap-4 xl:grid-cols-3 border-t border-border/40 pt-6 opacity-95">
+      {selectedView !== 'accumulated' ? <section className="grid gap-3 xl:grid-cols-3 border-t border-border/40 pt-4 opacity-95">
         {showCategories ? (
           <SectionPanel
             eyebrow="Categorias"
             title={selectedView === 'receivable' ? 'Entradas por categoria' : selectedView === 'payable' ? 'Saídas por categoria' : 'Totais por categoria'}
             subtitle="Categorias com maior impacto no período."
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {visibleCategories.map((category) => (
                 <div
                   key={category.categoryId}
-                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-2.5 shadow-sm"
                 >
                   <div>
                     <p className="font-medium">{category.categoryName}</p>
@@ -368,11 +368,11 @@ export function DashboardReportView({
             title="Cartões e faturas"
             subtitle="Resumo das faturas em aberto, pagas ou canceladas."
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {report.cardInvoices.map((invoice) => (
                 <div
                   key={invoice.invoiceId}
-                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
+                  className="flex items-center justify-between rounded-xl border border-border/70 bg-muted/30 p-2.5 shadow-sm"
                 >
                   <div>
                     <p className="font-medium">{invoice.cardName}</p>
@@ -405,11 +405,11 @@ export function DashboardReportView({
             title="Transferências"
             subtitle="Movimentos entre contas, separados de receitas e despesas."
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {report.transfers.map((transfer) => (
                 <div
                   key={transfer.transferId}
-                  className="rounded-xl border border-border/70 bg-muted/30 p-3 shadow-sm"
+                  className="rounded-xl border border-border/70 bg-muted/30 p-2.5 shadow-sm"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>
